@@ -80,10 +80,9 @@ export function init() {
   });
   bind("tabX",    "click", () => { setText("", { echo: true }); emit(EV.TOAST, "Cleared"); });
 
-  // A clip arriving from a peer fills the editor; the OS write is handled by
-  // clipboard/capture.apply, which owns the loop-suppression ordering.
-  on(EV.TEXT_RECEIVED, ({ text }) => setText(text));
-
+  // No TEXT_RECEIVED listener here: whether an arriving clip may fill the
+  // editor is main.js's call — it applies clean, offers over unsent work.
+  // Listening here too applied every clip first and made that check moot.
   on(EV.TEXT_STREAMED, onStreamed);
 
   // The clipboard buttons are the bridge you need only when the app is not
@@ -194,7 +193,11 @@ function commit() {
   // this compares what the editor sends.
   const s = state.get();
   const value = ta.value.trim();
-  if (!value || value === s.lastSent.trim()) return;
+  if (!value) return;
+  // Deduped, but the text IS the session's current clip — mark it applied, or
+  // the editor counts as holding unsent work forever and every later clip is
+  // offered instead of applied.
+  if (value === s.lastSent.trim()) { lastAppliedText = ta.value; return; }
 
   // Characters for the message, bytes for the decision — see config.js TEXT.
   // A CJK or emoji-heavy clip is inside the character count and still over the

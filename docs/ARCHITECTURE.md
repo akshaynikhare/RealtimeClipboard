@@ -135,7 +135,7 @@ bus.**
 ```
   clipboard/capture ──emit(TEXT_CAPTURED)──► bus ──► main.js ──► transport/relay
                                               │
-  ui/panels/editor ◄────on(TEXT_RECEIVED)─────┘
+  ui/panels/editor ◄────on(TEXT_STREAMED)─────┘
 ```
 
 `main.js` is the only file allowed to know both sides. Everything else depends on

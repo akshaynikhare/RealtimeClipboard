@@ -502,7 +502,9 @@ function wire() {
   on(EV.TEXT_RECEIVED, async ({ text }) => {
     const onClipboard = await capture.apply(text);
 
-    if (!editor.isDirty()) {
+    // A clip identical to what is on screen has nothing to destroy, so it
+    // never warrants an offer — "replaces what you have typed" with itself.
+    if (!editor.isDirty() || text === editor.getText()) {
       editor.setText(text);
       // A clean apply supersedes any offer still on screen — its "Show it"
       // would now roll the editor BACK to the older clip it was holding.
