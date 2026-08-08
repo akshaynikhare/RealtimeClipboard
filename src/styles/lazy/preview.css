@@ -1,0 +1,99 @@
+/*
+ * The full-screen file viewer (ui/features/preview.js).
+ *
+ * Injected on first open rather than @imported from main.css — mobile.css says
+ * nothing about these classes, so source order cannot bite. Same z band as the
+ * other modals: above the toast at 50.
+ */
+
+.preview {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.preview-back {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, .7);
+}
+
+.preview-dlg {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(1100px, 100%);
+  height: calc(100vh - 32px);
+  background: var(--side);
+  border: 1px solid var(--bd2);
+  border-radius: 4px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, .5);
+  overflow: hidden;
+}
+
+.preview-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--bd2);
+}
+
+.preview-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bright);
+}
+
+.preview-size {
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--dim);
+}
+
+.preview-x {
+  border: 0;
+  background: none;
+  padding: 2px 8px;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--dim);
+  cursor: pointer;
+}
+
+.preview-x:hover {
+  color: var(--bright);
+}
+
+.preview-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+}
+
+.preview-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Stretched as a flex item, never height:100% — a percentage inside a
+   content-sized track resolves to nothing and the iframe collapses to its
+   intrinsic 150px. */
+.preview-doc {
+  flex: 1;
+  align-self: stretch;
+  border: 0;
+}

@@ -53,6 +53,31 @@
 .pwa-x { color:var(--dim); }
 .pwa-x:hover { color:var(--text); }
 
+/* The standing link to the apps, above the ad slot (#mount-getapp). The 56px
+   inset matches .adslot so both line up with the editor text past the gutter. */
+.getapp {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin:2px 16px 8px 56px;
+  font-size:11.5px;
+  color:var(--dim);
+  text-decoration:none;
+}
+.getapp:hover { color:var(--text); text-decoration:underline; }
+.getapp svg {
+  width:13px; height:13px;
+  flex:none;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.6;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+@media (max-width:900px) {
+  .getapp { margin-left:14px; }
+}
+
 /* Single column on the Android target — the breakpoint layout.css uses.
    Message and dismiss keep the top row; the action drops to a full-width row
    rather than squeezing the text down to two words. */

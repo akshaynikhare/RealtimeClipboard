@@ -222,6 +222,24 @@ function renderOffers() {
   host.appendChild(el);
 }
 
+/**
+ * The standing link under the editor. The offer row above is one-shot — taken
+ * or dismissed, it never returns — which left no route back to the download
+ * page from inside the app. An anchor, not a button: it leaves the app, so
+ * middle-click and "open in new tab" have to work.
+ */
+function mountGetApp() {
+  const host = $("mount-getapp");
+  if (!host || IS_DESKTOP) return;
+  setHTML(host, `
+    <a class="getapp" href="${esc(atRoot("download/"))}"
+       target="_blank" rel="noopener noreferrer"
+       title="Desktop app, mobile install and CLI">
+      <svg viewBox="0 0 24 24" aria-hidden="true">${ICON.install}</svg>
+      <span>Get the desktop &amp; mobile apps</span>
+    </a>`);
+}
+
 /** Already running as an installed app? Then there is nothing to offer. */
 function installed() {
   return ["standalone", "window-controls-overlay", "fullscreen", "minimal-ui"]
@@ -329,6 +347,7 @@ export function init() {
   restoreRoom();
   linkStylesheet();
   linkManifest();
+  mountGetApp();
 
   if (started) return;        // a second call must not double-register listeners
   started = true;

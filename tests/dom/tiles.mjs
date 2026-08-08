@@ -70,6 +70,7 @@ global.CSS = window.CSS?.escape ? window.CSS : { escape: s => String(s).replace(
 
 const registry   = await load("src/files/registry.js");
 const filesPanel = await load("src/ui/panels/filesPanel.js");
+const modal      = await load("src/ui/primitives/modal.js");
 const S = registry.STATE;
 
 console.log("\nFiles grid — progress must not rebuild\n");
@@ -145,6 +146,43 @@ ok("a tick on another file leaves that message alone",
 registry.remove(a.id, { announce: false });
 ok("removing a file drops its tile", tileOf(a.id) === null,
    `${grid.querySelectorAll(".tile").length} tiles left`);
+
+/* ---------- click: images and PDFs preview, the rest saves ---------- */
+
+await registry.add(
+  [new File([new Uint8Array(64)], "pic.png",    { type: "image/png" }),
+   new File([new Uint8Array(64)], "report.pdf", { type: "application/pdf" }),
+   new File([new Uint8Array(64)], "notes.txt",  { type: "text/plain" })],
+  { makeThumbs: false });
+
+const [pic, pdf, txt] = registry.all().slice(-3);
+const click = el =>
+  el.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true }));
+const escape = () =>
+  document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape" }));
+
+click(tileOf(pic.id));
+const overlay = document.querySelector(".preview");
+ok("clicking an image opens the preview", Boolean(overlay?.querySelector(".preview-img")),
+   "not a download");
+ok("...with a download button in it", Boolean(overlay?.querySelector("[data-save]")));
+ok("...and the click alone saved nothing", !pic.url);
+
+click(overlay.querySelector("[data-save]"));
+ok("the preview's download button saves the file", Boolean(pic.url));
+
+escape();
+ok("Escape closes the preview", document.querySelector(".preview") === null);
+
+click(tileOf(pdf.id));
+ok("clicking a PDF frames the browser's own viewer",
+   Boolean(document.querySelector(".preview .preview-doc")));
+modal.close();
+
+click(tileOf(txt.id));
+ok("any other type downloads directly",
+   Boolean(txt.url) && !document.querySelector(".preview"),
+   "no overlay for a .txt");
 
 console.log(`\n${"=".repeat(58)}`);
 console.log(`TILES: ${pass}/${pass + fail} passed`);

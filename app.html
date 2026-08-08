@@ -49,6 +49,11 @@
                            copy-pasted gtag snippet is not used in this repo.
        img-src   data:     files/thumbs.js canvas thumbnails
                  blob:     files/registry.js object URLs for received files
+       frame-src blob:     ui/features/preview.js shows a PDF in the browser's
+                           viewer through an object URL — a URL this app minted
+                           from a Blob it typed itself, so nothing else can be
+                           framed. The header CSP carries blob: too, or the
+                           intersection would refuse it in production.
                  gtm       gtag also beacons via an IMAGE to
                            googletagmanager.com/td, not only via fetch. Found by
                            csp-check; nothing in Google's setup flow mentions it,
@@ -71,7 +76,7 @@
      pinned here is deliberate — a corporate build that can physically reach
      only its own relay is a feature, not an oversight. tests/static-check.mjs
      asserts this list agrees with RELAY_URL in src/core/config.js. !! -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://www.googletagmanager.com; img-src 'self' data: blob: https://www.googletagmanager.com; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://*.google-analytics.com https://*.analytics.google.com; require-trusted-types-for 'script'; trusted-types realtimeclipboard">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src blob:; script-src 'self' https://www.googletagmanager.com; img-src 'self' data: blob: https://www.googletagmanager.com; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://*.google-analytics.com https://*.analytics.google.com; require-trusted-types-for 'script'; trusted-types realtimeclipboard">
 
 <title>RealtimeClipboard</title>
 <meta name="theme-color" content="#007acc">
@@ -211,6 +216,12 @@
           <div id="mount-hints" aria-hidden="true"></div>
         </div>
       </div>
+
+      <!-- The standing route to the apps. The header offer is one-shot by
+           design — answered or dismissed, it never returns — so this quiet
+           line is the way back to the download page afterwards. Built by
+           ui/features/install.js, which owns the offer it backs up. -->
+      <div id="mount-getapp"></div>
 
       <!-- The single ad slot. Below the editor, never beside the file or
            session controls — see src/ui/features/ads.js for why. -->

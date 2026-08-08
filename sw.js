@@ -43,7 +43,7 @@
 
 const KILL = false;
 
-const VERSION = "v13";
+const VERSION = "v15";
 const CACHE = `realtimeclipboard-shell-${VERSION}`;
 
 /** Hosts this worker must never touch, whatever the request looks like. */
@@ -112,6 +112,7 @@ const SHELL = [
   "./src/styles/lazy/desktop.css",
   "./src/styles/lazy/install.css",
   "./src/styles/lazy/lock.css",
+  "./src/styles/lazy/preview.css",
   "./src/styles/lazy/whatsnew.css",
   "./src/styles/main.css",
   "./src/styles/mobile.css",
@@ -133,6 +134,7 @@ const SHELL = [
   "./src/ui/features/install.js",
   "./src/ui/features/lockButton.js",
   "./src/ui/features/lockDialog.js",
+  "./src/ui/features/preview.js",
   "./src/ui/features/qr.js",
   "./src/ui/features/syncMode.js",
   "./src/ui/features/whatsNew.js",
