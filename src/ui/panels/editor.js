@@ -190,9 +190,11 @@ function commit() {
   // window. That window is there to stop the poller echoing our own clipboard
   // writes; a person typing is not an echo, and swallowing their edit because a
   // clip landed 1.5 s ago would be a keystroke vanishing for no visible reason.
+  // Trimmed on both sides, because capture() stores what the clipboard held and
+  // this compares what the editor sends.
   const s = state.get();
   const value = ta.value.trim();
-  if (!value || value === s.lastSent) return;
+  if (!value || value === s.lastSent.trim()) return;
 
   // Characters for the message, bytes for the decision — see config.js TEXT.
   // A CJK or emoji-heavy clip is inside the character count and still over the

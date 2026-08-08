@@ -38,7 +38,7 @@ export const EV = {
   TEXT_STREAMED:   "text:streamed",    // {text, caret, name, from} in
   TIER_CHANGED:    "clipboard:tier",   // {tier, note}
   PENDING_CLIP:    "clipboard:pending",// {pending, text} — arrived while unfocused
-  CLIP_OFFERED:    "clipboard:offered",// {text} — arrived, but the editor has unsent work
+  CLIP_OFFERED:    "clipboard:offered",// {text, onClipboard} — arrived over unsent work; text:null retracts the offer
   PEER_JOINED:     "peers:joined",     // {name} — a device entered the session
   PEER_LEFT:       "peers:left",       // {name}
   PERMISSION:      "clipboard:permission", // {state} granted|prompt|denied

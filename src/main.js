@@ -495,16 +495,19 @@ function wire() {
    * algorithm: never merge, never destroy, always offer.
    */
   on(EV.TEXT_RECEIVED, async ({ text }) => {
-    await capture.apply(text);
+    const onClipboard = await capture.apply(text);
 
     if (!editor.isDirty()) {
       editor.setText(text);
+      // A clean apply supersedes any offer still on screen — its "Show it"
+      // would now roll the editor BACK to the older clip it was holding.
+      emit(EV.CLIP_OFFERED, { text: null });
       // The core event of the product used to announce nothing at all, so a
       // screen-reader user had no way to know a clip had arrived.
       emit(EV.TOAST, `Clip received · ${text.length.toLocaleString()} characters`);
       return;
     }
-    emit(EV.CLIP_OFFERED, { text });
+    emit(EV.CLIP_OFFERED, { text, onClipboard });
   });
 
   on("clip:accept", ({ text }) => editor.setText(text));
@@ -803,7 +806,7 @@ async function boot() {
   safeInit("what's new", () => { whatsNew.init(); });
   safeInit("hints", hints.init);
   safeInit("ad slot", ads.init);
-  safeInit("analytics", analytics.init);
+  safeInit("analytics", analytics.init);
   safeInit("peer cursors", cursors.init);
   safeInit("install prompt", install.init);
 

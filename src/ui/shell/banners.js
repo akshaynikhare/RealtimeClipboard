@@ -79,9 +79,11 @@ export function init() {
     }
 
     // writeText() needs focus, so a clip that arrives in the background is held
-    // rather than dropped. Say so, and offer the manual route.
+    // rather than dropped. Routine and self-healing — the next focus flushes
+    // it — so it informs rather than warns; only the flagged-command banner
+    // above has something to warn about.
     show("pending", {
-      tone: "warn",
+      tone: "info",
       title: "1 clip waiting",
       body: `Focus this window and it lands on your clipboard automatically.${preview}`
           + (altered ? " Hidden control characters were removed from it." : ""),
@@ -89,14 +91,20 @@ export function init() {
     });
   });
 
-  // A clip arrived while there was unsent work in the editor. It is already on
-  // the clipboard; this only offers to put it in view, so nothing is lost
-  // either way.
-  on(EV.CLIP_OFFERED, ({ text }) => {
+  // A clip arrived while there was unsent work in the editor. Applying is
+  // offered rather than done, so nothing typed is lost. A later clip that
+  // applies cleanly retracts the offer (`text: null`) — a banner left up
+  // describes a clip the session has moved past, and its "Show it" would
+  // roll the editor backwards.
+  on(EV.CLIP_OFFERED, ({ text, onClipboard }) => {
+    if (!text) return dismiss("offered");
+    // apply() said whether the OS clipboard got it. Below the Clipboard rung,
+    // or while unfocused, it did not — and this banner used to claim it had.
     show("offered", {
       tone: "info",
       title: "New clip received",
-      body: `It is on your clipboard. Applying it here replaces what you have typed. `
+      body: (onClipboard ? "It is on your clipboard. " : "")
+          + `Applying it here replaces what you have typed. `
           + `“${text.slice(0, 70)}${text.length > 70 ? "…" : ""}”`,
       action: {
         label: "Show it",

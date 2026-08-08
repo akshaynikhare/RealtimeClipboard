@@ -31,6 +31,10 @@ import * as os from "./os.js";
 let pollTimer = null;
 let started = false;
 
+/** No instanceof — jsdom's elements come from another realm. */
+const editsText = (el) =>
+  Boolean(el && (el.tagName === "TEXTAREA" || el.tagName === "INPUT" || el.isContentEditable));
+
 export function start() {
   if (started) return;
   started = true;
@@ -46,6 +50,11 @@ export function start() {
       captureImage(image, "Image pasted");
       return;
     }
+    // A paste aimed at something editable is input to THAT control, not a
+    // share. The editor commits it through its own idle/blur path — capturing
+    // it here as well is what inserted every paste twice — and what goes into
+    // the PIN field, or any other input, must never be broadcast at all.
+    if (editsText(e.target)) return;
     const text = (e.clipboardData || window.clipboardData)?.getData("text");
     if (text) fromClipboard(text, "Captured by paste");
   });
@@ -139,7 +148,13 @@ export function startPolling() {
  */
 export function applyMode() {
   if (bindsClipboard(state.get().settings.syncMode)) startPolling();
-  else stopPolling();
+  else {
+    stopPolling();
+    // A queued clip is a promised OS-clipboard write, and leaving the rung
+    // withdraws the promise — flushing it later would touch a clipboard the
+    // mode now says is off limits.
+    discardPending();
+  }
   emit(EV.SYNC_MODE, { mode: state.get().settings.syncMode });
 }
 
@@ -203,10 +218,17 @@ function fromClipboard(text, how) {
   capture(text, how);
 }
 
-/** Single funnel for every captured clip, whatever tier found it. */
+/**
+ * Single funnel for every captured clip, whatever tier found it.
+ *
+ * The dedupe compares trimmed, matching the editor's commit(): the clipboard's
+ * copy of a clip carries trailing whitespace the committed copy does not, and
+ * comparing them raw sent every trailing-newline paste twice.
+ */
 export function capture(text, how) {
   const s = state.get();
-  if (!text || text === s.lastSent) return;   // FR-2.7 dedupe
+  const t = (text ?? "").trim();
+  if (!t || t === s.lastSent.trim()) return;   // FR-2.7 dedupe
   if (state.isSuppressed()) return;
   s.lastSent = text;
   emit(EV.TEXT_CAPTURED, { text, how });
@@ -300,6 +322,10 @@ export function discardPending() {
 }
 
 async function writePending() {
+  // Re-checked at the write, not only at the queue: the rung may have dropped
+  // while the clip waited, and regaining focus is not permission to write to
+  // a clipboard the current mode says is untouched.
+  if (!bindsClipboard(state.get().settings.syncMode)) return discardPending();
   const text = pending;
   pending = null;
   pendingRisk = null;

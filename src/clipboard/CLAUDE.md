@@ -49,6 +49,10 @@ writes. Both go through `writeNow()`, which owns the ordering below.
   watcher is T0 and feeds the same funnel, which is why `main.js` and the editor needed no changes
   for it. Text read off THIS machine's clipboard goes through `fromClipboard()`, which marks the
   local-copy clock first.
+- **T1 skips pastes aimed at an editable control.** The editor commits its own pastes through
+  idle/blur — capturing them at the document too is what doubled every paste — and what goes into
+  the PIN field, or any input, is that field's business, never a clip. The image branch stays
+  unconditional: a textarea cannot hold an image, so the files layer is the only home it has.
 - No web app can read the clipboard in the background, on any browser — `readText()` requires
   window focus. Do not add code that appears to work around this; document it instead.
 - Firefox and Safari cannot read the clipboard silently. Feature-detect and degrade; never assume

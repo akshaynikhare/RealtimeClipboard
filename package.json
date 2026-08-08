@@ -34,7 +34,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "verify": "node tests/unit/static-check.mjs && node tests/unit/relay-url.mjs && node tests/unit/lock.mjs && node tests/unit/files.mjs && node tests/unit/transfer.mjs && node tests/unit/clipsize.mjs && node tests/unit/syncmode.mjs && node tests/unit/pasteguard.mjs && node tests/dom/dialog.mjs && node tests/dom/whatsnew.mjs && node tests/dom/tiles.mjs && node tests/dom/guide.mjs && node tests/dom/editor.mjs && node tests/dom/offer.mjs",
+    "verify": "node tests/unit/static-check.mjs && node tests/unit/relay-url.mjs && node tests/unit/lock.mjs && node tests/unit/files.mjs && node tests/unit/transfer.mjs && node tests/unit/clipsize.mjs && node tests/unit/syncmode.mjs && node tests/unit/pasteguard.mjs && node tests/dom/dialog.mjs && node tests/dom/whatsnew.mjs && node tests/dom/tiles.mjs && node tests/dom/guide.mjs && node tests/dom/editor.mjs && node tests/dom/capture.mjs && node tests/dom/offer.mjs",
     "test": "npm run verify && node tests/dom/bundle.mjs && node tests/live/e2e.mjs && node tests/live/boot.mjs && node tests/live/boot.mjs --locked && node tests/live/fallback.mjs",
     "test:static": "node tests/unit/static-check.mjs",
     "test:lock": "node tests/unit/lock.mjs && node tests/dom/dialog.mjs",

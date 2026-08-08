@@ -67,6 +67,13 @@ to. So capture happens at moments we *are* allowed to look:
 **T1 always works.** No permission, every browser, every platform. It is the
 floor the product stands on, not a fallback for edge cases.
 
+T1 captures pastes aimed at the **page** — not at an editable control. A paste
+into the editor is committed by the editor's own idle/blur path, and capturing
+it at the document too is what pasted text twice; a paste into any other input
+is that field's business alone. The PIN field is an input, so this boundary is
+also what keeps a pasted PIN from being broadcast to the room as a clip.
+`tests/dom/capture.mjs` pins both.
+
 **T2 is the everyday path** on desktop once permission is granted: copy, Alt-Tab
 to RealtimeClipboard, and it is already sent by the time you look at it.
 
