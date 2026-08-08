@@ -476,9 +476,14 @@ function wire() {
 
   // A commit that came FROM the editor does not go back into it: the committed
   // text is trimmed, and writing it back would move the caret of someone who is
-  // very likely still typing.
+  // very likely still typing. It goes to the author's OWN clipboard instead —
+  // on the Clipboard rung the editor IS the clipboard, and without this a clip
+  // typed here landed on every machine's clipboard except the one it was typed
+  // on. Every other source already came OFF this machine's clipboard, so for
+  // them the write would be a no-op at best and a capture loop at worst.
   on(EV.TEXT_CAPTURED, ({ text, source }) => {
     if (source !== "editor") editor.setText(text);
+    else capture.putOnClipboard(text);
     sendText(text);
   });
 

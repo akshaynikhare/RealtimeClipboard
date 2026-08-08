@@ -40,8 +40,10 @@ what they saved would be the bug.
 
 `apply()` is for clips arriving from a peer and defers to a recent local copy
 (`TEXT.LOCAL_COPY_GRACE_MS`). `putOnClipboard()` is for the user deliberately asking — restoring
-from history — and bypasses that window, because the window exists to protect against *remote*
-writes. Both go through `writeNow()`, which owns the ordering below.
+from history, or committing their own typing — and bypasses that window, because the window exists
+to protect against *remote* writes. Unfocused it queues rather than drops: a blur-commit runs after
+alt-tab has already taken the focus `writeText()` needs. Both go through `writeNow()`, which owns
+the ordering below.
 
 ## Rules
 

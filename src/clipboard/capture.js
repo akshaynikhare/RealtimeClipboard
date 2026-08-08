@@ -276,17 +276,28 @@ function writeNow(text) {
 }
 
 /**
- * The user deliberately asking — restoring from history, not a clip from a peer.
- * Bypasses the local-copy grace window, which exists to stop a REMOTE clip
- * taking away something you just copied. Still gated on the rung.
+ * The user deliberately asking — restoring from history, or committing their
+ * own typing. Not a clip from a peer, so it is not defused and bypasses the
+ * local-copy grace window, which exists to stop a REMOTE clip taking away
+ * something you just copied. Still gated on the rung.
  *
  * Also what makes a restore stick on the top rung: without it the poll tick a
  * second later reads the clipboard, finds whatever is actually there, and
  * broadcasts that instead, so the click appears to do nothing.
+ *
+ * Unfocused it queues rather than drops: a blur-commit is the alt-tab-away
+ * flow, and by the time commit() runs the focus writeText() needs is already
+ * gone. The next focus flushes it, the same gesture as every deferred write.
  */
 export async function putOnClipboard(text) {
   if (!bindsClipboard(state.get().settings.syncMode)) return false;
-  if (!text || !document.hasFocus()) return false;
+  if (!text) return false;
+  if (!document.hasFocus()) {
+    pending = text;
+    pendingRisk = null;                 // your own text needs no click
+    emit(EV.PENDING_CLIP, { pending: true, text });
+    return false;
+  }
   state.markLocalCopy();
   return writeNow(text);
 }
