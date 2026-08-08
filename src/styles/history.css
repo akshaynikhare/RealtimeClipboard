@@ -9,11 +9,6 @@
  * every colour is a tokens.css variable.
  */
 
-/* The panes above and below this one are .grow (flex:1); this one sizes to its
-   content, so a full 20-clip list would otherwise push the Session pane off the
-   bottom of the sidebar. Cap it and let .paneb's existing overflow:auto scroll. */
-#paneHistory .paneb { max-height: 232px; }
-
 .hist {
   display: flex;
   flex-direction: column;
