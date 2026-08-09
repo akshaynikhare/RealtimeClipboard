@@ -27,6 +27,22 @@ export const loadSettings = () => read("settings", null);
 export const saveSettings = s => write("settings", s);
 
 /**
+ * Another tab saved the settings. localStorage delivers this event only to the
+ * tabs that did NOT write, which is exactly the set that needs to catch up.
+ *
+ * Guarded rather than assumed: this module is published in the npm package and
+ * `cli/` imports it, where there are no other tabs and no event target.
+ */
+export function onSettingsChanged(cb) {
+  if (typeof addEventListener !== "function") return;
+  addEventListener("storage", e => {
+    if (e.key !== PREFIX + "settings") return;
+    try { cb(e.newValue === null ? null : JSON.parse(e.newValue)); }
+    catch { /* another tab wrote something we cannot read */ }
+  });
+}
+
+/**
  * The relay this device talks to, when it is not the one the build ships with.
  * config.js reads this key directly at module evaluation, because the URL has to
  * resolve before anything imports it; this pair is for changing it afterwards.

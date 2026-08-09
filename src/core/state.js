@@ -70,6 +70,7 @@ export function restore() {
   if (saved) Object.assign(state.settings, saved);
 
   migrateReceiving(saved);
+  watchSettings();
 
   /**
    * Anyone who toggled any switch before this shipped has an explicit
@@ -106,8 +107,35 @@ function migrateReceiving(saved) {
 /** Change a setting and remember it. The only path that persists one. */
 export function saveSetting(name, value) {
   state.settings[name] = value;
-  storage.saveSettings(state.settings);
+  // Merged into what is on disk rather than written wholesale. Two tabs of one
+  // session each hold their own copy of this object from boot, so a whole-object
+  // write reverted every setting the OTHER tab had changed since — including the
+  // sync rung, which silently put a device the user had taken offline back on
+  // the wire at the next launch, and `rememberKey`, which decides whether the
+  // share key touches disk at all.
+  storage.saveSettings({ ...(storage.loadSettings() ?? {}), [name]: value });
   emit(EV.SETTINGS_CHANGED, { name, value });
+}
+
+let watching = false;
+
+/**
+ * Adopt what another tab saved, so two windows of one session do not disagree
+ * about the rung. `external` marks these apart from this tab's own changes:
+ * the control that owns a setting has already applied it locally by the time it
+ * emits, and would double-apply on its own event.
+ */
+function watchSettings() {
+  if (watching) return;
+  watching = true;
+  storage.onSettingsChanged(saved => {
+    if (!saved) return;
+    for (const [name, value] of Object.entries(saved)) {
+      if (state.settings[name] === value) continue;
+      state.settings[name] = value;
+      emit(EV.SETTINGS_CHANGED, { name, value, external: true });
+    }
+  });
 }
 
 export function setKey({ key, roomHash, aesKey, locked = false, authToken = null }) {

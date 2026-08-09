@@ -87,6 +87,17 @@ export function init() {
   });
 
   on(EV.SYNC_MODE, ({ mode }) => paint(mode));
+
+  // Another tab of this session moved the rung. state.js has already adopted the
+  // value; what is left is the half that lives here — starting or stopping the
+  // clipboard binding, and repainting. Without it one window keeps reading and
+  // broadcasting the clipboard after the user switched the session off in the
+  // other, which is the promise the rung makes.
+  on(EV.SETTINGS_CHANGED, ({ name, value, external }) => {
+    if (!external || name !== "syncMode") return;
+    capture.applyMode();
+    paint(value);
+  });
   // The tray's "Share what I copy" check item. It asks for a toggle rather than
   // setting the mode itself, so this stays the one place the mode changes — and
   // it toggles the CLIPBOARD binding specifically, which is what that item
