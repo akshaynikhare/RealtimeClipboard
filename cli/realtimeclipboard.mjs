@@ -338,7 +338,15 @@ if (cmd === "both") {
   // Not readStdin(): that waits for EOF, and this mode has to send each line as
   // it is typed while still printing what arrives in between.
   const rl = createInterface({ input: stdin, terminal: false });
-  rl.on("line", line => { if (line.length) sendText(session, line, opts).catch(() => {}); });
+  // Chained, not launched: each line is encrypted before it is sent, and two
+  // encryptions in flight complete in whichever order WebCrypto finishes them.
+  // A pasted block of lines could reach the relay out of order and be stamped
+  // with inverted `seq`, which is what receivers order and dedupe by.
+  let sending = Promise.resolve();
+  rl.on("line", line => {
+    if (!line.length) return;
+    sending = sending.then(() => sendText(session, line, opts)).catch(() => {});
+  });
   rl.on("close", () => { relay.close(); exit(0); });
 }
 

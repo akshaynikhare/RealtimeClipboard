@@ -34,8 +34,9 @@ import {
 } from "node:fs";
 import { join, dirname, resolve, relative } from "node:path";
 import { gzipSync } from "node:zlib";
+import { fileURLToPath } from "node:url";
 
-const ROOT = resolve(dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1")), "../..");
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
 /**
  * The desktop shell's frontend, rather than a site for a web host.

@@ -22,8 +22,9 @@
 
 import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
 import { join, resolve, dirname, relative } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROOT = resolve(dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1")), "../..");
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const OUT = resolve(ROOT, process.argv[2] || "_site");
 
 /** The one place the canonical origin is written down for the checks below. */
