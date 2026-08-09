@@ -67,7 +67,7 @@ global.requestAnimationFrame = window.requestAnimationFrame?.bind(window)
   ?? (fn => setTimeout(fn, 0));
 
 const { EV, on, emit } = await load("src/core/bus.js");
-const { SYNC_MODES } = await load("src/core/config.js");
+const { SYNC_MODES, TEXT } = await load("src/core/config.js");
 const state = await load("src/core/state.js");
 const capture = await load("src/clipboard/capture.js");
 const banners = await load("src/ui/shell/banners.js");
@@ -320,6 +320,51 @@ ok("...but the next local copy still captures",
    + "next alt-tab");
 ok("...and the held clip stays queued for the focus gesture", capture.hasPending(),
    "flushing from the tick would take the grace-protected copy straight back off");
+
+/* ----------------------------------- the local-copy window has to expire */
+console.log("\nThe local-copy window expires, even while the window is focused\n");
+
+// Reuses the clipboard above: its writeText records what it wrote, so a value
+// this machine put there reads back exactly as the OS would return it.
+reset();
+focused = true;
+
+// A tick re-reading a value it has already seen is a timer, not a gesture.
+// Marking that as a local copy re-armed the 10 s window every second — and
+// with the window already focused, no focus event ever comes to flush what
+// the window is holding back.
+onClipboard = "a value this machine has already seen";
+state.get().lastSent = onClipboard;
+state.markLocalCopy();
+const armedAt = state.get().lastLocalCopyAt;
+await new Promise(r => setTimeout(r, 5));
+await capture.tryRead({ deliberate: false });
+ok("THE REGRESSION: a tick finding nothing new does not re-arm the window",
+   state.get().lastLocalCopyAt === armedAt,
+   "re-arming here queued every arriving clip for the rest of the session");
+
+onClipboard = "something genuinely new";
+await capture.tryRead({ deliberate: false });
+ok("...but a tick that DOES find something new is still a copy",
+   state.get().lastLocalCopyAt > armedAt,
+   "a new value on the clipboard is a local copy, whichever tier noticed it");
+
+// The tick above lands an OWED clip, which is the rung's other half. This one
+// is held by the grace window, so no tick will take it and no focus event is
+// coming either — the window is already focused.
+reset();
+focused = true;
+written.length = 0;
+// Inside the window, with 60 ms of it left to run.
+state.get().lastLocalCopyAt = Date.now() - TEXT.LOCAL_COPY_GRACE_MS + 60;
+ok("a clip arriving inside the window is held, not written",
+   await capture.apply("from the other laptop") === false
+   && capture.hasPending() && written.length === 0);
+
+await new Promise(r => setTimeout(r, 300));
+ok("...and lands by itself once the window passes",
+   written.at(-1) === "from the other laptop" && !capture.hasPending(),
+   "the banner promises it lands automatically, and nothing was going to deliver it");
 
 /* ---------------------------------------------------------------- done */
 

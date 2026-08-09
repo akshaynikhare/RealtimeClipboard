@@ -214,6 +214,11 @@ export async function request(id) {
   // or gone, and this is the deadline all three share — the same one counting
   // down on the holder's prompt, so the two ends give up together.
   t.deadline = setTimeout(() => {
+    // Tell the holder, exactly as cancel() does. The two clocks start a network
+    // hop apart and its prompt is swept every 500 ms, so an approval can be in
+    // flight when this fires — and the holder would then stream the whole file
+    // to a transfer that no longer exists here, and report "Sent".
+    signal({ t: FT.FILE_CANCEL, id, to: t.peer, reason: "the request timed out" });
     finish(t);
     fail(id, "no answer — the other device did not respond in time");
   }, requestTimeout);
@@ -253,15 +258,31 @@ export function onSignal(frame) {
 
   // Handlers are async; onSignal is not. A rejection here must surface as a
   // failed transfer, never as an unhandled rejection in the console.
+  //
+  // But NOT every rejection is a failed transfer. Handlers are not serialised
+  // with each other, so a WebRTC step suspended across an await can be resumed
+  // after the very thing it was racing has already settled: the relay fallback
+  // took over, or the user cancelled. The negotiation it belonged to is gone,
+  // its rejection is the expected consequence, and failing on it tore down a
+  // transfer that was delivering bytes at the time — the sender reporting
+  // "Sent" while the receiver showed "PeerConnection is closed".
   Promise.resolve()
     .then(() => handler(frame))
     .catch(err => {
-      console.error(`[transfer] ${frame.t} failed`, err);
       const t = live.get(frame.id);
-      if (t) finish(t);
+      if (!t) return;                                // already cancelled or finished
+      if (RTC_FRAMES.has(frame.t) && t.path === PATH.RELAY) {
+        console.info(`[transfer] ${t.id}: ${frame.t} abandoned for the relay — ${describe(err)}`);
+        return;
+      }
+      console.error(`[transfer] ${frame.t} failed`, err);
+      finish(t);
       fail(frame.id, describe(err));
     });
 }
+
+/** Negotiation frames, whose failure is survivable once the relay has the file. */
+const RTC_FRAMES = new Set([FT.RTC_OFFER, FT.RTC_ANSWER, FT.RTC_ICE]);
 
 const INBOUND = {
   [FT.FILE_META]:   onFileMeta,
@@ -317,6 +338,11 @@ async function onFileReq(frame) {
     return signal({ t: FT.FILE_ERROR, id, to: peer, reason: "that file is no longer available" });
   }
   if (live.has(id)) {
+    // A repeat from the SAME peer is the SSE transport's at-least-once retry —
+    // a POST can fail after the relay accepted it — not a second asker. Telling
+    // that peer the file is already being sent fails the very transfer the
+    // duplicate belongs to, and it then ignores the bytes we go on to send.
+    if (live.get(id).peer === peer) return;
     return signal({ t: FT.FILE_ERROR, id, to: peer, reason: "that file is already being sent" });
   }
 
@@ -683,12 +709,23 @@ async function onRtcOffer(frame) {
     dc.onerror = () => { if (t.path === PATH.P2P && !t.done) abort(t, "the direct connection errored"); };
   };
 
+  // Every step below is a suspension, and the relay fallback can land during any
+  // of them: the holder's chunks arrive, onFileChunk closes this pc and starts a
+  // working relay receive. `t.pc !== pc` is how the continuation learns that the
+  // connection it is negotiating has already been abandoned — without it the
+  // next call rejects on a closed pc and takes the live transfer down with it.
+  const stale = () => t.done || t.pc !== pc;
+
   await pc.setRemoteDescription(frame.sdp);
+  if (stale()) return;
   t.remoteReady = true;
   await flushIce(t);
+  if (stale()) return;
 
   const answer = await pc.createAnswer();
+  if (stale()) return;
   await pc.setLocalDescription(answer);
+  if (stale()) return;
   signal({ t: FT.RTC_ANSWER, id: t.id, to: t.peer, sdp: pc.localDescription });
 
   // Our own copy of the race: if nothing opens we drop the peer connection so
@@ -706,7 +743,17 @@ async function onRtcOffer(frame) {
 async function onRtcAnswer(frame) {
   const t = live.get(frame.id);
   if (!t || t.role !== "send" || !t.pc) return;
-  await t.pc.setRemoteDescription(frame.sdp);
+  // A second answer for a description already set is the SSE transport's
+  // at-least-once retry, not a new one. Applying it rejects — the connection is
+  // "stable" by then — and that rejection used to kill the transfer mid-stream.
+  if (t.remoteReady) return;
+
+  const pc = t.pc;
+  await pc.setRemoteDescription(frame.sdp);
+  // The ICE race can expire during that await: toRelay() closes this pc and
+  // starts streaming. Marking remoteReady here would also undo closeRtc()'s
+  // reset and queue later candidates onto a dead connection.
+  if (t.done || t.pc !== pc) return;
   t.remoteReady = true;
   await flushIce(t);
 }

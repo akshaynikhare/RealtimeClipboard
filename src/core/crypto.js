@@ -26,6 +26,13 @@ const dec = new TextDecoder();
 let cached = { id: null, open: null };
 
 /**
+ * Bumped by clearCache(). A derivation that was already in flight when the user
+ * left the room resolves afterwards, and storing its result would put the AES
+ * key of a room they walked out of back into the cache the purge just emptied.
+ */
+let generation = 0;
+
+/**
  * Both outputs of an open session, from one PBKDF2.
  *
  * Several hundred ms on a low-end Android, so call once per session and show an
@@ -39,6 +46,7 @@ let cached = { id: null, open: null };
  */
 export async function deriveOpen(key) {
   if (cached.id === `open:${key}` && cached.open) return cached.open;
+  const gen = generation;
 
   const material = await crypto.subtle.importKey(
     "raw", enc.encode(key), "PBKDF2", false, ["deriveBits"]
@@ -51,7 +59,7 @@ export async function deriveOpen(key) {
   );
 
   const open = await expand(prk, CRYPTO.OPEN_INFO);
-  cached = { id: `open:${key}`, open };
+  if (gen === generation) cached = { id: `open:${key}`, open };
   return open;
 }
 
@@ -158,7 +166,10 @@ export async function decrypt(aesKey, payloadB64, ivB64) {
 // Called on leaving a session and on rotating the key. This had no callers for
 // years, so the AES key of a room you walked out of stayed live until you opened
 // another one.
-export function clearCache() { cached = { id: null, open: null }; }
+export function clearCache() {
+  generation++;
+  cached = { id: null, open: null };
+}
 
 /* ---- hex helpers ---- */
 function hex(bytes) {

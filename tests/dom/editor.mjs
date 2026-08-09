@@ -179,6 +179,25 @@ ok("a peer's COMMIT does not write the editor from here either",
    ta.value === "I am halfway through a sen",
    "apply-or-offer is main.js's decision; a listener here made it moot");
 
+// isDirty() is false for an editor holding only a space, so the peer's stream
+// IS applied here — and the idle timer armed by that space was still running.
+// It then fired on the peer's half-typed line and committed it as a clip
+// authored on this machine: into history everywhere, onto OS clipboards, and
+// back at the person still typing it.
+editor.setText("");
+reset();
+type(" ");
+ok("a lone space arms a commit without making the editor dirty",
+   !editor.isDirty(), "trim() is empty, so an arriving stream is allowed to land");
+
+peerStream("they are still typing thi", 24);
+ok("...so the peer's stream is applied", ta.value === "they are still typing thi");
+
+await settle(TEXT.COMMIT_IDLE_MS + 250);
+ok("THE CROSSOVER: the peer's stream is never committed as our clip",
+   commits.length === 0,
+   "a view channel reaching the commit path is history and clipboards on every device");
+
 /* --------------------------------------------------------- the peer caret */
 console.log("\nYou can see them coming\n");
 

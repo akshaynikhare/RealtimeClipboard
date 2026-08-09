@@ -15,6 +15,7 @@ import * as keys from "./core/keys.js";
 import * as storage from "./core/storage.js";
 import * as cryptoBox from "./core/crypto.js";
 import * as device from "./core/device.js";
+import * as history from "./core/history.js";
 import { IS_DESKTOP } from "./core/native.js";
 
 import * as relay from "./transport/relay.js";
@@ -87,8 +88,18 @@ let lockPrk = null;
  * Open a session, locked or not. `pin` is used exactly once, here, to derive; it
  * is never stored, emitted, or passed on. A caller that has been through this in
  * the same tab can pass `prk` and skip the 600k iterations.
+ *
+ * `sessionGen` is why the derivation is checked twice. It is 250k PBKDF2
+ * iterations (600k locked) and nothing stopped a second open from starting
+ * during it — a double-click on "New key" is enough. Storage was written in call
+ * order and the connection in COMPLETION order, which WebCrypto does not promise
+ * to match, so the tab could end up talking to one room while disk remembered
+ * another and the next reload landed somewhere nobody was.
  */
+let sessionGen = 0;
+
 async function openSession(key, intent, { locked = false, pin = null, prk = null } = {}) {
+  const gen = ++sessionGen;
   // The key is remembered, then taken OUT of the address bar. It used to live in
   // the fragment for the whole session, which put it in every screenshot and
   // screen share of the app and in reach of every script in the document —
@@ -111,6 +122,7 @@ async function openSession(key, intent, { locked = false, pin = null, prk = null
     const derived = prk
       ? await cryptoBox.deriveLockedFromPrk(prk)
       : await cryptoBox.deriveLocked(key, pin);
+    if (gen !== sessionGen) return;      // a newer session opened while we derived
 
     // Remembered against the room it unlocks, so a rotate invalidates it and a
     // refresh does not re-prompt. sessionStorage — it dies with the tab.
@@ -135,6 +147,7 @@ async function openSession(key, intent, { locked = false, pin = null, prk = null
   // rather than two: the room hash comes off the same PBKDF2 as the AES key, so
   // there is no longer a cheap way to compute it and nothing to run in parallel.
   const { aesKey, roomHash } = await cryptoBox.deriveOpen(key);
+  if (gen !== sessionGen) return;        // a newer session opened while we derived
 
   lockPrk = null;
   storage.clearLock();
@@ -395,10 +408,20 @@ async function decryptFrame(frame) {
 
 /* ---- outbound ---- */
 
+/**
+ * A clip committed before the session finished opening. Boot starts the
+ * connection un-awaited — deliberately, the session must not queue behind panel
+ * rendering — so the editor accepts text while the key is still deriving and the
+ * socket still opening. Dropping it there was silent AND permanent: history had
+ * already recorded it as sent, and both retry paths (committing again, clicking
+ * the history row) are swallowed by the `lastSent` dedupe that the first attempt
+ * set. One slot, because a clip is a clipboard: the newest supersedes.
+ */
+let queuedClip = null;
+
 async function sendText(text) {
-  const { aesKey, originId, settings } = state.get();
+  const { settings } = state.get();
   if (!sharesSession(settings.syncMode)) return;    // Off: nothing leaves, ever
-  if (!aesKey || !relay.isOpen()) return;
 
   // Bytes, not characters — the relay counts the encoded frame, so multibyte
   // text can sit inside MAX_CHARS and still be too large.
@@ -412,8 +435,32 @@ async function sendText(text) {
       + `limit ${Math.floor(TEXT.MAX_BYTES / 1024)} KB`);
   }
 
-  const { payload, iv } = await cryptoBox.encrypt(aesKey, text);
-  relay.send(proto.clip({ payload, iv, originId }));
+  if (!state.get().aesKey || !relay.isOpen()) { queuedClip = text; return; }
+  sendClip(text);
+}
+
+/** Sealed and sent in commit order — see sealedSender for why that is not free. */
+const sendClip = (() => {
+  let tail = Promise.resolve();
+  return text => {
+    tail = tail.then(async () => {
+      const { aesKey, originId } = state.get();
+      if (!aesKey || !relay.isOpen()) { queuedClip = text; return; }
+      const { payload, iv } = await cryptoBox.encrypt(aesKey, text);
+      relay.send(proto.clip({ payload, iv, originId }));
+    }).catch(err => console.error("[realtimeclipboard] could not send a clip", err));
+  };
+})();
+
+/** The session came up. Anything committed while it was opening goes now. */
+function flushQueuedClip() {
+  if (queuedClip === null) return;
+  const text = queuedClip;
+  queuedClip = null;
+  // Re-read the rung: it can have dropped to Off while the session was opening,
+  // and that promise outranks a clip queued under the old one.
+  if (!sharesSession(state.get().settings.syncMode)) return;
+  sendClip(text);
 }
 
 /**
@@ -447,12 +494,21 @@ async function sendStream({ text, caret }) {
  * matters (are we connected at all?) happens up front; encryption is async, and
  * a failure after that point is reported by the relay's own error frame.
  */
-const sealedSender = what => frame => {
-  if (!relay.isOpen()) return false;
-  encryptFrame(frame)
-    .then(sealed => relay.send(sealed))
-    .catch(err => console.error(`[realtimeclipboard] could not send ${what}`, err));
-  return true;
+const sealedSender = what => {
+  // Sealed in issue order, not in whichever order WebCrypto finishes. Two
+  // encryptions in flight complete by size and luck, and the pair that has no
+  // pacing gap between them — a transfer's last chunk and the file-done that
+  // follows it in the same synchronous run — inverted often enough that a fully
+  // delivered file failed at 100% with "1 chunks missing".
+  let tail = Promise.resolve();
+  return frame => {
+    if (!relay.isOpen()) return false;
+    tail = tail
+      .then(() => encryptFrame(frame))
+      .then(sealed => relay.send(sealed))
+      .catch(err => console.error(`[realtimeclipboard] could not send ${what}`, err));
+    return true;
+  };
 };
 
 /**
@@ -468,6 +524,9 @@ function leaveRoom() {
 }
 
 /* ---- wiring ---- */
+
+/** Arrival order for clips, so a slow clipboard write cannot reorder the editor. */
+let receivedSeq = 0;
 
 function wire() {
   relay.setFrameHandler(onFrame);
@@ -492,6 +551,8 @@ function wire() {
   // history and rewrite everyone's clipboard letter by letter.
   on(EV.TEXT_TYPED, frame => sendStream(frame));
 
+  on(EV.CONN_STATE, ({ state: conn }) => { if (conn === "connected") flushQueuedClip(); });
+
   /**
    * The clipboard write is the rung's business and capture.apply() owns it. The
    * EDITOR is different: overwriting it discards what the user was typing, with
@@ -500,7 +561,13 @@ function wire() {
    * algorithm: never merge, never destroy, always offer.
    */
   on(EV.TEXT_RECEIVED, async ({ text }) => {
+    // capture.apply() may really write the OS clipboard, which takes long enough
+    // that a clip arriving behind this one can finish first — it queues and
+    // returns without touching the clipboard at all. Resuming then would put the
+    // OLDER clip in the editor, on top of the newer one already shown.
+    const seq = ++receivedSeq;
     const onClipboard = await capture.apply(text);
+    if (seq !== receivedSeq) return;
 
     // A clip identical to what is on screen has nothing to destroy, so it
     // never warrants an offer — "replaces what you have typed" with itself.
@@ -792,6 +859,14 @@ async function boot() {
   // PIN and be told no. safeInit anyway: a gate that fails to build must not
   // stop the session it is only there to describe.
   safeInit("lock gate", lockGate.init);
+
+  // The record of what this session saw, and it must be subscribed BEFORE the
+  // session can emit anything. It used to be initialised by historyPanel.js
+  // inside loadOptional(), racing a connection that boot deliberately does not
+  // await: the clip a room replays on join could land with no listener, and so
+  // could the KEY_CHANGED that clears another room's clips out of the pane.
+  // Idempotent, so historyPanel.js still calls it and still owns the rendering.
+  safeInit("history", history.init);
 
   // Deliberately not awaited: the session is the product and must not queue
   // behind panel rendering, a service-worker registration, or a QR encoder.
