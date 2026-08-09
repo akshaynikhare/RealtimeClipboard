@@ -19,7 +19,7 @@
  * app's own UI, so that check moved into commit() rather than leaving with it.
  */
 
-import { TEXT, textBytes, SYNC_MODES, sharesSession } from "../../core/config.js";
+import { TEXT, LAYOUT, textBytes, SYNC_MODES, sharesSession } from "../../core/config.js";
 import { emit, on, EV } from "../../core/bus.js";
 import * as state from "../../core/state.js";
 import * as os from "../../clipboard/os.js";
@@ -34,11 +34,9 @@ let ta, gutter;
  * line numbers is a sixth of a 360px screen. Rendering it anyway would build a
  * <div> per line — 1,200 of them for a 50,000-character paste — for something
  * nobody can see, on the device least able to afford it.
- *
- * Must match the breakpoint in styles/mobile.css.
  */
 const narrow = typeof window !== "undefined" && window.matchMedia
-  ? window.matchMedia("(max-width:900px)")
+  ? window.matchMedia(LAYOUT.NARROW_MQ)
   : { matches: false };
 
 export function init() {

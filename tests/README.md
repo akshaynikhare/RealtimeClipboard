@@ -20,6 +20,9 @@ RELAY_BASE=ws://127.0.0.1:8000 npm test        # or point the whole run at one
 | `files.mjs` | Adding a file tells the other peers about it |
 | `transfer.mjs` | A direct transfer delivers every byte before the connection is torn down |
 | `clipsize.mjs` | A clip at the limit actually fits through the relay |
+| `syncmode.mjs` | The sync ladder's stored values, the `autowrite` migration, stream vs commit |
+| `pasteguard.mjs` | An arriving clip is defused before the OS clipboard sees it |
+| `sharelink.mjs` | The link the desktop app and the CLI hand out is one another devices can open |
 
 ### dom/ — needs jsdom
 
@@ -28,6 +31,8 @@ RELAY_BASE=ws://127.0.0.1:8000 npm test        # or point the whole run at one
 | `dialog.mjs` | The PIN dialog, driven in a real DOM |
 | `whatsnew.mjs` | When release notes appear, when they stay quiet |
 | `tiles.mjs` | The files grid does not rebuild itself on a progress tick |
+| `guide.mjs` | The installed app's guide gates to the desktop and renders three ways to link a device |
+| `links.mjs` | A link that leaves the desktop app reaches the real browser, and the shell will open it |
 | `bundle.mjs` | The built `_site` boots — catches what only bundling breaks. Also needs a build |
 
 ### live/ — needs a relay

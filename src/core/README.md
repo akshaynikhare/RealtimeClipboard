@@ -9,7 +9,7 @@ and the node test suites run these files unchanged.
 | `config.js` | Every tunable constant, the relay address, and the crypto parameters |
 | `state.js` | Session state and the setters that announce changes |
 | `crypto.js` | Room hashing, PBKDF2/HKDF derivation, AES-GCM. No libraries |
-| `keys.js` | Share-key generation, normalisation, and the URL fragment |
+| `keys.js` | Share-key generation, normalisation, the URL fragment, and the link a peer opens |
 | `storage.js` | localStorage, wrapped so a disabled-storage browser degrades instead of throwing |
 | `paths.js` | Where the app is served from, resolved once for the whole codebase |
 | `device.js` | A human-readable name for this device, shown in the peer list |

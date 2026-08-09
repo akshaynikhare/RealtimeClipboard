@@ -40,6 +40,7 @@ import * as statusbar from "./ui/shell/statusbar.js";
 import * as resizer from "./ui/shell/resizer.js";
 import * as syncMode from "./ui/features/syncMode.js";
 import * as appLinks from "./ui/features/appLinks.js";
+import * as externalLinks from "./ui/features/externalLinks.js";
 import * as lockButton from "./ui/features/lockButton.js";
 import * as lockDialog from "./ui/features/lockDialog.js";
 import * as whatsNew from "./ui/features/whatsNew.js";
@@ -885,6 +886,7 @@ async function boot() {
   safeInit("sync mode", syncMode.init);
   safeInit("lock button", lockButton.init);
   safeInit("project links", appLinks.init);
+  safeInit("external links", externalLinks.init);
   safeInit("what's new", () => { whatsNew.init(); });
   safeInit("hints", hints.init);
   safeInit("ad slot", ads.init);

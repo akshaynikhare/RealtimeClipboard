@@ -1,6 +1,7 @@
 /** Share-key generation and normalisation. */
 
-import { KEY, LOCK } from "./config.js";
+import { KEY, LOCK, SITE } from "./config.js";
+import { IS_WEB } from "./native.js";
 import * as state from "./state.js";
 
 // Modulo bias: 256 does not divide 30, costing ~0.03 bits over a 6-char key.
@@ -125,6 +126,14 @@ export function clearUrl() {
   history.replaceState(null, "", location.pathname + location.search);
 }
 
+/**
+ * A link for the OTHER device to open, which is why it is not always this one's
+ * URL. Only a browser can hand out its own address — see SITE in config.js for
+ * the hosts that cannot.
+ */
 export function shareLink(key, locked = false) {
-  return `${location.origin}${location.pathname}#${fragment(key, locked)}`;
+  const here = IS_WEB && typeof location !== "undefined"
+    ? location.origin + location.pathname
+    : SITE.APP_URL;
+  return `${here}#${fragment(key, locked)}`;
 }

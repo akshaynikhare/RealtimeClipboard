@@ -10,11 +10,17 @@ sets `frontendDist: "../../_desktop"`, built from that same tree by `npm run bui
   web build would show it.
 - **Anything that breaks the no-build dev loop breaks this app**, because it serves the same
   unbundled files.
+- **Nothing a user is given may be built from `location`.** The webview answers at
+  `http://tauri.localhost` (`tauri://localhost` off Windows) — a host that resolves inside this one
+  process. The share link, the QR code and the tray's Copy share link were all that URL for two
+  releases, which is an app nobody could join. `SITE` in `src/core/config.js` is where a public
+  address comes from; `tests/unit/sharelink.mjs` holds the line.
 
 ## Rust never sees a frame, a room hash, or a key
 
-`src-tauri/src/main.rs` does four things: watch the system clipboard, write incoming clips without
-needing focus, own the tray menu and the window's lifetime, and refuse to run twice.
+`src-tauri/src/main.rs` does five things: watch the system clipboard, write incoming clips without
+needing focus, own the tray menu and the window's lifetime, refuse to run twice, and open a project
+link in the real browser — the webview has none to hand it to.
 
 The protocol, the encryption, the transport and the entire UI stay in the JavaScript. That keeps
 the wire protocol at exactly two implementations — this JavaScript and the Python relay — however

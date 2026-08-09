@@ -74,12 +74,10 @@
   text-overflow:ellipsis;
 }
 
-/* Stacked layout: no gutter to clear, and a mobile banner rather than a
-   leaderboard. */
-@media (max-width:900px) {
-  .adslot { padding:10px 14px 12px; }
-  .adslot-box { height:100px; }
-}
+/* The narrow layout's version of all this is in styles/mobile.css, which loads
+   last and set every one of these properties again — this sheet had its own
+   `(max-width:900px)` block claiming a different height, shadowed in full and
+   disagreeing in the one place a height was worth reading. One home for it. */
 
 /* On a short viewport the editor is the scarce thing. The slot shrinks to a
    mobile banner and the explanation drops out — it is on the landing page too. */

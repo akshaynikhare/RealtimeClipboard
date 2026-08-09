@@ -20,10 +20,19 @@ import { read, write } from "../../core/storage.js";
 import * as modal from "../primitives/modal.js";
 import { esc, lazyStyle } from "../primitives/dom.js";
 import { atRoot } from "../../core/paths.js";
+import { IS_DESKTOP } from "../../core/native.js";
+import { LINKS } from "../../core/config.js";
 
 const SEEN = "seenVersion";
 const SOURCE = atRoot("changelog.json");
-const FULL_LOG = atRoot("CHANGELOG.md");
+
+/**
+ * The web app links its own copy: precached, so it opens offline and is exactly
+ * the file this build shipped. The desktop shell's copy is on `tauri.localhost`
+ * — a host that exists only inside the app, which is where this link does not
+ * open (see ui/features/externalLinks.js).
+ */
+const FULL_LOG = IS_DESKTOP ? LINKS.CHANGELOG : atRoot("CHANGELOG.md");
 
 let log = null;          // the parsed changelog, once it has loaded
 
