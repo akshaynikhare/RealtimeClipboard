@@ -21,8 +21,9 @@ import { readFileSync, existsSync, statSync } from "node:fs";
 import { join, extname, resolve, dirname } from "node:path";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
+import { fileURLToPath } from "node:url";
 
-const ROOT = resolve(dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1")), "../..");
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const SITE = join(ROOT, "_site");
 const PORT = 8099;
 
