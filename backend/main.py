@@ -410,15 +410,29 @@ class Connection:
 
 
 class WsConnection(Connection):
+    """A WebSocket peer.
+
+    The lock is the whole of this class beyond the socket. `_broadcast` awaits
+    each `send_text` in turn, and nothing serialises one fan-out against
+    another: two senders in a room, or a local fan-out racing the Redis pump,
+    put two coroutines on the same socket the moment one of them suspends —
+    which a backpressured reader guarantees. Concurrent sends on one connection
+    are outside the ASGI contract, and the failure is either interleaved frames
+    or an exception that `_broadcast` reads as a dead peer and evicts a healthy
+    client for. SSE needs no equivalent: its `send_text` never awaits.
+    """
+
     kind = "ws"
 
-    __slots__ = ("sock",)
+    __slots__ = ("sock", "lock")
 
     def __init__(self, sock: WebSocket) -> None:
         self.sock = sock
+        self.lock = asyncio.Lock()
 
     async def send_text(self, text: str) -> None:
-        await self.sock.send_text(text)
+        async with self.lock:
+            await self.sock.send_text(text)
 
 
 class SseConnection(Connection):
