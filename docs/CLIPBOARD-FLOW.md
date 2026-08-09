@@ -103,7 +103,11 @@ learns one rule instead of three:
 
 1. **The window is unfocused.** `writeText()` is refused outright. The clip is
    not dropped — it queues, the UI shows a **"1 pending"** badge, and it lands
-   the moment you focus the window. Same gesture as sending.
+   the moment you focus the window. Same gesture as sending. Coming back to the
+   tab, the flush can still lose a race — `visibilitychange` fires before focus
+   has landed — so a refused flush requeues rather than drops, and the poll
+   never reads past a queued clip: reading there captures the value the queue
+   is about to replace and broadcasts stale content over the incoming clip.
 2. **You copied something here in the last 10 seconds** (`TEXT.LOCAL_COPY_GRACE_MS`).
    A local copy outranks an arriving clip, because the moment this costs you is
    reaching for something you just copied and finding another device had

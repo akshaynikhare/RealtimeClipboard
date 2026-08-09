@@ -248,6 +248,50 @@ ok("below the rung nothing is written or queued",
    "App: the OS clipboard is neither read nor written");
 state.get().settings.syncMode = SYNC_MODES.LIVE;
 
+/* -------------------------------- a refused flush, and the poll beside it */
+console.log("\nA refused write keeps its promise, and the poll waits its turn\n");
+
+/* The shipped sequence: a clip queues while you are on another tab; coming
+   back fires visibilitychange BEFORE focus lands, so the flush's writeText()
+   refuses; 1.5 s later a poll tick read the OLD clipboard value, captured it,
+   and broadcast it over the incoming clip — "my old clipboard came back". */
+
+let failWrites = false;
+Object.defineProperty(window.navigator, "clipboard", {
+  configurable: true,
+  value: {
+    writeText: async t => { if (failWrites) throw new Error("not focused"); written.push(t); },
+    readText: async () => "old clipboard value",
+  },
+});
+
+reset();
+focused = false;
+await capture.apply("arrived while away");
+focused = true;                 // tab visible…
+failWrites = true;              // …but focus has not landed yet
+await capture.flushPending();
+ok("a refused flush keeps the clip queued", capture.hasPending(),
+   "it was dropped with nothing written, and the banner dismissed");
+ok("...and the banner still stands", pendings.at(-1)?.pending === true);
+ok("...and lastSent does not claim a write that failed",
+   state.get().lastSent !== "arrived while away",
+   "the poll compares the OLD clipboard against lastSent — a false claim "
+   + "makes stale content look like a fresh copy");
+
+state.suppress(0);
+captured.length = 0;
+await capture.tryRead();
+ok("THE OVERWRITE: the poll does not read past a queued clip",
+   captured.length === 0,
+   "it captured the old clipboard value and broadcast it over the incoming clip");
+
+failWrites = false;
+await capture.flushPending();
+ok("...and the next gesture lands it",
+   !capture.hasPending() && written.at(-1) === "arrived while away");
+ok("...and says so", pendings.at(-1)?.pending === false);
+
 /* ---------------------------------------------------------------- done */
 
 console.log("\n==========================================================");
