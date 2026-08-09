@@ -17,10 +17,8 @@
  * `aria-current` already gives is a bad trade.
  */
 
+import { LAYOUT } from "../../core/config.js";
 import { $, esc, setHTML } from "../primitives/dom.js";
-
-/** Must match the breakpoint in styles/mobile.css. */
-const NARROW = "(max-width:900px)";
 
 /* 24×24, stroked, matching the icons already in app.html. */
 const ICON = {
@@ -76,7 +74,7 @@ export function init() {
     if (btn) show(btn.dataset.view);
   });
 
-  mq = window.matchMedia?.(NARROW) ?? null;
+  mq = window.matchMedia?.(LAYOUT.NARROW_MQ) ?? null;
   // addListener is the pre-2019 Safari spelling. The app targets phones and
   // some of them are old — but the two must not both fire, or every breakpoint
   // change repaints twice.

@@ -403,6 +403,30 @@ export const bindsClipboard = (mode) => mode === SYNC_MODES.LIVE;
 export const sharesSession = (mode) => mode !== SYNC_MODES.OFF;
 
 /**
+ * The public address of the hosted app, for the one job `location` cannot do:
+ * build a link for somebody else to open.
+ *
+ * The desktop shell serves this same tree from `http://tauri.localhost`
+ * (`tauri://localhost` off Windows) and `cli/` has no `location` at all, so a
+ * share link built from the current URL there names a host that resolves inside
+ * that one process and nowhere else — the copied link and the QR code both
+ * pointed at an address no other device could reach. keys.shareLink() falls back
+ * to this; a browser still links to itself, so a localhost dev pair and a
+ * self-hosted deploy keep pointing at themselves.
+ *
+ * `/app`, not `/app.html`: the extensionless path is what the deploy publishes
+ * (the PRETTY rewrite in tools/build/build.mjs), and Pages 308s the `.html` form
+ * onto it — carrying the fragment, but through a redirect nobody needs to take.
+ */
+const SITE_ORIGIN = "https://realtimeclipboard.com";
+
+export const SITE = {
+  ORIGIN: SITE_ORIGIN,
+  HOST: SITE_ORIGIN.replace(/^https?:\/\//, ""),   // what the guide tells you to type
+  APP_URL: `${SITE_ORIGIN}/app`,
+};
+
+/**
  * Derived from OWNER/NAME rather than written out four times, so a fork, rename
  * or moved account is one edit and the links cannot drift apart.
  *
@@ -415,16 +439,25 @@ export const REPO = {
   NAME: "RealtimeClipboard",
 };
 
+const GITHUB = `https://github.com/${REPO.OWNER}/${REPO.NAME}`;
+
 export const LINKS = {
-  REPO:    `https://github.com/${REPO.OWNER}/${REPO.NAME}`,
-  ISSUES:  `https://github.com/${REPO.OWNER}/${REPO.NAME}/issues`,
+  REPO:    GITHUB,
+  ISSUES:  `${GITHUB}/issues`,
   /**
    * The chooser, not a blank issue: `/new/choose` picks between the forms in
    * .github/ISSUE_TEMPLATE/, which is where the "do not paste your share key"
    * warning lives — the single most valuable thing on the page for this product.
    */
-  NEW_ISSUE: `https://github.com/${REPO.OWNER}/${REPO.NAME}/issues/new/choose`,
+  NEW_ISSUE: `${GITHUB}/issues/new/choose`,
   SPONSOR: `https://github.com/sponsors/${REPO.OWNER}`,
+  /**
+   * The full changelog for a reader who is NOT in this origin. The web app links
+   * its own precached copy — offline, and the same file the build shipped — but
+   * the desktop shell's copy sits on `tauri.localhost`, an address that means
+   * nothing in the browser the link opens in. See ui/features/whatsNew.js.
+   */
+  CHANGELOG: `${GITHUB}/blob/main/CHANGELOG.md`,
 };
 
 export const IMAGES = {
@@ -432,6 +465,20 @@ export const IMAGES = {
   TYPES: ["image/png", "image/jpeg", "image/webp", "image/gif"],
   /** Named so a received screenshot does not land as "blob" on disk. */
   NAME_PREFIX: "clipboard-image",
+};
+
+/**
+ * The phone breakpoint. Every media query in `styles/` is matched to it by
+ * hand, because CSS cannot read this file; what lives here is the copy the
+ * JavaScript uses. Three modules each carried their own string of it, and a
+ * module that disagrees with the stylesheet renders for a layout that is not
+ * on screen.
+ */
+const NARROW_MAX = 900;
+
+export const LAYOUT = {
+  NARROW_MAX,
+  NARROW_MQ: `(max-width:${NARROW_MAX}px)`,
 };
 
 /**
@@ -469,10 +516,25 @@ export const GOOGLE = {
     /** index.html, the 300×600 rail beside the FAQ. */
     RAIL: "8299355473",
     /**
-     * app.html, the 728×90 under the editor. Mounted by ui/features/ads.js
+     * app.html, the unit under the editor. Mounted by ui/features/ads.js
      * only once the share key has left the URL — see the note on GOOGLE.
      */
     APP: "6948680552",
+  },
+  /**
+   * What that slot asks for, per layout.
+   *
+   * NARROW is requested as a FIXED unit rather than a responsive one, because
+   * the slot sits `flex:none` under an editor that is `flex:1`: every pixel it
+   * takes comes straight out of the textarea. `data-full-width-responsive`
+   * answered a 390px phone with a ~300px creative and left no editor at all.
+   * WIDE is the responsive unit's usual size and is only what the placeholder
+   * claims — that column is drag-resizable, so it is not requested as a fixed
+   * one.
+   */
+  ADSENSE_APP_UNIT: {
+    NARROW: { W: 320, H: 50 },
+    WIDE:   { W: 728, H: 90 },
   },
 };
 

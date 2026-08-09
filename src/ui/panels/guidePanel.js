@@ -22,7 +22,7 @@ import * as keys from "../../core/keys.js";
 import * as storage from "../../core/storage.js";
 import * as device from "../../core/device.js";
 import { IS_DESKTOP } from "../../core/native.js";
-import { SYNC_MODES, LINKS } from "../../core/config.js";
+import { SYNC_MODES, LINKS, SITE } from "../../core/config.js";
 import { esc, setHTML, lazyStyle } from "../primitives/dom.js";
 import * as modal from "../primitives/modal.js";
 import * as os from "../../clipboard/os.js";
@@ -154,7 +154,7 @@ function sectionLink(key, link) {
         <div class="guidestep">
           <b>3 · Or type the key</b>
           <code class="guidekey">${esc(grouped(key))}</code>
-          <span>Open <b>realtimeclipboard.com</b> on the other device and type
+          <span>Open <b>${esc(SITE.HOST)}</b> on the other device and type
                 this in. Case and spaces do not matter.</span>
         </div>
       </div>

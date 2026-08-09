@@ -21,13 +21,14 @@
  * transfers data; below the editor is outside the flow of every task.
  */
 
-import { GOOGLE, GOOGLE_SRC, adsEnabled } from "../../core/config.js";
+import { GOOGLE, GOOGLE_SRC, LAYOUT, adsEnabled } from "../../core/config.js";
 import { on, EV } from "../../core/bus.js";
 import { $, esc, setHTML, scriptURL } from "../primitives/dom.js";
 
-// Fixed in CSS rather than letting the creative size itself, so the editor does
-// not jump when one loads — reserved space is the point of a placeholder.
-const PLACEHOLDER_LABEL = "Ad slot · 728 × 90";
+const isNarrow = () => window.matchMedia?.(LAYOUT.NARROW_MQ)?.matches ?? false;
+
+const unit = () =>
+  isNarrow() ? GOOGLE.ADSENSE_APP_UNIT.NARROW : GOOGLE.ADSENSE_APP_UNIT.WIDE;
 
 let box = null;
 let mounted = false;
@@ -35,6 +36,8 @@ let mounted = false;
 export function init() {
   const host = $("mount-ad");
   if (!host) return;
+
+  const { W, H } = unit();
 
   setHTML(host, `
     <aside class="adslot" id="adSlot" aria-label="Sponsored">
@@ -48,7 +51,7 @@ export function init() {
       </div>
 
       <div class="adslot-box" id="adBox" role="presentation">
-        <span class="adslot-ph">${esc(PLACEHOLDER_LABEL)}</span>
+        <span class="adslot-ph">${esc(`Ad slot · ${W} × ${H}`)}</span>
       </div>
     </aside>`);
 
@@ -94,14 +97,27 @@ function mount() {
 
   const ins = document.createElement("ins");
   ins.className = "adsbygoogle";
-  // display only. A responsive unit measures its container and writes its own
-  // inline height, so anything set here is overwritten a moment later anyway —
-  // the reserved space is expressed as a min-height on the box instead.
-  ins.style.display = "block";
   ins.setAttribute("data-ad-client", GOOGLE.ADSENSE_CLIENT);
   ins.setAttribute("data-ad-slot", GOOGLE.ADSENSE_SLOTS.APP);
-  ins.setAttribute("data-ad-format", "horizontal");
-  ins.setAttribute("data-full-width-responsive", "true");
+
+  if (isNarrow()) {
+    // A fixed unit, so what arrives is the size the box already reserved. Left
+    // responsive, adsbygoogle read the full width of a phone and served a
+    // ~300px creative into a ~90px hole — and since the slot cannot shrink and
+    // the editor can, the textarea was squeezed to nothing with no scrollbar to
+    // reveal it. See GOOGLE.ADSENSE_APP_UNIT in core/config.js.
+    const { W, H } = unit();
+    ins.style.display = "inline-block";
+    ins.style.width = `${W}px`;
+    ins.style.height = `${H}px`;
+  } else {
+    // Responsive here because the sidebar is drag-resizable, so this column has
+    // no fixed width for a fixed unit to fit. A responsive unit measures its
+    // container and writes its own inline height, so only display is set.
+    ins.style.display = "block";
+    ins.setAttribute("data-ad-format", "horizontal");
+    ins.setAttribute("data-full-width-responsive", "true");
+  }
 
   box.replaceChildren(ins);
   box.classList.add("adlive");        // drops the dashed placeholder outline

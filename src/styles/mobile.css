@@ -188,6 +188,23 @@ select { min-height:38px; font-size:16px; padding:7px 8px; }
    character paste does not also build 1,200 invisible <div>s. */
 .gutter { display:none; }
 
+/* The floor under the textarea, and it is load-bearing. `.main` is a
+   fixed-height column — banners, the toolbar, this, the app link, the ad slot —
+   and this is the only child of it that can give, so it gave everything: a
+   header wrapped to two rows plus a join notice plus an oversized ad unit left
+   the editor at literally zero height on an iPhone, with nothing to scroll to
+   find it. Overrides editor.css's `min-height:0`, which is what let it.
+
+   A PERCENTAGE of .main, not of the viewport. The two part company exactly when
+   it matters: this page sets no `interactive-widget`, so the on-screen keyboard
+   leaves `dvh` at the full screen height while ui/shell/mobileNav.js pins the
+   shell to `visualViewport.height` — a viewport-relative floor would then be
+   larger than the whole column it sits in and push the status bar and the tab
+   bar off the bottom. A percentage shrinks with the shell instead. Resolves
+   against .main because a flex item's used height is definite for its children;
+   an engine that disagrees drops the floor and loses nothing else. */
+.edwrap { min-height:25%; }
+
 #editor {
   /* THE 16px IS LOAD-BEARING. Below it, iOS Safari zooms the page when the
      textarea takes focus — and it does not zoom back out when focus leaves, so
@@ -269,8 +286,20 @@ select { min-height:38px; font-size:16px; padding:7px 8px; }
 .adslot { padding:8px 14px 10px; }
 .adslot-head { margin-bottom:4px; }
 .adslot-tag { font-size:9.5px; }
-.adslot-box { height:50px; }
 .adslot-note { display:none; }
+
+/* Both selectors, because ads.css reserves 90px for the wide layout's
+   responsive unit and a second class outranks a single one whatever the source
+   order — so the height here never reached the only box that mattered, and a
+   ~300px creative landed in a 90px hole.
+
+   A reserve, not a cap: `min-height`, because cutting a rendered ad off is a
+   policy violation, so an ad that comes back bigger than ui/features/ads.js
+   asked for has to be allowed to push. The size is settled by REQUESTING a
+   fixed 320×50 there, not by clipping one here, and the floor under the editor
+   above is what stops a surprise costing the textarea again. */
+.adslot-box,
+.adslot-box.adlive { height:auto; min-height:50px; text-align:center; }
 
 /* ------------------------------------------------------------------ *
  * Status bar

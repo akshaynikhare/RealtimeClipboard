@@ -20,12 +20,13 @@ either.
 
 ## What is in Rust, and what is deliberately not
 
-`src-tauri/src/main.rs` does four things:
+`src-tauri/src/main.rs` does five things:
 
 1. watches the system clipboard and emits `clipboard://text`
 2. writes incoming clips to the clipboard without needing focus
 3. owns the tray icon and its menu, the window's lifetime, and a global hotkey
 4. refuses to run twice
+5. opens a project link in the real browser, because the webview cannot
 
 **Rust never sees a frame, a room hash, or a key.** The protocol, the encryption,
 the transport and the whole UI are the JavaScript in `../src/`, built into

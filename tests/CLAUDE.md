@@ -5,8 +5,8 @@
 
 | Folder | Prerequisite | Suites |
 |---|---|---|
-| `unit/` | nothing | `static-check` `relay-url` `lock` `files` `transfer` `clipsize` `syncmode` |
-| `dom/` | jsdom | `dialog` `whatsnew` `tiles` `guide` `editor` `offer` `bundle` (also needs a build) |
+| `unit/` | nothing | `static-check` `relay-url` `lock` `files` `transfer` `clipsize` `syncmode` `pasteguard` `sharelink` |
+| `dom/` | jsdom | `dialog` `whatsnew` `tiles` `guide` `links` `editor` `capture` `offer` `bundle` (also needs a build) |
 | `live/` | a reachable relay | `e2e` `boot` `fallback` `cli` |
 
 A suite needing two things is filed under the heavier one — `boot` needs jsdom *and* a relay, so it

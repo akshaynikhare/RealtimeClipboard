@@ -168,6 +168,49 @@ fn set_sync_indicator(live: bool, tray: State<TrayItems>) {
     }
 }
 
+/// Open one of the project's own links in the user's real browser.
+///
+/// The webview swallows `target="_blank"` — it has no browser to hand the
+/// request to and Tauri registers no new-window handler — so every project link
+/// in the app was a click that did nothing. See src/ui/features/externalLinks.js.
+///
+/// The allowlist is HERE and not in the webview, because the webview is the side
+/// that renders other people's clipboard text: "open this URL" is precisely the
+/// command a pastejacked page would reach for, and a JavaScript-side check is
+/// one XSS away from being no check. https only, two hosts, and the URL is a
+/// single argv entry that never reaches a shell — `rundll32` rather than
+/// `cmd /c start` for that reason.
+#[tauri::command]
+fn open_external(url: String) -> Result<(), String> {
+    const HOSTS: [&str; 2] = ["github.com", "realtimeclipboard.com"];
+
+    // The fragment is dropped before the URL becomes another process's argv,
+    // where anyone listing processes can read it. No link in the app carries one
+    // — but a share link is a fragment, and this side never holds a key.
+    let url = url.split('#').next().unwrap_or_default().to_string();
+
+    let host = url
+        .strip_prefix("https://")
+        .and_then(|rest| rest.split('/').next())
+        .unwrap_or_default();
+    if !HOSTS.contains(&host) {
+        return Err(format!("refused: {url}"));
+    }
+
+    #[cfg(target_os = "windows")]
+    let mut command = {
+        let mut c = std::process::Command::new("rundll32.exe");
+        c.arg("url.dll,FileProtocolHandler");
+        c
+    };
+    #[cfg(target_os = "macos")]
+    let mut command = std::process::Command::new("open");
+    #[cfg(not(any(target_os = "windows", target_os = "macos")))]
+    let mut command = std::process::Command::new("xdg-open");
+
+    command.arg(&url).spawn().map(|_| ()).map_err(|e| e.to_string())
+}
+
 fn show_main(app: &AppHandle) {
     let Some(w) = app.get_webview_window("main") else {
         return;
@@ -416,7 +459,8 @@ fn main() {
             set_clipboard,
             set_window_prefs,
             resolve_close,
-            set_sync_indicator
+            set_sync_indicator,
+            open_external
         ])
         .setup(|app| {
             let handle = app.handle().clone();
