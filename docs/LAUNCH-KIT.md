@@ -84,18 +84,160 @@ Based · Clipboard · Peer-to-Peer.
 | Channel | Title |
 |---|---|
 | **r/InternetIsBeautiful** | RealtimeClipboard is a free, open-source, browser-based clipboard that syncs text between your devices with a short key — no account, end-to-end encrypted, and it works across different networks |
-| **r/SideProject** | I built a browser-based clipboard that syncs between devices with a 6-character key — no account, no install, end-to-end encrypted |
+| **r/SideProject** | I built a browser-based clipboard that syncs between devices with a 10-character key — no account, no install, end-to-end encrypted |
 | **r/coolgithubprojects** | RealtimeClipboard — end-to-end encrypted online clipboard, no account, files peer-to-peer over WebRTC |
 | **r/opensource** | RealtimeClipboard: MIT-licensed encrypted clipboard sync between devices, no account, self-hostable relay |
 | **r/webdev** *(Showoff Saturday only)* | Built an E2EE clipboard sync: WebRTC data channels for files, AES-GCM in the browser, and a relay that only ever sees SHA-256(key) |
 | **r/degoogle / r/fossdroid** | Free, open-source clipboard sync between Android and desktop — no Google account, no telemetry, end-to-end encrypted |
-| **Hacker News** | Lead on P2P file transfer, not clipboard — see the caution below |
+| **Hacker News** | RealtimeClipboard – an end-to-end encrypted clipboard shared by typing the same key |
+
+⚠️ **Two corrections to this table, 2026-08-10.**
+
+**The r/SideProject key length was wrong** — it read *6-character key*. Keys are `KEY.LENGTH = 10`,
+and 16 on desktop. Six was dropped in v0.5.0 as a **defect**, not a preference: 29.4 bits, ~12
+minutes on 100 rented GPUs against a single global salt (`src/core/config.js` `KEY`). That title
+would have advertised the exact weakness the release fixed, to the one audience that checks.
+
+**The Hacker News row said to lead on P2P file transfer.** §6 and §7.3 both later decided the
+opposite and this row was never updated. The title above is clipboard-led, per that decision.
 
 **Hacker News, specifically.** §6 measured the ceiling: clipboard posts top out around 141 points
 ever, file-sharing posts reach 923. It also found every large post in this category was a
 **third-party plain link, not a Show HN**. And it flags the trap: **the 5 MB file cap will become
-the top comment if you lead with files.** Raise the cap or reframe before posting. Resubmission is
-the strategy, not the fallback — LocalSend's same URL scored 1, 4 and 3 before it scored 563.
+the top comment if you lead with files** — which is why §6 resolved to keep the cap and lead with
+the clipboard anyway, giving up that ceiling deliberately. Resubmission is the strategy, not the
+fallback — LocalSend's same URL scored 1, 4 and 3 before it scored 563.
+
+**Why this title and not a punchier one.** HN titles are penalised for the adjective stacking that
+works on Reddit — the PairDrop checklist formula is a Reddit formula. What earns the click here is
+the mechanism, stated flatly: *typing the same key* is the whole product in four words, and it
+raises the question the thread will want to answer (what does the server see?). Two alternates, both
+mechanism-led, for a resubmission that changes nothing but timing:
+
+- `RealtimeClipboard – encrypted clipboard sync where the relay only sees SHA-256(key)`
+- `RealtimeClipboard – a clipboard two devices share without an account or an install`
+
+Do **not** use "Show HN". §6 measured every Show HN in this category at 1–5 points, with the single
+clipboard Show HN — *"I built a universal clipboard that syncs realtime on multiple devices"* — at
+40. Plain links scored 923, 816, 563, 527, 476, 447.
+
+### 2.1 Bodies, ready to post
+
+§7.4 is the argument for all of these: the post is 10% of the work, and what decides the outcome is
+whether the first objection is already answered. Every body below ends in the same caveat block,
+which is §1's list unchanged. **Never trade the caveats away to tighten a post** — they are what
+buys the credibility, and their absence is what turned the QuickClip thread.
+
+**The caveat block** — paste verbatim, all five lines, every long-form post:
+
+> Known limits, up front: the key is a bearer credential — anyone who has it can read the session,
+> so treat a share link like a password. Files are capped at 5 MB and held in memory, 20 per
+> session. Automatic clipboard capture needs a Chromium-based browser; Firefox and Safari can still
+> send and receive anything you paste in. No browser can read the clipboard while its tab is in the
+> background — that is a browser rule, not a bug in this. And a direct peer-to-peer connection fails
+> on some corporate networks, where transfers fall back to a relayed path that is labelled as such
+> in the UI.
+
+**1 — r/coolgithubprojects** (morning, the dry run; repo link)
+
+> An end-to-end encrypted online clipboard. Open it on two devices, type the same 10-character key
+> on both, and what you copy on one lands on the other's system clipboard.
+>
+> Text is encrypted in the browser with AES-GCM before anything is sent. The relay is addressed by
+> `SHA-256(key)` rather than the key, so it routes ciphertext it cannot read and stores nothing on
+> disk. Files skip it entirely and go browser-to-browser over WebRTC.
+>
+> Zero runtime dependencies, MIT, and the relay is self-hostable. I'm the author.
+>
+> [caveat block]
+
+**2 — r/InternetIsBeautiful** (+1h, the 1,000+ shot; link the **live site**, not GitHub)
+
+Rule 6 bans sites requiring an email, name or account — lead with that, because it is the rule this
+product was accidentally written for. Rule 2 removes "not unique" posts and both Snapdrop and
+PairDrop have already run here **as file tools**, so the clipboard is the angle that survives it.
+
+> There's no sign-up, no email box and nothing to install — you open the same page on two devices,
+> type the same short key on each, and they share a clipboard. Copy on the laptop, it's on the
+> phone. It works across different networks, not just the same Wi-Fi, which is where most tools in
+> this space stop.
+>
+> Everything is encrypted in your browser before it leaves. The server is addressed by a hash of
+> your key instead of the key itself, so it forwards messages it cannot decrypt, and it writes
+> nothing to disk — close the tab and the session is gone. Files go directly between the two
+> browsers and never touch it at all.
+>
+> Free and open source (MIT). I built it.
+>
+> [caveat block]
+
+**3 — r/SideProject** (+2h; author voice is fine here)
+
+> I wanted to paste a URL from my laptop onto my phone without emailing it to myself, and every
+> option was an account, an install, or the same Wi-Fi network. So this is the version with none of
+> those: same page on both devices, same 10-character key, shared clipboard.
+>
+> The part I'd want feedback on is the sync model. It's one setting with three rungs — off, sync
+> inside the window, or wire the OS clipboard both ways — because a clipboard that syncs everything
+> also syncs the password you copied two minutes ago. Getting that default right mattered more than
+> any feature.
+>
+> Encrypted in the browser with AES-GCM, relay addressed by `SHA-256(key)` and stores nothing,
+> files peer-to-peer over WebRTC. MIT, self-hostable, zero runtime dependencies.
+>
+> [caveat block]
+
+**4 — r/opensource** (+3h; needs correct flair, and Rule 6 removes drive-by posts — budget the hour)
+
+> MIT-licensed, zero runtime dependencies, and the relay is a single self-hostable service with a
+> Dockerfile — it shares no code with the frontend, only a documented protocol.
+>
+> Text is encrypted in the browser with AES-GCM. The key never leaves it: what reaches the relay is
+> `SHA-256(key)` as a room address plus ciphertext, so a hosted relay learns which rooms exist and
+> nothing about what is in them. Signalling and cursor frames are sealed the same way, or the relay
+> would learn every SDP and peer IP. Files go browser-to-browser over WebRTC.
+>
+> Four surfaces share one codebase: the web app, a Node CLI, a Tauri desktop shell, and the
+> landing site. Threat model is in the repo at `docs/THREAT-MODEL.md` — including what it does
+> *not* defend against.
+>
+> I'm the author, and I'd rather have the crypto picked apart here than after launch.
+>
+> [caveat block]
+
+**5 — Hacker News** (+4h; plain link, then post this as your own first comment immediately)
+
+§7.4: someone *will* open DevTools. Two things in this comment are non-negotiable — it discloses
+authorship, and it volunteers PBKDF2 before anyone finds it. `SEO.md` §10 item 13 flagged that HN
+named Argon2 as the successor in the QuickClip thread and **that item was never actioned**:
+`CRYPTO.ITERATIONS` is still PBKDF2 at 250k (600k locked). Owning it costs one sentence; being
+caught on it costs the thread.
+
+> Author here. The short version of the design, since it's the part worth arguing about:
+>
+> The key is 10 characters from a 30-character alphabet (16 on desktop), and it never leaves the
+> browser. One PBKDF2 pass over it yields both the AES-GCM content key and the room address the
+> relay is indexed by, so the relay sees `SHA-256`-derived room IDs and ciphertext, holds sessions
+> in memory, and writes nothing to disk. Files skip it and go over a WebRTC data channel.
+>
+> On the crypto, before anyone has to dig: it's PBKDF2 at 250k iterations, 600k for PIN-locked
+> rooms — not Argon2. WebCrypto has no Argon2, so using one means shipping WASM into the page that
+> handles decrypted clipboard text, and I judged that a worse trade than a well-understood KDF with
+> a keyspace large enough to make offline search pointless. The salt is a single global constant,
+> which is why the key length is 10 and not 6 — six was 29.4 bits and roughly 12 minutes on 100
+> rented GPUs, and it shipped that way until v0.5.0. Share links created before that release
+> stopped working, deliberately.
+>
+> Threat model, including what it doesn't defend against:
+> https://github.com/akshaynikhare/RealtimeClipboard/blob/main/docs/THREAT-MODEL.md
+>
+> [caveat block]
+
+**On the 5 MB cap, when it comes up — and it will.** §7.4: never argue. Agree, say why, say what
+would change it. *"Agreed, it's low. It's the relay fallback that sets it — when P2P fails, chunks
+go base64'd through a JSON envelope that caps them around 18 KB, and files are held in RAM on both
+ends besides. Doing it properly means streaming to disk through the File System Access API, which
+isn't built yet."*
 
 ---
 
