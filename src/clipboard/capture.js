@@ -174,6 +174,12 @@ export async function tryRead({ deliberate = true } = {}) {
   if (!bindsClipboard(s.settings.syncMode)) return;
   if (state.isSuppressed()) return;          // just applied a remote clip (FR-2.6)
 
+  // A queued clip is a promised write. Reading past it captures the value it
+  // is about to replace and broadcasts THAT as the newest clip — the focus
+  // handlers flush before reading for exactly this reason, and a poll tick
+  // that outruns them must wait rather than read.
+  if (pending !== null) return;
+
   const text = await os.read();
 
   // Re-checked after the await: the read was permitted when it started, and a
@@ -313,11 +319,20 @@ function scheduleGraceFlush() {
  * lastSent and the suppression window are set BEFORE writing, so our own poller
  * recognises the value it is about to see rather than bouncing it back to the
  * sender forever. Every path routes through here for that reason alone.
+ *
+ * A refused write takes the claim back: the clipboard still holds the OLD
+ * value, and leaving the new one in lastSent makes the next read of that old
+ * value look like a fresh copy — which then rebroadcasts stale content over
+ * the very clip that failed to land.
  */
-function writeNow(text) {
-  state.get().lastSent = text;
+async function writeNow(text) {
+  const s = state.get();
+  const prev = s.lastSent;
+  s.lastSent = text;
   state.suppress(TEXT.SUPPRESS_MS);
-  return os.write(text);
+  const ok = await os.write(text);
+  if (!ok) s.lastSent = prev;
+  return ok;
 }
 
 /**
@@ -387,16 +402,24 @@ async function writePending() {
   clearTimeout(graceTimer);
   graceTimer = null;
   const text = pending;
+  const risk = pendingRisk;
   pending = null;
   pendingRisk = null;
-  const ok = await writeNow(text);
-
-  // A clip that arrived while the write was in flight has taken the slot, and
-  // its banner is the one on screen. Retracting unconditionally dismissed it —
-  // and a flagged clip whose banner is gone can never be confirmed or
-  // discarded, because the banner is the only path to either.
+  if (!await writeNow(text)) {
+    // writeText() can refuse in the gap where the tab is visible but not yet
+    // focused. The clip is still owed: requeue for the next gesture — the
+    // banner stays up because nothing here said otherwise. Unless a newer clip
+    // took the slot while this one was writing, in which case that clip is what
+    // the banner is showing and this one has been superseded.
+    if (pending === null) { pending = text; pendingRisk = risk; }
+    return;
+  }
+  // Same reason the requeue above is conditional: retracting unconditionally
+  // dismissed the banner belonging to a clip that arrived mid-write, and a
+  // flagged clip whose banner is gone can never be confirmed or discarded,
+  // because the banner is the only path to either.
   if (pending === null) emit(EV.PENDING_CLIP, { pending: false });
-  if (ok) emit(EV.TOAST, "Pending clip written to your clipboard");
+  emit(EV.TOAST, "Pending clip written to your clipboard");
 }
 
 export const hasPending = () => pending !== null;
