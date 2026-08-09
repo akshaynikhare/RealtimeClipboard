@@ -23,6 +23,10 @@
 <meta name="theme-color" content="#007acc">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./assets/icons/icon.svg" type="image/svg+xml">
+<!-- Google reads the favicon off the home page only, and takes whatever this
+     element points at. The raster is declared beside the SVG so that pipeline
+     never has to rasterise one to make the search-result icon. -->
+<link rel="icon" href="./assets/icons/icon-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="./assets/icons/icon-192.png">
 
 <meta property="og:type" content="website">
@@ -42,6 +46,11 @@
   who publishes it. Deliberately absent: FAQPage and HowTo (Google dropped both
   rich results), SearchAction (removed 2024), and aggregateRating — a rating
   supplied by the thing being rated is against Google's review policy.
+
+  `alternateName` carries the spaced and hyphenated spellings of the brand. The
+  name is closed-up, the brand query is typed all three ways, and this field is
+  what tells Google they are one entity — prose cannot say it without reading as
+  keyword stuffing.
 -->
 <script type="application/ld+json">
 {
@@ -51,6 +60,7 @@
       "@type": "Organization",
       "@id": "https://realtimeclipboard.com/#org",
       "name": "RealtimeClipboard",
+      "alternateName": ["Realtime Clipboard", "Real-time Clipboard"],
       "url": "https://realtimeclipboard.com/",
       "logo": "https://realtimeclipboard.com/assets/icons/icon-512.png",
       "description": "RealtimeClipboard builds a free, end-to-end encrypted online clipboard that syncs text between devices and sends files peer-to-peer.",
@@ -62,6 +72,7 @@
       "@type": "WebSite",
       "@id": "https://realtimeclipboard.com/#website",
       "name": "RealtimeClipboard",
+      "alternateName": ["Realtime Clipboard", "Real-time Clipboard"],
       "url": "https://realtimeclipboard.com/",
       "publisher": { "@id": "https://realtimeclipboard.com/#org" },
       "inLanguage": "en"
@@ -734,14 +745,16 @@ The honest caveat is that the key is a bearer credential: anyone who learns
         </details>
 
         <details class="qa">
-          <summary><h3>Is this a real-time clipboard?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <summary><h3>Is this a realtime clipboard?</h3><span class="qa-i" aria-hidden="true"></span></summary>
           <div class="qa-a">
             <p>
-            Yes. RealtimeClipboard is a live clipboard: the moment a copy is captured it is
+            Yes. RealtimeClipboard is a <a href="/live-clipboard/">realtime clipboard</a>:
+            the moment a copy is captured it is
             encrypted and pushed over an open WebSocket, so it lands on the other
             device in well under a second on a normal connection. There is no polling
             and no refresh button — the other device already has it by the time you
-            look at it.
+            look at it. "Live clipboard" and "real-time clipboard" name the same
+            thing.
             </p>
           </div>
         </details>
