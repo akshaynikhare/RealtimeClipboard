@@ -174,11 +174,16 @@ export async function tryRead({ deliberate = true } = {}) {
   if (!bindsClipboard(s.settings.syncMode)) return;
   if (state.isSuppressed()) return;          // just applied a remote clip (FR-2.6)
 
-  // A queued clip is a promised write. Reading past it captures the value it
-  // is about to replace and broadcasts THAT as the newest clip — the focus
-  // handlers flush before reading for exactly this reason, and a poll tick
-  // that outruns them must wait rather than read.
-  if (pending !== null) return;
+  // An owed clip outranks reading. A queued unflagged clip past its hold is a
+  // write the session has already accepted; reading now captures the value it
+  // is about to replace and broadcasts THAT as the newest clip — so the tick
+  // lands it instead of reading past it. A grace-held clip keeps capture
+  // running (pausing would mute this machine's own copies for as long as the
+  // hold lasts) and a flagged one may never be written at all; for both, the
+  // lastSent dedupe keeps re-reading the same value harmless.
+  if (pending !== null && !pendingRisk && !state.recentLocalCopy()) {
+    return flushPending();
+  }
 
   const text = await os.read();
 
@@ -331,7 +336,9 @@ async function writeNow(text) {
   s.lastSent = text;
   state.suppress(TEXT.SUPPRESS_MS);
   const ok = await os.write(text);
-  if (!ok) s.lastSent = prev;
+  // Rolled back only if still ours: a write that succeeded while this one was
+  // in flight has a truthful claim that must not be clobbered.
+  if (!ok && s.lastSent === text) s.lastSent = prev;
   return ok;
 }
 

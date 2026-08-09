@@ -1,15 +1,15 @@
-﻿/**
- * RealtimeClipboard service worker â€” app-shell cache (PRD FR-4.2).
+/**
+ * RealtimeClipboard service worker — app-shell cache (PRD FR-4.2).
  *
  * Scope note (PRD OI-9). This file must stay AT the site root, whatever else
  * moves. A worker's default scope is its own directory, so `/sw.js` controls
- * `/` â€” one directory down and it would control that directory alone, and the
+ * `/` — one directory down and it would control that directory alone, and the
  * app would silently lose offline support and PWA installability with nothing
  * throwing.
  *
  * The paths below stay relative to this script even though subpath hosting is
  * no longer supported (src/core/paths.js). At the root the two forms are
- * identical, and relative costs nothing â€” whereas a leading "/" here would be a
+ * identical, and relative costs nothing — whereas a leading "/" here would be a
  * second place the origin is assumed, for no gain.
  *
  * What is NOT cached, ever:
@@ -19,7 +19,7 @@
  *   - cross-origin requests of any kind.
  *   - anything that is not a GET.
  *
- * VERSION and SHELL below are both REWRITTEN AT DEPLOY by tools/build/build.mjs â€”
+ * VERSION and SHELL below are both REWRITTEN AT DEPLOY by tools/build/build.mjs —
  * VERSION from the release tag, SHELL from the files the bundle actually
  * produced. The values committed here are the ones development uses, where the
  * unbundled module tree is what gets served. Editing them by hand for a deploy
@@ -29,21 +29,21 @@
  * there is an update at all: it byte-compares sw.js, sees the new string,
  * installs the new worker, and the page shows the reload prompt.
  *
- * â”€â”€ KILL SWITCH â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+ * ── KILL SWITCH ────────────────────────────────────────────────────────────
  * A service worker is the one thing here that OUTLIVES a bad deploy. It holds
  * the app shell in a cache-first cache on every machine that has ever opened
  * the app, so a compromised or broken build keeps being served from disk after
  * the origin has been fixed. Reverting the site does not reach those clients.
  *
  * To evict everyone: set KILL to true and deploy. Every client that fetches
- * sw.js â€” which the browser does on navigation, at most every 24h â€” drops all
+ * sw.js — which the browser does on navigation, at most every 24h — drops all
  * caches, unregisters this worker, and reloads to the network. Recovery is one
  * commit, and it costs offline support until KILL goes back to false.
  */
 
 const KILL = false;
 
-const VERSION = "v21";
+const VERSION = "v22";
 const CACHE = `realtimeclipboard-shell-${VERSION}`;
 
 /** Hosts this worker must never touch, whatever the request looks like. */
@@ -164,7 +164,7 @@ const SHELL = [
 
 self.addEventListener("install", event => {
   // Take over immediately when killed. The usual reason to wait for the user's
-  // consent â€” not swapping code under someone mid-sentence â€” is outranked by
+  // consent — not swapping code under someone mid-sentence — is outranked by
   // the reason this switch is being used at all.
   if (KILL) return void self.skipWaiting();
 
@@ -182,7 +182,7 @@ self.addEventListener("install", event => {
       }
     }));
     // No skipWaiting() here on purpose. The new worker waits until the user
-    // accepts the "Update available Â· Reload" prompt (FR-4.6), which posts
+    // accepts the "Update available · Reload" prompt (FR-4.6), which posts
     // SKIP_WAITING below. Swapping the code under a page mid-session would
     // reload it while someone is typing into the editor.
   })());
@@ -227,7 +227,7 @@ self.addEventListener("fetch", event => {
   const req = event.request;
 
   // Anything not a plain same-origin GET inside our own scope is none of this
-  // worker's business â€” returning without respondWith() hands it straight to
+  // worker's business — returning without respondWith() hands it straight to
   // the network, exactly as if no service worker were installed.
   if (req.method !== "GET") return;
 
@@ -250,7 +250,7 @@ self.addEventListener("fetch", event => {
   //
   // Cache-first for JS/CSS is correct for a stable app and wrong for this one.
   // It pins a returning visitor to whatever build their cache holds until the
-  // worker version changes AND they reload â€” which presented as the app being
+  // worker version changes AND they reload — which presented as the app being
   // "still on the preview build" several deploys after that build was gone,
   // with no way for the user to tell. Code changes on every push; icons and
   // the manifest do not.
@@ -284,7 +284,7 @@ async function networkFirst(request) {
 
 /**
  * Static assets: cache-first. The shell is versioned as a unit, so a hit is
- * always a hit on the build that shipped it â€” see the VERSION note at the top.
+ * always a hit on the build that shipped it — see the VERSION note at the top.
  */
 async function cacheFirst(request) {
   const cache = await caches.open(CACHE);
