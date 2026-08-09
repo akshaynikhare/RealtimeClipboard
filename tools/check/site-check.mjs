@@ -258,23 +258,21 @@ noCsp.length ? noCsp.forEach(f => fail(`${f} is missing its Content-Security-Pol
              : pass(`${pages.length} pages carry a CSP meta tag`);
 
 /**
- * There are TWO policies on this site, and the difference between them is a
- * security control rather than drift.
- *
- * `_headers` is sent by Cloudflare for every path. It has to permit the Google
- * tags, because the crawlable pages run them. `app.html`'s meta tag does not
- * permit them, because that document holds the share key in its fragment and
- * decrypted clipboard text in its DOM. Browsers INTERSECT multiple policies
- * rather than letting the looser win, so the app gets the strict one no matter
- * how wide the header is — which is exactly what makes the split work.
- *
- * So this asserts the shape, not equality:
+ * ONE policy, three declarations. `_headers` is sent by Cloudflare for every
+ * path; every page — app.html included, since the no-ads-in-the-app rule was
+ * removed on 2026-08-09 — declares the same policy in a meta tag for the
+ * servers that are not Cloudflare. Browsers INTERSECT multiple policies rather
+ * than letting the looser win, so a directive that drifts in only one
+ * declaration produces a policy no file in the repo describes. Hence:
  *   1. the header matches what the crawlable pages declare (index.html stands
  *      for all of them — they are written by one script), with
  *      `frame-ancestors` the one sanctioned header-only directive;
- *   2. app.html stays strictly tighter, naming no ad origin;
- *   3. `trusted-types` names its policies wherever the tags do not run, and is
- *      loose only where they do — and only while they are actually switched on.
+ *   2. app.html declares the same policy as the crawlable pages;
+ *   3. `trusted-types` is loose only while the tags are actually switched on.
+ *
+ * What keeps the share key out of the ad request is no longer a CSP gap but
+ * timing: src/ui/features/ads.js mounts the tag only after boot has stripped
+ * the key from the fragment. gtag gets `pageLocation()` for the same reason.
  */
 const appCsp = read("app.html").match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1];
 const siteCsp = read("index.html").match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1];
@@ -287,20 +285,6 @@ const tagsOn = ["GA4_ID", "ADSENSE_CLIENT"]
 
 const directives = p => p.split(";").map(d => d.trim()).filter(Boolean);
 const ttOf = p => directives(p).find(d => d.startsWith("trusted-types"));
-
-/**
- * Ad origins, which app.html may never name — as distinct from the analytics
- * ones, which it may.
- *
- * The line is not "is it Google" but "can the page control what it reports".
- * gtag takes `page_location` from us, so `pageLocation()` keeps the share key
- * out of it; the ad tag reports the URL itself, with no supported override, and
- * that URL contains the key. googletagmanager and google-analytics are
- * therefore absent from this pattern on purpose.
- */
-const adOrigins = p => directives(p)
-  .filter(d => /googlesyndication|doubleclick|adtrafficquality|googleadservices|adservice\.google|fundingchoices/.test(d))
-  .map(d => d.split(" ")[0]);
 
 if (!appCsp) fail("could not read the CSP out of app.html");
 else if (!siteCsp) fail("could not read the CSP out of index.html");
@@ -321,24 +305,15 @@ else {
       : fail("_headers CSP has no frame-ancestors — the only directive it exists to add");
   }
 
-  /* 2. app.html names no ad origin, whatever the header allows */
-  const leaked = adOrigins(appCsp);
-  leaked.length
-    ? fail(`app.html CSP names ad origins in ${[...new Set(leaked)].join(", ")} — that `
-         + "document holds the share key and decrypted clipboard text, and the "
-         + "strict meta tag is what keeps the tags out of it. See ui/features/ads.js.")
-    : pass("CSP: app.html admits no ad origin, so the tags cannot run there");
+  /* 2. app.html declares the same policy as the crawlable pages */
+  appCsp === siteCsp
+    ? pass("CSP: app.html matches the crawlable pages")
+    : fail("app.html CSP differs from index.html's — the header intersects with "
+         + "both, so a difference produces a policy no file describes. If the "
+         + "difference is deliberate, it is a new security control: document it "
+         + "here and assert its shape instead of deleting this check.");
 
-  /* 3. trusted-types, per surface */
-  const appTt = ttOf(appCsp);
-  const appLoose = ["*", "'allow-duplicates'"].filter(t => appTt?.split(/\s+/).includes(t));
-  if (!appTt) fail("app.html has no trusted-types directive");
-  else if (appLoose.length) {
-    fail(`app.html CSP: \`${appTt}\` — ${appLoose.join(" and ")} defeats the policy `
-       + "allowlist. With `*` injected script declares its own policy; with "
-       + "'allow-duplicates' it re-declares ours with a pass-through createHTML. "
-       + "Nothing in this document needs either.");
-  } else pass("CSP: app.html trusted-types names its one policy");
+  /* 3. trusted-types */
 
   /**
    * The header's `trusted-types` is allowed to be loose — the ad tag mints

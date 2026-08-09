@@ -441,18 +441,17 @@ export const IMAGES = {
  * checkout and a self-hosted deploy load no third-party script at all. Filling
  * these in is the switch that turns tracking and ads on for a build.
  *
- * !! Analytics loads everywhere; ADSENSE loads on the 19 crawlable pages and
- * never in app.html, which holds the share key in its fragment and decrypted
- * clipboard text in its DOM. The difference is who controls what gets reported:
- * gtag takes `page_location` from us, so `pageLocation()` below strips the key
- * out of it, while the ad tag reports the URL itself with no override. That
- * boundary is enforced by app.html's own meta CSP naming no ad origin — not by
- * this file, and not by anyone remembering. docs/ARCHITECTURE.md §5 and
- * src/ui/features/ads.js have the argument. !!
+ * !! Analytics and AdSense both load everywhere, app.html included (the
+ * no-ads-in-the-app rule was removed 2026-08-09). The ad tag reports the page
+ * URL itself with no override, so the rule that survives is TIMING:
+ * ui/features/ads.js must never load it while the share key is still in
+ * `location.hash` — it waits for boot to strip the fragment (keys.clearUrl)
+ * before the first ad request. gtag takes `page_location` from us, and
+ * `pageLocation()` below keeps the fragment out of that too. !!
  *
- * Adding an origin means adding it to the CSP in _headers AND in the crawlable
- * pages' meta tags, which tools/check/site-check.mjs asserts agree — and
- * leaving app.html's alone, which it also asserts.
+ * Adding an origin means adding it to the CSP in _headers AND in every page's
+ * meta tag — app.html's included — which tools/check/site-check.mjs asserts
+ * agree.
  */
 export const GOOGLE = {
   /** GA4 measurement ID, "G-XXXXXXXXXX". Admin → Data streams → your stream. */
@@ -470,12 +469,10 @@ export const GOOGLE = {
     /** index.html, the 300×600 rail beside the FAQ. */
     RAIL: "8299355473",
     /**
-     * There is deliberately no APP slot. A unit exists in the AdSense account
-     * for it (6948680552) and is left unused: app.html carries the share key in
-     * its fragment and decrypted clipboard text in its DOM, and AdSense reports
-     * the page URL with no way to strip it. src/ui/features/ads.js has the
-     * argument; the app's own CSP is what enforces it.
+     * app.html, the 728×90 under the editor. Mounted by ui/features/ads.js
+     * only once the share key has left the URL — see the note on GOOGLE.
      */
+    APP: "6948680552",
   },
 };
 

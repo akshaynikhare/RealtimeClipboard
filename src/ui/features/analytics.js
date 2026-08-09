@@ -1,9 +1,6 @@
 /**
- * Google Analytics, inside the app.
- *
- * ANALYTICS ONLY. AdSense is deliberately absent from this document — see
- * ads.js for why — and the difference is not arbitrary: gtag lets the page
- * decide what URL it reports, and the ad tag does not.
+ * Google Analytics, inside the app. AdSense lives next door in ads.js, which
+ * owns the timing rule that lets an ad tag run in this document at all.
  *
  * !! `page_location` is overridden, always. This document's URL carries the
  * share key in its fragment, and gtag's default `page_location` is
@@ -11,16 +8,12 @@
  * never leaves the browser — arrives at Google in the first page_view, in a
  * form anyone with access to the property can read and use to decrypt the
  * session. `pageLocation()` in core/config.js is the only value that may be
- * used here, and it is why analytics is admissible in this document at all. !!
+ * used here. !!
  *
  * The landing page's copy of this is `src/landing/tags.js`; neither can import
  * the other, because `core/` is the only directory both may reach and `core/`
  * may not touch the DOM. Everything worth sharing is shared through
  * `core/config.js`.
- *
- * app.html's CSP admits googletagmanager and the google-analytics endpoints and
- * NOTHING else Google serves — no ad origin, and `trusted-types` still names
- * only this codebase's policy. tools/check/site-check.mjs enforces both halves.
  */
 
 import { GOOGLE, GOOGLE_SRC, CONSENT_REGIONS, analyticsEnabled, pageLocation } from "../../core/config.js";

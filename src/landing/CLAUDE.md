@@ -1,16 +1,12 @@
 # src/landing/ — rank 10
 
-The marketing page. A **separate document** from the app, and the separation is a security
-boundary, not an organisational one.
+The marketing page. A **separate document** from the app.
 
-**No ad tag may ever be added to `app.html`.** It carries the session key in its fragment and
-decrypted clipboard content in its DOM, and an ad tag reports the page URL with no way to withhold
-it. Ads, embeds, anything that reports what it likes — they belong here, on pages that hold neither.
-
-`tags.js` is where that lands: Google Analytics and AdSense, off unless `GOOGLE` in
-`core/config.js` has IDs. Analytics also runs in the app (`ui/features/analytics.js`) because gtag
-lets the page set `page_location`; AdSense does not, which is the whole distinction. The app's meta
-CSP names no ad origin, so the boundary is enforced by the browser rather than by remembering.
+`tags.js` carries its Google Analytics and AdSense, off unless `GOOGLE` in `core/config.js` has
+IDs. The app runs both tags too (`ui/features/analytics.js`, `ads.js`) since the
+no-ads-in-the-app rule was removed on 2026-08-09 — with one rule the app adds and this page does
+not need: its ad tag loads only after boot has stripped the share key from the URL fragment,
+because the ad request reports the page URL with no way to withhold it.
 
 **`pageLocation()` is not optional here either.** A share link can arrive on `index.html` and sit in
 the fragment for the instant before `redirect.js` forwards it, so an unmodified `gtag("config")`

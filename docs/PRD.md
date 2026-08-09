@@ -684,7 +684,7 @@ against the relay operator, who sees the room hash regardless.
 | NFR-2 | App shell < 100 KB gzipped; first paint < 1 s on 4G |
 | NFR-3 | Reconnect within 5 s of network restoration |
 | NFR-4 | $0 recurring cost up to ~50 k messages/day |
-| NFR-5 | **Revised 2026-08-08.** No AD tag and a strict CSP in `app.html` — enforced by that document's own meta policy rather than by convention, and it names no ad origin. Cookies and analytics no longer hold anywhere: Google Analytics runs site-wide, configured so the URL fragment (and therefore the share key) is never reported. AdSense runs on the 19 crawlable pages only. See `docs/ARCHITECTURE.md` §5 |
+| NFR-5 | **Revised 2026-08-09.** Google Analytics and AdSense run site-wide, `app.html` included; the share key is never reported to either. gtag is configured with `pageLocation()`, which strips the URL fragment, and the ad tag — which reports the URL itself with no override — loads only after boot has stripped the key from the fragment (`ui/features/ads.js`). All pages declare one CSP, asserted by `tools/check/site-check.mjs`. See `docs/ARCHITECTURE.md` §5 |
 | NFR-6 | Keyboard accessible; visible focus rings; status changes announced via `aria-live` |
 | NFR-7 | Graceful degradation to T1 (manual paste) on any browser lacking the async clipboard read |
 

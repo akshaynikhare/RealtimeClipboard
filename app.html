@@ -16,37 +16,31 @@
      Cloudflare: `npm run serve`, the Tauri webview, and anyone self-hosting
      behind their own proxy.
 
-     !! THIS POLICY IS DELIBERATELY STRICTER THAN THE HEADER, and that gap is a
-     security control rather than drift.
+     !! THIS POLICY MATCHES THE CRAWLABLE PAGES. It was deliberately stricter —
+     no ad origin, `trusted-types` naming one policy — until the
+     no-ads-in-the-app rule was removed on 2026-08-09 and the slot under the
+     editor became a real AdSense unit.
 
-     The crawlable pages run Google Analytics AND AdSense, so `_headers` — which
-     Cloudflare sends for every path, this one included — names the ad origins,
-     allows inline style, and loosens `trusted-types` to `* 'allow-duplicates'`.
-     This document runs analytics only. It holds the share key in
-     `location.hash` and decrypted clipboard text in its DOM, and the line
-     between the two tags is who controls what gets reported: gtag takes
-     `page_location` from us, so `pageLocation()` strips the fragment before
-     anything is sent; the ad tag reports the URL itself with no supported
-     override, and that URL is the key.
+     What keeps the share key out of the ad request is no longer a CSP gap but
+     TIMING: the ad tag reports the page URL itself with no supported override,
+     so ui/features/ads.js mounts it only after boot has stripped the key from
+     the fragment (keys.clearUrl), and a locked link — whose fragment stays
+     until the PIN is given — shows no ad until then. gtag takes
+     `page_location` from us and `pageLocation()` strips the fragment there for
+     the same reason.
 
-     Two CSPs INTERSECT rather than the looser winning, so the ad origins the
-     header permits are refused here by the meta tag below. `goog#html` cannot
-     be created in this document however wide the header gets — and it turns out
-     nothing here wants to: gtag runs fine under `trusted-types
-     realtimeclipboard`, proven by tools/check/csp-check.mjs. So the innerHTML
-     sink stays singular exactly where peer-controlled clip content meets it,
-     and analytics costs this document nothing.
-
-     tools/check/site-check.mjs asserts the split rather than asserting equality:
-     the header must match the crawlable pages, this file must name no ad origin,
-     and its trusted-types must stay narrow. Do not "fix" the difference by
-     copying the header down here.
+     Two CSPs INTERSECT rather than the looser winning, so a directive that
+     drifts in only one declaration produces a policy no file describes.
+     tools/check/site-check.mjs asserts all three agree — the header, the
+     crawlable pages, and this file — with `frame-ancestors` the one sanctioned
+     header-only directive.
 
      Notes on the individual directives:
-       script-src          'self' plus googletagmanager for gtag.js, and nothing
-                           else. No inline script and no 'unsafe-inline': the
-                           tag is injected from a module, which is why the
-                           copy-pasted gtag snippet is not used in this repo.
+       script-src          'self', googletagmanager for gtag.js, and the
+                           AdSense origins. No inline script and no
+                           'unsafe-inline': the tags are injected from modules,
+                           which is why the copy-pasted snippets are not used
+                           in this repo.
        img-src   data:     files/thumbs.js canvas thumbnails
                  blob:     files/registry.js object URLs for received files
        frame-src blob:     ui/features/preview.js shows a PDF in the browser's
@@ -76,7 +70,7 @@
      pinned here is deliberate — a corporate build that can physically reach
      only its own relay is a feature, not an oversight. tests/static-check.mjs
      asserts this list agrees with RELAY_URL in src/core/config.js. !! -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src blob:; script-src 'self' https://www.googletagmanager.com; img-src 'self' data: blob: https://www.googletagmanager.com; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://*.google-analytics.com https://*.analytics.google.com; require-trusted-types-for 'script'; trusted-types realtimeclipboard">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src blob: https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
 
 <title>RealtimeClipboard</title>
 <meta name="theme-color" content="#007acc">

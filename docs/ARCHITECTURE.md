@@ -242,7 +242,7 @@ These are load-bearing. Breaking one is a vulnerability, not a bug.
 | A device joining the session is announced, not silent | `state.setPeers()` diffs the roster → `ui/shell/banners.js` |
 | Signalling and cursor frames are sealed like clips | `main.js` `encryptFrame()`; only routing fields stay clear |
 | A peer may retract only files it announced | `files/registry.js` `applyGone()` checks the relay-stamped `from` |
-| The share key is never transmitted — only `SHA-256(key)` and ciphertext | `core/crypto.js`; `core/config.js` `pageLocation()` keeps it out of analytics on the landing page, and the note below keeps ad tags out of `app.html` entirely |
+| The share key is never transmitted — only `SHA-256(key)` and ciphertext | `core/crypto.js`; `core/config.js` `pageLocation()` keeps it out of every analytics call, and `ui/features/ads.js` keeps the ad tag from loading while the key is in the URL — the note below |
 | Keys are normalised (uppercased) before hashing | `core/keys.js` |
 | A session PIN is never transmitted, never in the URL, never on disk, never logged — only PBKDF2+HKDF output derived from it | `core/crypto.js`, `core/storage.js` `saveLock()`, `main.js` `announce()` |
 | A locked link opens no connection until the PIN is given, and never falls back to the unlocked room of the same key | `main.js` `startSession()`; `tests/live/boot.mjs --locked` |
@@ -275,40 +275,37 @@ The suppression ordering is the subtle one. Write first and your own poller sees
 a "new" clipboard value and bounces it back to the sender, forever. See
 [CLIPBOARD-FLOW.md §6](CLIPBOARD-FLOW.md).
 
-### The one that is enforced by two policies, not one — 2026-08-08
+### The one that was enforced by two policies — reversed 2026-08-09
 
-**No AdSense in `app.html`, and the CSP is what makes that hold.** Google
-Analytics and AdSense both run on the 19 crawlable pages, from `GOOGLE` in
-`core/config.js`. Only analytics runs here.
+**AdSense now runs in `app.html` too.** Until 2026-08-09 the app was the one
+surface with no ad tag, held closed by its own meta CSP naming no ad origin;
+that rule was removed deliberately, and the price the paragraph below always
+named — a third-party script in the document that holds decrypted clipboard
+text — was accepted with it. Every page now declares one policy, and
+`tools/check/site-check.mjs` asserts the header and both meta declarations
+agree.
 
-The line between them is not "is it Google" but **who decides what gets
-reported**. gtag takes `page_location` from the page, so `pageLocation()` strips
-the fragment before anything is sent. The ad tag reports the URL itself with no
-supported override — and in this document that URL contains the share key.
-
-`_headers` is sent by Cloudflare for every path, so it necessarily permits the
-tag origins. `app.html`'s own meta CSP does not. **Two policies intersect rather
-than the looser winning**, so the app enforces the strict one — the tag origins
-are refused there, and `goog#html` cannot be created however wide the header is.
-The gap between the two files is the control.
+What survives the reversal is **timing**: the ad tag reports the page URL
+itself with no supported override, and in this document that URL can contain
+the share key. So `ui/features/ads.js` mounts the unit only after boot has
+stripped the key from the fragment (`keys.clearUrl()`), and a locked link —
+whose fragment stays until the PIN is given — shows the placeholder until then.
+gtag takes `page_location` from the page, and `pageLocation()` strips the
+fragment there on every surface.
 
 | | Where it stands |
 |---|---|
-| An ad tag reading `location.hash`, or the editor's DOM | **Cannot happen.** No ad tag loads in `app.html`; the meta CSP names no ad origin, and `tools/check/site-check.mjs` fails the deploy if that stops being true |
+| An ad tag reading `location.hash` | **Cannot happen, by timing.** The tag loads only once the fragment is empty; a document whose URL still holds a key shows no ad |
+| An ad tag reading the editor's DOM | **Accepted, 2026-08-09.** Google's script runs where decrypted clipboard text lives, and contextual targeting reads page content by design. This is the cost the old rule existed to refuse; `/privacy/` must state it. It reads `localStorage` (the `rememberKey` store) as easily — that is part of the same acceptance |
 | `page_location` carrying the key | **Fixed, both surfaces.** `pageLocation()` in `core/config.js` strips the fragment and every `gtag("config", …)` passes it — a config call without it sends the key to Google. It matters on the landing page too: a share link can arrive on `index.html` and sit in the fragment for the instant before `landing/redirect.js` forwards it |
-| Trusted Types naming exactly one policy | **Intact in `app.html`** (`trusted-types realtimeclipboard`), and analytics costs it nothing — gtag runs happily under it, verified by `csp-check`. Given up only on the crawlable pages, where AdSense mints `goog#html` per injected frame and those pages hold no key and no clipboard |
+| Trusted Types naming exactly one policy | **Given up everywhere, 2026-08-09** — AdSense mints `goog#html` per injected frame, so `app.html` now carries the same `trusted-types * 'allow-duplicates'` as the crawlable pages. The `innerHTML` sink in `ui/primitives/dom.js` stays singular by the static check, no longer by the CSP |
 | Relay confidentiality | **Unaffected.** Encryption is unchanged; the relay still cannot read a clip, and no key reaches it |
 | What Google learns about app usage | Page views, referrer, approximate location, device — against a URL with no key in it. That is a real disclosure and `/privacy/` states it |
 
-What it costs is the app's own ad unit, which is small: `app.html` is `noindex`,
-search traffic lands on the content pages, and the units there catch essentially
-every impression. `docs/SEO.md` argued for this split before the tags existed.
-The app keeps its first-party sponsor slot.
+`src/ui/features/ads.js` and `analytics.js` are where the rules sit next to the
+code, and `/privacy/` is where the disclosure belongs.
 
-`src/ui/features/ads.js` and `analytics.js` are where the argument sits next to
-the code, and `/privacy/` is where it is disclosed to the people it affects.
-
-#### Amended — the repair landed, and it was two holes not one
+#### History — the repair that preceded the reversal, and it was two holes not one
 
 The key is out of the fragment. `main.js` `openSession()` calls `keys.clearUrl()`
 the moment the key has been read, and a reload is served from `sessionStorage`
@@ -323,13 +320,12 @@ without protecting it. That write is now gated on a `rememberKey` setting,
 default on — the behaviour FR-1.7 asks for — and switching it off forgets the key
 already stored rather than only declining the next one.
 
-What this does **not** change: a third-party tag in this document still reads the
-DOM, and the DOM still holds decrypted clipboard text. Contextual targeting is
-that, by design. So the switch stands — `GOOGLE.ADSENSE_CLIENT` and `GA4_ID` are
-both empty, nothing third-party loads today, and the CSP has been narrowed back
-to match (`trusted-types realtimeclipboard`, no wildcard). **Turning ads on means
-widening the CSP again and accepting the DOM-reading row above; it is a decision
-with a price, not a switch.**
+What that repair did **not** change: a third-party tag in this document still
+reads the DOM, and the DOM still holds decrypted clipboard text. Contextual
+targeting is that, by design. This section used to end *"turning ads on means
+widening the CSP again and accepting the DOM-reading row above; it is a
+decision with a price, not a switch"* — on 2026-08-09 that decision was taken,
+knowingly, and the rows above record what was paid and what was kept.
 
 ---
 

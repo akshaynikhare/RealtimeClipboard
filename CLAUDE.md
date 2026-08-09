@@ -166,14 +166,14 @@ shipped once:
 - **Nothing decorative may block the session.** `main.js` starts the connection un-awaited and
   wraps every other `init()` in `safeInit()`; `tests/live/boot.mjs` enforces that boot reaches the
   transport.
-- **No AD tag may ever run in `app.html`** — it holds the session key in its fragment and decrypted
-  clipboard content in its DOM. The test is not "is it Google" but **who controls what gets
-  reported**: gtag takes `page_location` from us, so `pageLocation()` strips the fragment and
-  analytics is admissible; AdSense reports the URL itself with no override, and that URL is the key.
-  So GA runs everywhere, AdSense only on the 19 crawlable pages. Enforced by app.html's meta CSP
-  naming no ad origin — stricter than the site-wide `_headers` policy, and the two intersect so the
-  app wins. `tools/check/site-check.mjs` fails the deploy if that gap closes. `ui/features/ads.js`
-  has the argument; the app's slot stays first-party.
+- **The ad tag in `app.html` must never load while the share key is in the URL.** The old rule —
+  no ad tag in the app at all — was removed on 2026-08-09; GA and AdSense now run everywhere and
+  `app.html` declares the same CSP as the crawlable pages (`tools/check/site-check.mjs` asserts the
+  three declarations agree). What survives is timing: AdSense reports the page URL with no
+  override, so `ui/features/ads.js` mounts the unit only after boot has stripped the key from the
+  fragment (`keys.clearUrl()`), and a locked link — whose fragment stays until the PIN is given —
+  shows the placeholder until then. gtag still gets `pageLocation()`. The accepted cost: Google's
+  script runs in the document that holds decrypted clipboard text. See `docs/ARCHITECTURE.md` §5.
 - **`src/landing/land.js` is generated** by `tools/build/build-land-mask.mjs` and committed. Do not
   hand-edit it.
 
