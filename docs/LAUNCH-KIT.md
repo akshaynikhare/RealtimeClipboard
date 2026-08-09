@@ -248,8 +248,8 @@ Ordered by the expected value measured in `SEO.md` §6. Every one of these is fr
 | Target | Status | The submission |
 |---|---|---|
 | **AlternativeTo** | ✅ Account created **2026-08-09**; the one-week maturity rule makes it submittable from **2026-08-16** | Tag `clipboard-sync`. List as an alternative to **KDE Connect** (the big funnel), Pushbullet, and Apple Universal Clipboard. Use the Medium string, **no URLs in it**. Do *not* position as a clipboard *manager* (saturated) or as a Snapdrop clone (declined on sight) |
-| **nuzulul/awesome-webrtc** | ✅ Submit first — no star minimum | File Transfer category, beside Snapdrop/PairDrop/ShareDrop. Exact line and placement in §3.1 |
-| **hemanth/awesome-pwa** | ✅ Ready | Tools and Utilities category. Exact line and placement in §3.1 |
+| **nuzulul/awesome-webrtc** | ✅ **Submitted 2026-08-10** — [PR #13](https://github.com/nuzulul/awesome-webrtc/pull/13), open | File Transfer, between `Peertransfer` and `ShareDrop`. `CONTRIBUTING.md` rules checked off in the PR body — the binding one is *don't repeat the resource name in the description* |
+| **hemanth/awesome-pwa** | ✅ **Submitted 2026-08-10** — [PR #459](https://github.com/hemanth/awesome-pwa/pull/459), open | Tools and Utilities, between `QR Code Scanner` and `Remember`, on `master` |
 | **pluja/awesome-privacy** | ❌ **Closed as of 2026-08-08.** The condition this row warned about has happened: AdSense and GA4 are live (`adsEnabled()` and `analyticsEnabled()` both true), and the list requires *no user-tracking on the project website*. Do not submit — a rejection here is public and is worse than an absence. Revisit only if the tags come off |
 | **Microsoft Store via PWABuilder** | ✅ Registration is now free | Start at `storedeveloper.microsoft.com` — entering via Partner Center lands in the legacy paid flow. Review 24–48h. Bonus: Store installs send `Referer: app-info://platform/microsoft-store`, which is free install attribution |
 | **awesome-selfhosted** | ⏳ Blocked until ~December 2026 (4-month rule from first release) | PR `awesome-selfhosted-data`, not the main list. Copy `software/privydrop.yml` as the template. Needs the Dockerfile — §10 item 16 |
@@ -266,6 +266,10 @@ transcribed rather than written. **Match the neighbours, not each other**: a lin
 like the ones around it is the standard reason an awesome-list PR is closed without discussion.
 
 Each is one commit on a fork, one PR, no issue first.
+
+✅ **Both submitted 2026-08-10**, exactly as transcribed below — the placements and both repos'
+default branches were re-verified against the live lists on the day and had not moved. Each PR is a
+single `+1/-0` line. Nothing here needs doing again unless a maintainer asks for a change.
 
 **`nuzulul/awesome-webrtc`** — `README.md` → `### File Transfer`. Hyphen bullet, ` - ` separator,
 trailing full stop, **repo** link. Alphabetical: insert after `Peertransfer`, before `ShareDrop`.
