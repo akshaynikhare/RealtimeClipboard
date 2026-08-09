@@ -476,9 +476,14 @@ function wire() {
 
   // A commit that came FROM the editor does not go back into it: the committed
   // text is trimmed, and writing it back would move the caret of someone who is
-  // very likely still typing.
+  // very likely still typing. It goes to the author's OWN clipboard instead —
+  // on the Clipboard rung the editor IS the clipboard, and without this a clip
+  // typed here landed on every machine's clipboard except the one it was typed
+  // on. Every other source already came OFF this machine's clipboard, so for
+  // them the write would be a no-op at best and a capture loop at worst.
   on(EV.TEXT_CAPTURED, ({ text, source }) => {
     if (source !== "editor") editor.setText(text);
+    else capture.putOnClipboard(text);
     sendText(text);
   });
 
@@ -497,7 +502,9 @@ function wire() {
   on(EV.TEXT_RECEIVED, async ({ text }) => {
     const onClipboard = await capture.apply(text);
 
-    if (!editor.isDirty()) {
+    // A clip identical to what is on screen has nothing to destroy, so it
+    // never warrants an offer — "replaces what you have typed" with itself.
+    if (!editor.isDirty() || text === editor.getText()) {
       editor.setText(text);
       // A clean apply supersedes any offer still on screen — its "Show it"
       // would now roll the editor BACK to the older clip it was holding.

@@ -899,6 +899,14 @@ traffic hits the content pages first.
 > pages a privacy-minded reader lands on from search *do* run AdSense, and that
 > is worth saying first rather than being caught by DevTools. `/privacy/` is the
 > answer to point at.
+>
+> **Reversed, 2026-08-09, on the app half.** AdSense now runs in `app.html` too
+> (`ADSENSE_SLOTS.APP`, mounted by `src/ui/features/ads.js` only after the share
+> key has left the URL). The defensible sentence above — *"the clipboard itself
+> carries no ad tag"* — is gone, and with it the listing calculus this section
+> describes: the conflict this section warned about is now live, `/privacy/`
+> must disclose a third-party script on the page that holds decrypted clipboard
+> text, and the EthicalAds/Carbon note below is the path back if it bites.
 
 Worth evaluating as a straight upgrade: **EthicalAds** and **Carbon Ads** serve
 developer audiences without cookies or personal-data tracking, which would let ads

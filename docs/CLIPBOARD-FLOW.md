@@ -118,6 +118,12 @@ are both derived from the rung and neither has a switch of its own; receiving
 used to have one, which meant a device set to Manual stopped sending while
 arriving clips still landed on its system clipboard.
 
+A clip does not have to *arrive* to be written. On the Clipboard rung a commit
+in the editor lands on the author's own OS clipboard too — typed text is a copy
+like any other, and the author's machine was otherwise the only one in the room
+not getting the clip. A blur-commit (alt-tab runs `commit()` after focus is
+already gone) queues like any other deferred write and lands on the next focus.
+
 ### 3.1 Pastejacking — why an arriving clip is rewritten
 
 End-to-end encryption protects a clip from the relay. It protects nobody from the

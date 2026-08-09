@@ -229,13 +229,14 @@ Limits: **5 MB** per file, 20 files per session, memory only.
   it is why the Dockerfile has no volume.
 - **Availability.** No uptime guarantee. Room state is in RAM and dies with the process.
 - **Anything after decryption.** History is `sessionStorage` on your own device.
-- **The third-party tags, as of 2026-08-08.** Google Analytics runs site-wide and AdSense runs on
-  the crawlable pages. Neither is a first-party promise this document can make on your behalf.
-  What *is* enforced: `ADSENSE_SLOTS.APP` is empty, so **no ad tag runs in `app.html`** — the one
-  document holding the share key in its fragment and decrypted clipboard text in its DOM — and
-  `pageLocation()` strips the fragment from every analytics call, so the key is never reported.
-  `app.html`'s own CSP is what enforces the first of those rather than convention. See
-  `docs/ARCHITECTURE.md` §5 and `/privacy/`.
+- **The third-party tags, as of 2026-08-09.** Google Analytics and AdSense run site-wide,
+  `app.html` included — the no-ads-in-the-app rule was removed on that date. Google's script
+  therefore runs in the document that holds decrypted clipboard text, and this model does not
+  defend against what it does there; that is an accepted disclosure, stated in `/privacy/`.
+  What *is* enforced: the ad tag never loads while the share key is in the URL
+  (`ui/features/ads.js` waits for boot to strip the fragment), and `pageLocation()` strips the
+  fragment from every analytics call, so the key itself is never reported. See
+  `docs/ARCHITECTURE.md` §5.
 
 ---
 

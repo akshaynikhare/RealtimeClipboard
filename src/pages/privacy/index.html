@@ -184,15 +184,15 @@
         </p>
 
         <p>
-          <b>There are no ads in the clipboard itself.</b> An ad tag is
-          third-party code that runs inside the page it appears on and can read
-          that page, including the address bar — and in the app the address bar
-          contains your session key. Unlike Analytics, AdSense offers no
-          supported way to stop it reporting that address. So the app carries no
-          ad tag: its own security policy refuses to load one, separately from
-          and more strictly than the rest of the site, and a build that weakened
-          that is rejected before it can be published. Ads appear only on the
-          pages that hold no key and no clipboard content.
+          <b>Ads also appear in the app, below the editor.</b> An ad tag is
+          third-party code that runs inside the page it appears on, and in the
+          app that page shows your decrypted clipboard text — so, like any
+          third-party script, Google's tag runs where that content is visible.
+          Your session key is protected separately: the ad request reports the
+          page address, and the app removes the key from the address bar before
+          the ad tag is allowed to load, so the ad never loads while the key is
+          in the address. What you copy is still encrypted in your browser
+          before it is sent, and the relay still cannot read it.
         </p>
 
         <h2>Consent</h2>

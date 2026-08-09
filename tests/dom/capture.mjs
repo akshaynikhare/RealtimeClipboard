@@ -211,6 +211,43 @@ ok("a flagged clip still warns", mount.querySelector(".banner-warn") !== null,
    "the tone change is for the self-healing case, not the dangerous one");
 emit(EV.PENDING_CLIP, { pending: false });
 
+/* --------------------------------------- a commit lands at home too */
+console.log("\nA clip committed here lands on THIS clipboard too\n");
+
+const written = [];
+Object.defineProperty(window.navigator, "clipboard", {
+  configurable: true,
+  value: { writeText: async t => { written.push(t); } },
+});
+
+reset();
+focused = true;
+ok("focused: the committed text is written",
+   await capture.putOnClipboard("typed and settled") === true
+   && written.at(-1) === "typed and settled",
+   "the author's machine was the only one in the room NOT getting the clip");
+
+reset();
+focused = false;
+await capture.putOnClipboard("typed, then alt-tabbed");
+ok("a blur-commit queues instead of dropping", capture.hasPending(),
+   "blur runs commit() after focus is gone, so writeText() would be refused");
+ok("...and says so", pendings.at(-1)?.pending === true);
+
+written.length = 0;
+focused = true;
+await capture.flushPending();
+ok("...and the next focus lands it", written.at(-1) === "typed, then alt-tabbed");
+
+reset();
+state.get().settings.syncMode = SYNC_MODES.MANUAL;
+written.length = 0;
+ok("below the rung nothing is written or queued",
+   await capture.putOnClipboard("app mode text") === false
+   && written.length === 0 && !capture.hasPending(),
+   "App: the OS clipboard is neither read nor written");
+state.get().settings.syncMode = SYNC_MODES.LIVE;
+
 /* ---------------------------------------------------------------- done */
 
 console.log("\n==========================================================");

@@ -73,10 +73,6 @@ html, body {
 /* Same story for the inline height resizer.js writes onto #paneFiles. */
 .pane { height:auto !important; flex:1 1 auto !important; border-top:0; }
 
-/* The cap exists so a 20-clip list cannot push the Devices pane off the bottom
-   of a shared sidebar. Here the pane IS the screen. */
-#paneHistory .paneb { max-height:none; }
-
 /* Set by ui/mobileNav.js on everything that is not part of the current view.
    Scoped inside the media query so a stale class — a resize the script missed,
    a script that never ran — cannot blank out the desktop layout. */

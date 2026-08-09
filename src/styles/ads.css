@@ -35,6 +35,18 @@
   opacity:.55;
 }
 
+/* A live unit sizes itself; the reserved height becomes a floor and the
+   placeholder border goes. Two classes on purpose — mobile.css restyles
+   .adslot-box at equal specificity and loads last, so one class would lose.
+   Cutting a rendered ad off is an AdSense policy violation, hence min-height
+   rather than height. */
+.adslot-box.adlive {
+  display:block;
+  height:auto;
+  min-height:90px;
+  border:0;
+}
+
 /* One line. Deliberately at the bottom of the visual hierarchy: an explanation
    for anyone who wonders, not a pitch.
 

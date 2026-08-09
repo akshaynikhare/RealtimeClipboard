@@ -1,11 +1,13 @@
 /**
  * Google Analytics and AdSense, for the pages a crawler can reach.
  *
- * The app has its own copy of this in `src/ui/features/analytics.js` — the two
- * cannot share a module, because `core/` is the only directory both may import
- * from and `core/` may not touch the DOM. What they DO share is every decision
- * worth sharing: the IDs, the script URLs, the consent regions and the
- * fragment-stripping rule all come from `core/config.js`.
+ * The app has its own copies in `src/ui/features/analytics.js` and `ads.js` —
+ * they cannot share a module with this one, because `core/` is the only
+ * directory both may import from and `core/` may not touch the DOM. What they
+ * DO share is every decision worth sharing: the IDs, the script URLs, the
+ * consent regions and the fragment-stripping rule all come from
+ * `core/config.js`. The app's ad tag additionally waits for the share key to
+ * leave the URL — see ads.js.
  *
  * Nothing loads while the IDs in `GOOGLE` are empty, so a fork or a local
  * checkout is exactly as third-party-free as this project used to be.

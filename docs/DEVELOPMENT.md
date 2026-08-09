@@ -179,19 +179,17 @@ exactly what it is looking for.
 ## 5. Changing the landing page
 
 The landing page (`index.html` + `src/landing/`) is a separate document from the
-app, and deliberately so: `app.html` carries the session key in its fragment and
-the decrypted clipboard in its DOM, so **no ad tag may ever be added to it**. The
-ad slot lives on the crawlable pages, which hold neither.
+app. `src/landing/tags.js` carries its Google Analytics and AdSense, switched on
+by `GOOGLE` in `src/core/config.js`; the app has its own copies in
+`src/ui/features/analytics.js` and `ads.js`.
 
-`src/landing/tags.js` is that surface: Google Analytics and AdSense, switched on
-by `GOOGLE` in `src/core/config.js`. Analytics also runs in the app
-(`src/ui/features/analytics.js`), because gtag lets the page set `page_location`
-and `pageLocation()` strips the key out of it — AdSense has no such override,
-which is the whole reason one is allowed there and the other is not.
-
-The app's meta CSP names no ad origin and is stricter than the site-wide
-`_headers` policy on purpose. Two policies intersect, so the app enforces the
-tighter one — see `docs/ARCHITECTURE.md` §5 before touching either.
+Both tags run in the app too since 2026-08-09, when the no-ads-in-the-app rule
+was removed. The constraint that survives it: AdSense reports the page URL with
+no override, so the app's ad unit mounts only after boot has stripped the share
+key from the fragment — never touch that ordering. gtag gets `pageLocation()`,
+which strips the fragment, on every surface. `app.html` declares the same CSP
+as the crawlable pages and `tools/check/site-check.mjs` asserts all three
+declarations agree — see `docs/ARCHITECTURE.md` §5 before touching any of them.
 
 ### The grid
 

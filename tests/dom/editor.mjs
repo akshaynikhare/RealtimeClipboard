@@ -174,6 +174,11 @@ ok("THE REGRESSION: a peer's stream is dropped while you type",
    ta.value === "I am halfway through a sen",
    "this is work with no undo behind it");
 
+emit(EV.TEXT_RECEIVED, { text: "a whole committed clip" });
+ok("a peer's COMMIT does not write the editor from here either",
+   ta.value === "I am halfway through a sen",
+   "apply-or-offer is main.js's decision; a listener here made it moot");
+
 /* --------------------------------------------------------- the peer caret */
 console.log("\nYou can see them coming\n");
 
