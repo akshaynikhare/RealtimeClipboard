@@ -1,5 +1,10 @@
 /* Application shell: app header / [editor | splitter | sidebar] / status bar. */
 
+/* The AdSense script stamps `height:auto !important` inline on every ancestor
+   of its <ins>, which would collapse this shell to content height — and it
+   counters CSS armour (a min-height here earns an inline `min-height:0
+   !important` next to it). ui/features/ads.js strips the stamps as they land;
+   this file stays the single honest description of the shell. */
 .vs {
   display:flex;
   flex-direction:column;
