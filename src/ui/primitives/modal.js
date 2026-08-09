@@ -56,7 +56,14 @@ export function show({ className = "modal", html = "", label = "", labelledBy = 
   };
   document.addEventListener("keydown", onKey, true);
 
+  // `detail` is the click count, and a dismiss only ever honours the first.
+  // This dialog is mounted synchronously inside the click that asked for it, and
+  // its backdrop covers the whole viewport — including the control still under
+  // the pointer. So the second click of a double-click on "Lock session", or on
+  // any status-menu row, landed on the backdrop and dismissed the dialog the
+  // first click had just opened: the button read as doing nothing at all.
   el.addEventListener("click", e => {
+    if (e.detail > 1) return;
     if (e.target.closest("[data-modal-dismiss]")) close(null);
   });
 

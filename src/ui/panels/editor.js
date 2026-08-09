@@ -255,6 +255,15 @@ function onStreamed({ text, caret, name, from }) {
   // deleting work nobody can get back.
   if (isDirty()) return renderGutter();
 
+  // An idle commit armed by this device's own typing must not fire on the text
+  // that replaces it. isDirty() is false for an editor holding a space, or one
+  // typed back to what was last applied, and both leave a timer running — which
+  // then committed the PEER's half-typed line as a clip authored here: into
+  // history on every device, onto OS clipboards, and back at the person still
+  // typing it. setText() has always cleared it for the same reason.
+  clearTimeout(idleTimer);
+  idleTimer = 0;
+
   ta.value = text;
   lastAppliedText = text;
   streamed = text;
