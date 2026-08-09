@@ -24,6 +24,7 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::collections::VecDeque;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
@@ -59,31 +60,36 @@ const SHOW_HIDE: &str = "CmdOrCtrl+Shift+V";
 /// The window must never become unclosable because the page wedged.
 const CLOSE_ANSWER_GRACE: Duration = Duration::from_millis(2000);
 
-/// What we last put on the clipboard ourselves, and when.
-#[derive(Default)]
-struct Echo {
-    text: Option<String>,
-    at: Option<Instant>,
-}
+/// How many of our own recent writes to recognise.
+///
+/// One was not enough. Two clips arriving inside a single poll interval leave
+/// the watcher holding the first while `remember` has already moved on to the
+/// second, so the first fails to match, is read as a fresh local copy, and goes
+/// back out to the room — the storm this guard exists to stop. Small because
+/// entries older than ECHO_SUPPRESS are dead anyway.
+const ECHO_MEMORY: usize = 8;
 
 struct Watcher {
-    echo: Mutex<Echo>,
+    /// What we put on the clipboard ourselves, newest last.
+    echo: Mutex<VecDeque<(String, Instant)>>,
 }
 
 impl Watcher {
     /// True if this value is one we just wrote, and should not be re-sent.
     fn is_own(&self, text: &str) -> bool {
-        let echo = self.echo.lock().unwrap();
-        match (&echo.text, echo.at) {
-            (Some(last), Some(at)) => last == text && at.elapsed() < ECHO_SUPPRESS,
-            _ => false,
+        let mut echo = self.echo.lock().unwrap();
+        while echo.front().is_some_and(|(_, at)| at.elapsed() >= ECHO_SUPPRESS) {
+            echo.pop_front();
         }
+        echo.iter().any(|(last, _)| last == text)
     }
 
     fn remember(&self, text: &str) {
         let mut echo = self.echo.lock().unwrap();
-        echo.text = Some(text.to_owned());
-        echo.at = Some(Instant::now());
+        if echo.len() == ECHO_MEMORY {
+            echo.pop_front();
+        }
+        echo.push_back((text.to_owned(), Instant::now()));
     }
 }
 
@@ -403,7 +409,7 @@ fn main() {
             Some(vec!["--hidden"]),
         ))
         .manage(Watcher {
-            echo: Mutex::new(Echo::default()),
+            echo: Mutex::new(VecDeque::new()),
         })
         .manage(WindowPrefs::default())
         .invoke_handler(tauri::generate_handler![
