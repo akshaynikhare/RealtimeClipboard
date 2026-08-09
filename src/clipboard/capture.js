@@ -135,7 +135,9 @@ export function startPolling() {
   if (!bindsClipboard(state.get().settings.syncMode)) return;
   const ms = POLL_OPTIONS[state.get().settings.poll] ?? 0;
   if (!ms) return;
-  pollTimer = setInterval(() => { if (document.hasFocus()) tryRead(); }, ms);
+  pollTimer = setInterval(() => {
+    if (document.hasFocus()) tryRead({ deliberate: false });
+  }, ms);
 }
 
 /**
@@ -160,7 +162,12 @@ export function applyMode() {
 
 export function stopPolling() { clearInterval(pollTimer); }
 
-export async function tryRead() {
+/**
+ * `deliberate` says a gesture asked for this read — a focus, a paste, a
+ * permission prompt. The poll tick is the one caller that passes false, and the
+ * difference matters to the local-copy clock in fromClipboard().
+ */
+export async function tryRead({ deliberate = true } = {}) {
   const s = state.get();
   // Off and App: the OS clipboard is not watched at all. Nothing leaves this
   // machine unless the user pastes it in here.
@@ -168,7 +175,13 @@ export async function tryRead() {
   if (state.isSuppressed()) return;          // just applied a remote clip (FR-2.6)
 
   const text = await os.read();
-  if (text) fromClipboard(text, "Captured on focus");
+
+  // Re-checked after the await: the read was permitted when it started, and a
+  // rung the user dropped meanwhile promises this machine's clipboard is no
+  // longer being watched. Clicking the mode control delivers focus first, so
+  // the read in flight is a read started under the OLD rung.
+  if (!bindsClipboard(state.get().settings.syncMode)) return;
+  if (text) fromClipboard(text, "Captured on focus", { deliberate });
 
   // Images are checked on focus only, never on the poll tick: clipboard.read()
   // is markedly more expensive than readText() and would burn battery at 1 Hz
@@ -181,6 +194,7 @@ let lastImageKey = "";
 export async function tryReadImage() {
   const blob = await os.readImage();
   if (!blob) return;
+  if (!bindsClipboard(state.get().settings.syncMode)) return;   // the rung dropped while we read
   // Size+type is a cheap stand-in for identity; hashing every screenshot on
   // every focus would cost more than it saves.
   const key = `${blob.type}:${blob.size}`;
@@ -212,9 +226,16 @@ function captureImage(blob, how) {
  * next few seconds (see apply()). Set before the dedupe, not after: copying the
  * same thing twice is still you reaching for it, even though there is nothing
  * new to send.
+ *
+ * That reasoning holds for a GESTURE and not for the poll tick, which re-reads
+ * the same unchanged value every second. Marking there re-armed the window
+ * before it could expire, so on the top rung an arriving clip queued forever
+ * behind a copy the user made once — and the focus event that flushes the queue
+ * never comes, because the window is already focused. A tick only counts as a
+ * copy when what it found is genuinely new.
  */
-function fromClipboard(text, how) {
-  state.markLocalCopy();
+function fromClipboard(text, how, { deliberate = true } = {}) {
+  if (deliberate || (text ?? "").trim() !== state.get().lastSent.trim()) state.markLocalCopy();
   capture(text, how);
 }
 
@@ -259,9 +280,33 @@ export async function apply(raw) {
     pending = text;
     pendingRisk = risk;
     emit(EV.PENDING_CLIP, { pending: true, text, risk, altered: guard.wasAltered(raw) });
+    if (!risk && document.hasFocus()) scheduleGraceFlush();
     return false;
   }
   return writeNow(text);
+}
+
+/**
+ * A clip held only by the local-copy window has no gesture coming to release
+ * it: the window is already focused, so the focus handler that flushes the
+ * queue will never fire. Without this the banner's promise — "focus this window
+ * and it lands automatically" — is false for the whole of the top rung.
+ *
+ * Not armed for a flagged clip. That one waits for a click, and a timer is not
+ * one.
+ */
+let graceTimer = null;
+
+function scheduleGraceFlush() {
+  clearTimeout(graceTimer);
+  const left = TEXT.LOCAL_COPY_GRACE_MS - (Date.now() - state.get().lastLocalCopyAt);
+  graceTimer = setTimeout(() => {
+    graceTimer = null;
+    if (pending === null || pendingRisk) return;
+    if (state.recentLocalCopy()) return scheduleGraceFlush();   // a fresher copy moved it
+    if (!document.hasFocus()) return;                           // focus will flush it
+    flushPending();
+  }, Math.max(0, left) + 50);
 }
 
 /**
@@ -327,6 +372,8 @@ export async function confirmPending() {
 /** The user declined it. Dropped, not deferred — offering twice is nagging. */
 export function discardPending() {
   if (pending === null) return;
+  clearTimeout(graceTimer);
+  graceTimer = null;
   pending = null;
   pendingRisk = null;
   emit(EV.PENDING_CLIP, { pending: false });
@@ -337,11 +384,18 @@ async function writePending() {
   // while the clip waited, and regaining focus is not permission to write to
   // a clipboard the current mode says is untouched.
   if (!bindsClipboard(state.get().settings.syncMode)) return discardPending();
+  clearTimeout(graceTimer);
+  graceTimer = null;
   const text = pending;
   pending = null;
   pendingRisk = null;
   const ok = await writeNow(text);
-  emit(EV.PENDING_CLIP, { pending: false });
+
+  // A clip that arrived while the write was in flight has taken the slot, and
+  // its banner is the one on screen. Retracting unconditionally dismissed it —
+  // and a flagged clip whose banner is gone can never be confirmed or
+  // discarded, because the banner is the only path to either.
+  if (pending === null) emit(EV.PENDING_CLIP, { pending: false });
   if (ok) emit(EV.TOAST, "Pending clip written to your clipboard");
 }
 
