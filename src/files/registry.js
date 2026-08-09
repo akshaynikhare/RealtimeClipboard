@@ -71,25 +71,34 @@ export async function add(fileList, { makeThumbs = true } = {}) {
       continue;
     }
 
-    items.push({
+    // The slot is taken BEFORE the thumbnail is awaited. Decoding an image is
+    // tens of milliseconds, and a concurrent add — a second drop, or a peer's
+    // file-meta — checked the cap during that gap and passed on the same stale
+    // count, so the session cap FR-7.7 exists to bound was quietly overshot.
+    const item = {
       id: crypto.randomUUID().slice(0, 8),
       name: file.name,
       size: file.size,
       type: file.type,
       blob: file,                                   // stays on this machine
-      thumb: makeThumbs ? await thumbs.make(file) : null,
+      thumb: null,
       origin: "local",
       progress: 0,
       path: null,                                   // "p2p" | "relay" once transferred
       state: STATE.IDLE,
       error: null,
       url: null,                                    // live object URL, if save() made one
-    });
+    };
+    items.push(item);
+
+    // Filled before the announcement, which carries it to the room.
+    if (makeThumbs) item.thumb = await thumbs.make(file);
+
     added++;
     // Announced individually rather than via FILES_CHANGED: that event carries
     // the whole list and fires for progress ticks too, so a listener could not
     // tell "this one is new and needs sending" from "something moved".
-    emit(EV.FILE_ADDED, { file: items[items.length - 1] });
+    emit(EV.FILE_ADDED, { file: item });
   }
 
   if (added) emit(EV.FILES_CHANGED, items);
