@@ -9,8 +9,17 @@
   background:var(--editor);
 }
 
-.adslot-tag {
+/* Tag and note share one row above the box — the note's own row was pure
+   vertical spend. */
+.adslot-head {
+  display:flex;
+  align-items:center;
+  gap:10px;
   margin-bottom:6px;
+}
+
+.adslot-tag {
+  flex:none;
   color:var(--dim);
   font:10px/1 var(--ui-font);
   letter-spacing:.09em;
@@ -47,14 +56,16 @@
   border:0;
 }
 
-/* One line. Deliberately at the bottom of the visual hierarchy: an explanation
-   for anyone who wonders, not a pitch.
-
-   nowrap rather than a short string and hope — the sidebar is drag-resizable,
-   so this pane has no fixed width and a two-line note would push the editor
-   around every time someone dragged the splitter. It ellipsises instead. */
+/* One line, always — the sidebar is drag-resizable, so this pane has no fixed
+   width and a wrapping note would change the row's height every time someone
+   dragged the splitter. It ellipsises instead; the title attribute carries the
+   full sentence. min-width:0 is what lets a flex item shrink enough to do so. */
 .adslot-note {
-  margin:7px 0 0;
+  flex:1;
+  min-width:0;
+  margin:0;
+  padding-left:10px;
+  border-left:1px solid var(--bd);
   color:var(--dim);
   font:10.5px/1.5 var(--ui-font);
   opacity:.62;
@@ -68,9 +79,6 @@
 @media (max-width:900px) {
   .adslot { padding:10px 14px 12px; }
   .adslot-box { height:100px; }
-  /* A phone cannot fit the sentence on one line, and half a sentence ending in
-     "…" would cut it off exactly where the promise is. Let it wrap here. */
-  .adslot-note { white-space:normal; }
 }
 
 /* On a short viewport the editor is the scarce thing. The slot shrinks to a

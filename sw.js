@@ -43,7 +43,7 @@
 
 const KILL = false;
 
-const VERSION = "v18";
+const VERSION = "v19";
 const CACHE = `realtimeclipboard-shell-${VERSION}`;
 
 /** Hosts this worker must never touch, whatever the request looks like. */

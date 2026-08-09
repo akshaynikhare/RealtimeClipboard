@@ -38,17 +38,18 @@ export function init() {
 
   setHTML(host, `
     <aside class="adslot" id="adSlot" aria-label="Sponsored">
-      <div class="adslot-tag">Sponsored</div>
+      <div class="adslot-head">
+        <div class="adslot-tag">Sponsored</div>
+        <p class="adslot-note"
+           title="Ads pay for the relay. Your clipboard is encrypted before it leaves this window.">
+          Ads pay for the relay. Your clipboard is encrypted before it leaves
+          this window.
+        </p>
+      </div>
 
       <div class="adslot-box" id="adBox" role="presentation">
         <span class="adslot-ph">${esc(PLACEHOLDER_LABEL)}</span>
       </div>
-
-      <p class="adslot-note"
-         title="Ads pay for the relay. Your clipboard is encrypted before it leaves this window.">
-        Ads pay for the relay. Your clipboard is encrypted before it leaves
-        this window.
-      </p>
     </aside>`);
 
   box = host.querySelector("#adBox");
@@ -60,9 +61,30 @@ export function init() {
   on(EV.KEY_CHANGED, () => { if (!location.hash) mount(); });
 }
 
+/**
+ * adsbygoogle "fits" a responsive unit by stamping `height:auto !important`
+ * INLINE on every ancestor of its <ins> — the 100vh shell included, which
+ * collapses the app to content height. It happens even for an unfilled ad, and
+ * CSS cannot answer it: pin the shell with min-height and the next stamp is an
+ * inline `min-height:0 !important` beside it, which outranks every stylesheet.
+ * So the shell is watched and wiped instead. Stripping re-fires the observer
+ * once with nothing left to strip, so this settles rather than loops.
+ */
+function guardShell() {
+  const shell = $("shell");
+  if (!shell || typeof MutationObserver === "undefined") return;
+  const strip = () => {
+    for (const p of ["height", "min-height", "max-height"])
+      if (shell.style.getPropertyValue(p)) shell.style.removeProperty(p);
+  };
+  new MutationObserver(strip).observe(shell, { attributes: true, attributeFilter: ["style"] });
+  strip();
+}
+
 function mount() {
   if (mounted || !box) return;
   mounted = true;
+  guardShell();
 
   const s = document.createElement("script");
   s.async = true;
