@@ -8,6 +8,10 @@ Nothing here is scheduled. `SEO.md` §6 sets a hard timing gate — **hold every
 two devices actually sync end to end** — and §10 items 12–16 list the objections that will be
 raised on the day. Read both before using any of this.
 
+**That timing gate was met on 2026-08-09** (§7.2 item 2: two real browser windows, by hand). The
+remaining constraint on the date is AlternativeTo's one-week account rule, which puts the earliest
+launch day at **2026-08-16** (§3, §7.3).
+
 ---
 
 ## 1. The one string, and its shorter forms
@@ -101,13 +105,13 @@ Ordered by the expected value measured in `SEO.md` §6. Every one of these is fr
 
 | Target | Status | The submission |
 |---|---|---|
-| **AlternativeTo** | ⏳ Account must exist **one week** before submitting — create it now | Tag `clipboard-sync`. List as an alternative to **KDE Connect** (the big funnel), Pushbullet, and Apple Universal Clipboard. Use the Medium string, **no URLs in it**. Do *not* position as a clipboard *manager* (saturated) or as a Snapdrop clone (declined on sight) |
+| **AlternativeTo** | ✅ Account created **2026-08-09**; the one-week maturity rule makes it submittable from **2026-08-16** | Tag `clipboard-sync`. List as an alternative to **KDE Connect** (the big funnel), Pushbullet, and Apple Universal Clipboard. Use the Medium string, **no URLs in it**. Do *not* position as a clipboard *manager* (saturated) or as a Snapdrop clone (declined on sight) |
 | **nuzulul/awesome-webrtc** | ✅ Submit first — no star minimum | File Transfer category, beside Snapdrop/PairDrop/ShareDrop. Exact line and placement in §3.1 |
 | **hemanth/awesome-pwa** | ✅ Ready | Tools and Utilities category. Exact line and placement in §3.1 |
 | **pluja/awesome-privacy** | ❌ **Closed as of 2026-08-08.** The condition this row warned about has happened: AdSense and GA4 are live (`adsEnabled()` and `analyticsEnabled()` both true), and the list requires *no user-tracking on the project website*. Do not submit — a rejection here is public and is worse than an absence. Revisit only if the tags come off |
 | **Microsoft Store via PWABuilder** | ✅ Registration is now free | Start at `storedeveloper.microsoft.com` — entering via Partner Center lands in the legacy paid flow. Review 24–48h. Bonus: Store installs send `Referer: app-info://platform/microsoft-store`, which is free install attribution |
 | **awesome-selfhosted** | ⏳ Blocked until ~December 2026 (4-month rule from first release) | PR `awesome-selfhosted-data`, not the main list. Copy `software/privydrop.yml` as the template. Needs the Dockerfile — §10 item 16 |
-| **GitHub social preview** | ⏳ Manual, no API | Settings → Social preview → upload `assets/social/og-card.png`. **Re-upload whenever the card is regenerated** — GitHub keeps a copy, not a reference |
+| **GitHub social preview** | ✅ Uploaded **2026-08-09** | Settings → Social preview → `assets/social/og-card.png`. **Re-upload whenever the card is regenerated** — GitHub keeps a copy, not a reference. The REST field `uses_custom_open_graph_image` still read `null` right after the upload; the rendered card is the thing to trust, not that field |
 | **Product Hunt** | ❌ Skip | LocalSend: 86,691 GitHub stars, **3 Product Hunt upvotes**. The category does not launch there |
 | **Chrome Web Store** | ❌ Skip | Extensions and themes only; a wrapper extension is a standard rejection |
 | **Wikipedia / Privacy Guides / BetaList / SaaSHub** | ❌ Skip for now | Each needs independent coverage or a security white paper that does not exist yet |
@@ -219,6 +223,14 @@ Neither link is worth anything as PageRank — every external link on GitHub is 
 
 ## 5. The one video
 
+> **Dropped for this launch — 2026-08-09.** The video is not being made, and §7.2's "do not launch
+> without it" no longer gates the day. What that costs is what this section already argues it is
+> worth: every channel in §7.3 posts without an embeddable demo, and the README shares as a still.
+> The clipboard claim then has to survive on the copy in §1 and on the site itself, so the caveat
+> block matters more, not less. The shot list below stands unchanged for whenever it is recorded —
+> post-launch is a normal time to do it, and §5's own measurement (under 150 views, YouTube coverage
+> trailing Hacker News by ~10 days regardless) is why this is a deferral and not a loss.
+
 `SEO.md` §6: founder demo videos in this niche all measured under 150 views, and YouTube coverage
 follows Hacker News by about ten days without anyone pitching it. So make exactly one asset — a
 **45–90 second silent screen recording** whose only job is to be embeddable in the README and
@@ -293,34 +305,40 @@ GitHub Trending ranks star *velocity* against a repo's own baseline, so a zero-s
 concentrated spike rather than a large one. Spreading launches across three weeks guarantees you
 never trend. That is the whole argument for doing this in one day.
 
-### 7.1 Pre-flight — verified 2026-08-08
+### 7.1 Pre-flight — re-verified 2026-08-09
 
 Everything below was measured, not assumed. Re-run before the day; the commands are in §4 and §5.
 
 | Check | State |
 |---|---|
-| All 18 sitemap URLs | 200 — `/live-clipboard/` added 2026-08-08 and not yet re-checked |
+| All 18 sitemap URLs | 200 — `/live-clipboard/` re-checked 2026-08-09, the last unverified row |
 | `og:image` | 200, 1200×630, badge reads **BETA** |
 | `www` → apex | 301, path **and** query preserved |
 | `http` → `https` | 301 |
 | `OAI-SearchBot` · `ClaudeBot` · `PerplexityBot` · `Googlebot` · `bingbot` | all 200 — Cloudflare is not filtering |
 | IndexNow key | validated (submission returns **200**, no longer 202) |
 | Search Console · Bing | verified, sitemap submitted |
-| `/download/` for an anonymous visitor | v0.5.0, 8 assets, every platform |
-| Repo | MIT · 20 topics · correct description · homepage set |
+| `/download/` for an anonymous visitor | **v0.6.0**, 8 assets, every platform |
+| Repo | MIT · 20 topics · correct description · homepage set · social preview uploaded |
 | Soft-404 | a bogus path returns **404**, not the homepage at 200 |
+| `npm test` against a relay | 0 failures, **0 skipped** — a skipped suite is not a pass |
+| `npm run build:site` | site-check passes, 117 files |
 
-### 7.2 Four things to settle first
+### 7.2 Four things to settle first — all settled 2026-08-09
 
-1. **Record the demo** (§5). It is the asset every post embeds. Do not launch without it.
-2. **Check two-way typing by hand**, in two real browser windows. Under Playwright, the device that
-   *joined via the link* had its later local edits reverted a few seconds after receiving a clip.
-   That is plausibly a headless-focus artefact — no OS focus, and the clipboard path gates on focus
-   — but it is the exact flow a first visitor tries, and it is a minute to rule out.
-3. **Decide the v0.6.0 draft release.** It is unpublished, so the Releases page and `/download/`
-   both serve v0.5.0 today. Publish it or leave it, but know which version the traffic lands on.
-4. **Upload the GitHub social preview** if it is still not done — until then the repo shares as a
-   grey box, which is the one asset every channel below renders.
+1. ~~**Record the demo** (§5).~~ **Dropped**, and no longer a gate — §5 records what that costs.
+2. ✅ **Two-way typing checked by hand**, in two real browser windows. The Playwright observation —
+   the device that *joined via the link* having its later local edits reverted seconds after
+   receiving a clip — did not reproduce with real OS focus, which is what the clipboard path gates
+   on. It was the headless-focus artefact it looked like.
+3. ✅ **v0.6.0 is published**, not a draft: 8 assets, every platform, so the Releases page and
+   `/download/` now both serve v0.6.0 rather than v0.5.0.
+4. ✅ **GitHub social preview uploaded** (§3), so the repo no longer shares as a grey box.
+
+**The code gate is green too**, measured the same day: `npm test` against a relay passes with 0
+failures and nothing skipped, and `npm run build:site` passes site-check. That matters here because
+`.husky` is the only gate there is — there is no CI for the app, and a merge to `main` *is* the
+deploy.
 
 ### 7.3 The order, and what changed from `SEO.md` §10 item 17
 
@@ -335,7 +353,7 @@ Three revisions, each with its reason recorded elsewhere in this file:
 
 | # | When | Channel | Notes |
 |---|---|---|---|
-| 0 | days before | **AlternativeTo** | already submittable — the account is mature |
+| 0 | days before | **AlternativeTo** | account created 2026-08-09, so submittable from **2026-08-16** — that date is the earliest the day can be |
 | 1 | morning | **r/coolgithubprojects** | the dry run. Low ceiling (top hot post: 49), no promo rule, and it surfaces the first objections while the stakes are nil |
 | 2 | +1h | **r/InternetIsBeautiful** | 🥇 the only 1,000+ shot. Clipboard-led. Link the **live site**, not GitHub. Rule 6 bans sites needing an email — written for this. Rule 8 removes posts whose site buckles |
 | 3 | +2h | **r/SideProject** | no configured rules, best reach-to-risk |
