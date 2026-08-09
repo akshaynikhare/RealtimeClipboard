@@ -90,6 +90,7 @@ const frame = () => new Promise(r => setTimeout(r, 30));
 const reset = () => {
   captured.length = 0; images.length = 0; pendings.length = 0;
   state.get().lastSent = "";
+  state.get().lastLocalCopyAt = 0;   // the 10 s grace outlives most of this file
   state.suppress(0);
   capture.discardPending();
   pendings.length = 0;
@@ -257,11 +258,16 @@ console.log("\nA refused write keeps its promise, and the poll waits its turn\n"
    and broadcast it over the incoming clip — "my old clipboard came back". */
 
 let failWrites = false;
+let onClipboard = "old clipboard value";
 Object.defineProperty(window.navigator, "clipboard", {
   configurable: true,
   value: {
-    writeText: async t => { if (failWrites) throw new Error("not focused"); written.push(t); },
-    readText: async () => "old clipboard value",
+    writeText: async t => {
+      if (failWrites) throw new Error("not focused");
+      written.push(t);
+      onClipboard = t;
+    },
+    readText: async () => onClipboard,
   },
 });
 
@@ -282,15 +288,38 @@ ok("...and lastSent does not claim a write that failed",
 state.suppress(0);
 captured.length = 0;
 await capture.tryRead();
-ok("THE OVERWRITE: the poll does not read past a queued clip",
+ok("THE OVERWRITE: the poll does not capture past an owed clip",
    captured.length === 0,
-   "it captured the old clipboard value and broadcast it over the incoming clip");
+   "it read the old clipboard value and broadcast it over the incoming clip");
+ok("...it retried the flush instead", capture.hasPending(),
+   "still refused, so still queued — nothing lost");
 
 failWrites = false;
-await capture.flushPending();
-ok("...and the next gesture lands it",
+state.suppress(0);
+await capture.tryRead();
+ok("...and the next tick lands it, no gesture needed",
    !capture.hasPending() && written.at(-1) === "arrived while away");
 ok("...and says so", pendings.at(-1)?.pending === false);
+
+/* ------------------------------------ the grace hold does not mute capture */
+console.log("\nA grace-held clip leaves this machine's own copies alive\n");
+
+reset();
+focused = true;
+state.markLocalCopy();
+await capture.apply("queued behind your own copy");
+ok("the grace window queues the arrival", capture.hasPending());
+
+state.suppress(0);
+captured.length = 0;
+onClipboard = "a fresh local copy";
+await capture.tryRead();
+ok("...but the next local copy still captures",
+   captured.length === 1 && captured[0]?.text === "a fresh local copy",
+   "pausing capture while the hold lasts would mute this machine until the "
+   + "next alt-tab");
+ok("...and the held clip stays queued for the focus gesture", capture.hasPending(),
+   "flushing from the tick would take the grace-protected copy straight back off");
 
 /* ---------------------------------------------------------------- done */
 

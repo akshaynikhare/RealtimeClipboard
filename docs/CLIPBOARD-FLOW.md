@@ -105,9 +105,12 @@ learns one rule instead of three:
    not dropped — it queues, the UI shows a **"1 pending"** badge, and it lands
    the moment you focus the window. Same gesture as sending. Coming back to the
    tab, the flush can still lose a race — `visibilitychange` fires before focus
-   has landed — so a refused flush requeues rather than drops, and the poll
-   never reads past a queued clip: reading there captures the value the queue
-   is about to replace and broadcasts stale content over the incoming clip.
+   has landed — so a refused flush requeues rather than drops, and a poll tick
+   that finds an owed clip flushes it instead of reading past it: reading there
+   captures the value the queue is about to replace and broadcasts stale
+   content over the incoming clip. A grace-held or flagged clip leaves the poll
+   reading — pausing capture would mute the machine's own copies for as long as
+   the hold lasts, and the `lastSent` dedupe keeps those reads harmless.
 2. **You copied something here in the last 10 seconds** (`TEXT.LOCAL_COPY_GRACE_MS`).
    A local copy outranks an arriving clip, because the moment this costs you is
    reaching for something you just copied and finding another device had
