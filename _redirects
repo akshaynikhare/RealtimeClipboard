@@ -26,7 +26,7 @@
 # shared, every bookmark, and every search result. GitHub itself 301s those to
 # the apex with the prefix stripped — but only for as long as the old Pages site
 # exists, and it does not: it 404s, and the tombstone workflow that was to
-# replace it was never run and is now deleted (docs/SEO.md §7). So this rule is
+# replace it was never run and is now deleted. So this rule is
 # no longer the backstop it was written as — it is the only thing left, and it
 # catches only requests that reach this host. Someone who reconstructs the old
 # shape here lands correctly; someone following an old github.io link does not
@@ -54,4 +54,4 @@
 # NOT here: www -> apex. `_redirects` matches paths, not hostnames, so it cannot
 # express it. Both hostnames are attached to the same Pages project and would
 # otherwise serve the same content at two URLs. The redirect is a zone-level
-# Redirect Rule in the Cloudflare dashboard instead — see docs/SEO.md §7.
+# Redirect Rule in the Cloudflare dashboard instead.

@@ -19,8 +19,8 @@ touch the server.
 **Status: beta, and it works end to end.** The relay is deployed and live,
 the frontend is wired to it over a WebSocket with an SSE fallback, and the
 32-check end-to-end suite runs two real peers with real crypto against the
-production relay. See [docs/M0-RESULTS.md](docs/M0-RESULTS.md) for exactly what
-is proven, and [Known limitations](#known-limitations) for what is not.
+production relay. See [Known limitations](#known-limitations) for what is not
+proven.
 
 ---
 
@@ -223,8 +223,8 @@ npm run release -- minor             # verify, changelog, release PR, tag, deplo
 | [CHANGELOG.md](CHANGELOG.md) | What shipped in each release — generated from the commits |
 | [CLIPBOARD-FLOW.md](docs/CLIPBOARD-FLOW.md) | How the browser reaches the OS clipboard, and why background capture is impossible |
 | [P2P-FILES.md](docs/P2P-FILES.md) | Thumbnails over the relay, bytes over WebRTC, and the corporate-network problem |
-| [M0-RESULTS.md](docs/M0-RESULTS.md) | Transport gate results |
-| [SEO.md](docs/SEO.md) | Search, answer-engine and distribution strategy |
+| [ACCESSIBILITY.md](docs/ACCESSIBILITY.md) | Keyboard paths, focus handling, and what the screen reader announces |
+| [SELF-HOSTING.md](docs/SELF-HOSTING.md) | Running your own relay and pointing a build at it |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Setup, the commit convention, and the boundaries the checks enforce |
 | [SECURITY.md](SECURITY.md) | Reporting a vulnerability privately, and what is in scope |
 | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Contributor Covenant 2.1 |
