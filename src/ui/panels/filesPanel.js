@@ -2,20 +2,18 @@
  * Panel 2 — files and images. Thumbnails here, bytes over P2P.
  *
  * Two things this panel may not get wrong (docs/ARCHITECTURE.md §5): the
- * transport path is always visible, from the moment the fallback is chosen
- * rather than at the end, because a relay transfer is a different privacy story
- * and the choice cannot be made after the fact; and a failed transfer says why
- * on the tile, since a bar that quietly disappears looks like a slow network.
+ * transport path is visible from the moment the fallback is chosen, not at the
+ * end, because a relay transfer is a different privacy story; and a failed
+ * transfer says why on the tile, since a bar that quietly disappears reads as a
+ * slow network. A file not yet fetched reads GET, never P2P — claiming P2P
+ * before any transfer is a promise the corporate network breaks.
  *
- * A remote file we have not fetched reads GET, not P2P — the old code claimed
- * P2P before any transfer happened, a promise the corporate network breaks.
- *
- * CANCEL vs REMOVE, which must never be confused. Cancel (×, top-left, only
- * while a transfer runs) stops the transfer and keeps the file. Remove (bin,
- * bottom-right, always) drops it and frees the bytes, telling peers if it was
- * ours — someone else's file is only hidden here, because deleting it off their
- * machine is not ours to do. Hence diagonally opposite, differently shaped, and
- * remove confirms whenever it would also kill a transfer.
+ * CANCEL vs REMOVE must never be confused. Cancel (×, top-left, only while a
+ * transfer runs) stops the transfer and keeps the file. Remove (bin,
+ * bottom-right, always) drops it and tells peers if it was ours; someone else's
+ * file is only hidden, because deleting it off their machine is not ours to do.
+ * Hence diagonally opposite, differently shaped, and remove confirms whenever it
+ * would also kill a transfer.
  */
 
 import { FILES } from "../../core/config.js";
@@ -37,9 +35,8 @@ export function init() {
 
   bind(drop, "click", () => $("picker").click());
   bind("bAdd", "click", e => { e.stopPropagation(); $("picker").click(); });
-  // Snapshot before clearing: intake() awaits thumbnails mid-iteration, and
-  // resetting the input empties the live FileList under it — picking three
-  // files used to add only the first.
+  // Snapshot first: intake() awaits thumbnails mid-iteration and resetting the
+  // input empties the live FileList under it — three files added only the first.
   bind("picker", "change", e => { intake([...e.target.files]); e.target.value = ""; });
 
   ["dragenter", "dragover"].forEach(ev =>
@@ -76,22 +73,19 @@ export function init() {
     else transfer.request(file.id);
   });
 
-  // A peer asking for one of our files needs a human, unless autoaccept is on.
-  // transfer.js checks the setting; this is only the dialog.
+  // transfer.js checks autoaccept; this is only the dialog.
   transfer.setApprover(ask);
 
-  // registry.js may not import files/transfer.js — transfer.js imports IT, and
-  // the cycle would point the wrong way — so this module, which already holds
-  // both, hands it the one thing it needs: a way to stop a transfer before the
-  // file it is streaming disappears. Without this, removing a file mid-transfer
-  // leaves the sender looping over bytes that are no longer in the list and the
-  // peer waiting out an idle timeout with no explanation.
+  // registry.js may not import transfer.js — transfer.js imports IT — so this
+  // module, holding both, hands it a way to stop a transfer before the file it
+  // is streaming disappears. Without it, removing a file mid-transfer leaves the
+  // sender looping over bytes no longer in the list and the peer waiting out an
+  // idle timeout with no explanation.
   registry.setCanceller(transfer.cancel);
 
   mountClearAll();
 
-  // Enter and Space activate a tile, matching what role="button" promises.
-  // Space is preventDefault'd or it scrolls the pane instead.
+  // What role="button" promises. Space is preventDefault'd or it scrolls.
   bind("grid", "keydown", e => {
     if (e.key !== "Enter" && e.key !== " ") return;
     const tile = e.target.closest?.(".tile");
@@ -117,14 +111,13 @@ async function intake(fileList) {
  * ------------------------------------------------------------------ */
 
 /**
- * Drop one file. Confirms only when it would also kill a transfer: a click on a
- * bin should not need a second click for the ordinary case, but a 5 MB transfer
- * someone is 80% through is not an ordinary case, and the tile does not
- * necessarily make it obvious that it is running.
+ * Confirms only when it would also kill a transfer: a bin should not need two
+ * clicks for the ordinary case, but a 5 MB transfer someone is 80% through is
+ * not ordinary and the tile does not always make it obvious it is running.
  *
- * Not called `drop`. init() binds `const drop = $("drop")` for the drop zone,
- * and inside the handlers that live in that scope the element wins the name —
- * silently, at runtime, as "drop is not a function" on the first click.
+ * Not called `drop`: init() binds `const drop = $("drop")`, and inside handlers
+ * in that scope the element wins the name — silently, as "drop is not a
+ * function" on the first click.
  */
 async function removeFile(id) {
   const file = registry.get(id);
@@ -146,10 +139,9 @@ async function removeFile(id) {
 }
 
 /**
- * Drop everything. Always confirms: one click here can discard a 5 MB file
- * another device is mid-way through receiving, and there is no undo — the
- * registry is memory, so a removed file is only recoverable by adding it again
- * from disk, which the peer that was receiving it cannot do at all.
+ * Always confirms: one click can discard a file another device is mid-way
+ * through receiving, and there is no undo — the registry is memory, so recovery
+ * means adding it from disk again, which the receiving peer cannot do at all.
  */
 async function clearAll() {
   const items = registry.all();
@@ -175,10 +167,9 @@ async function clearAll() {
 }
 
 /**
- * The pane header is in app.html, which this change does not own, so the
- * control is injected. Guarded on its own id so a second init() cannot produce
- * two bins, and inserted before "add" so the destructive one is not the button
- * nearest the edge where a mis-aimed click lands.
+ * Injected because the pane header lives in app.html. Guarded on its own id so a
+ * second init() cannot produce two bins, and placed before "add" so the
+ * destructive one is not nearest the edge where a mis-aimed click lands.
  */
 function mountClearAll() {
   const head = $("paneFiles")?.querySelector(".paneh");
@@ -192,9 +183,8 @@ function mountClearAll() {
   btn.setAttribute("aria-label", "Remove every file from this session");
   setHTML(btn, `<svg viewBox="0 0 24 24" aria-hidden="true">${BIN_PATH}</svg>`);
 
-  // ui/panes.js already ignores clicks on a button inside a pane header, but
-  // this must not depend on that staying true: collapsing the pane as a side
-  // effect of asking to clear it would hide the confirmation.
+  // ui/panes.js already ignores header-button clicks, but this must not depend
+  // on that: collapsing the pane would hide the confirmation it just opened.
   bind(btn, "click", e => { e.stopPropagation(); clearAll(); });
   head.insertBefore(btn, $("bAdd") ?? null);
 }
@@ -205,26 +195,19 @@ function mountClearAll() {
 
 /**
  * Everything about a tile EXCEPT its progress number, and the omission is the
- * point: a 5 MB file moves in 32 KB chunks, so rebuilding on progress rebuilt
- * the grid up to 101 times per transfer. Destroying the tile being watched drops
- * keyboard focus mid-transfer, resets the :hover that reveals the remove button,
- * and means `transition:width .2s` on .bar has never once run.
- *
- * A change here means the markup really differs and the grid is rebuilt; a
- * change in progress alone routes to tickProgress().
+ * point: rebuilding on progress rebuilt the grid up to 101 times per transfer,
+ * dropping keyboard focus, resetting the :hover that reveals the remove button,
+ * and meaning `transition:width .2s` on .bar never once ran. A change here
+ * rebuilds the grid; a change in progress alone routes to tickProgress().
  */
 function shape(f) {
-  // Unit separator rather than "": "a" of size 12 and "a1" of size 2 must not
-  // collide, or a rename would silently fail to redraw.
+  // Unit separator, or "a" of size 12 and "a1" of size 2 collide and a rename
+  // silently fails to redraw.
   return [f.id, f.state, f.origin, f.path, f.error, f.name, f.size, f.thumb ? 1 : 0]
     .join("\u001f");
 }
 
-/**
- * Grid structure currently on screen. null rather than "", so the first render
- * draws even when the session opens with no files. Named for the grid because
- * drawPrompts() keeps a `drawn` of its own, for precisely this reason.
- */
+/** null rather than "", so the first render draws an empty session too. */
 let drawnGrid = null;
 
 function render() {
@@ -240,9 +223,8 @@ function render() {
   if (signature === drawnGrid) return tickProgress(items);
   drawnGrid = signature;
 
-  // role/tabindex rather than a <button>: a tile CONTAINS buttons (cancel,
-  // remove), and a button inside a button is invalid and unpredictable in
-  // assistive tech. Enter/Space are handled below, which a div does not get free.
+  // role/tabindex rather than a <button>: a tile CONTAINS buttons, and a button
+  // inside a button is invalid and unpredictable in assistive tech.
   setHTML($("grid"), items.map(f => `
     <div class="tile${tileClass(f)}" data-id="${esc(f.id)}" title="${esc(tooltip(f))}"
          role="button" tabindex="0" aria-label="${esc(tooltip(f))}">
@@ -266,14 +248,10 @@ function render() {
 }
 
 /**
- * The progress-only path: no element is created, replaced or removed, so focus,
- * :hover and the .bar transition all survive.
- *
- * Deliberately narrow. Only .bar's width, and the badge and subtitle of a tile
- * that is actively moving bytes, quote f.progress — everything else on a tile
- * is fixed by shape(), so writing it here would at best be a no-op. Skipping
- * every other state is not cosmetic either: an errored tile's .sz holds
- * f.error, and subtitle() would overwrite that message with the file size.
+ * No element is created, replaced or removed, so focus, :hover and the .bar
+ * transition survive. Deliberately narrow: everything else on a tile is fixed by
+ * shape(), and skipping the other states is not cosmetic — an errored tile's
+ * .sz holds f.error, which subtitle() would overwrite with the file size.
  */
 function tickProgress(items) {
   const grid = $("grid");
@@ -288,8 +266,7 @@ function tickProgress(items) {
 
     if (f.state !== S.SENDING && f.state !== S.RECEIVING) continue;
 
-    // textContent, not setHTML: these are numbers we just formatted, so there
-    // is no reason for a second HTML sink to exist in this file.
+    // textContent: no reason for a second HTML sink in this file.
     const badgeEl = tile.querySelector(".badge");
     if (badgeEl) badgeEl.textContent = `${f.progress}%`;
 
@@ -313,10 +290,9 @@ function cancelButton(f) {
 const BIN_PATH = `<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13a1 1 0 001 1h8a1 1 0 001-1l1-13M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/>`;
 
 /**
- * Bottom-right of the thumbnail: diagonally opposite cancel, clear of the
- * badge, and inside the picture rather than the caption so the file name keeps
- * its full width on a 92 px tile. Wording says "remove", never "cancel" or
- * "delete" — it leaves the disk alone and it is not the transfer control.
+ * Diagonally opposite cancel, clear of the badge, inside the picture so the name
+ * keeps its full width on a 92 px tile. It says "remove", never "cancel" or
+ * "delete": it leaves the disk alone and it is not the transfer control.
  */
 function removeButton(f) {
   const busy = BUSY.has(f.state);
@@ -371,8 +347,6 @@ function badge(f) {
   }
   if (f.origin === "local") return `<span class="badge local">HERE</span>`;
 
-  // The transport path is never hidden: relay-fallback is a different privacy
-  // story from a direct transfer, and the user should see which they got.
   if (f.path === "relay") return `<span class="badge relay">RELAY</span>`;
   if (f.path === "p2p") return `<span class="badge remote">P2P</span>`;
   return `<span class="badge want">GET</span>`;      // not fetched — no path to claim yet
@@ -381,14 +355,11 @@ function badge(f) {
 /* ------------------------------------------------------------------ *
  * Approval prompt
  *
- * Fires on the machine that HOLDS the file: a peer has asked for bytes and,
- * with autoaccept off, a human decides before they leave the disk. That is the
- * only point in the flow where a decision can still prevent anything — the
- * requesting side already consented by clicking the tile.
- *
- * File requests are authenticated only by session membership (P2P-FILES.md §6),
- * so this dialog is the one thing standing between "someone has the key" and
- * "someone has your files".
+ * Fires on the machine that HOLDS the file — the only point where a decision can
+ * still prevent anything, the requesting side having consented by clicking.
+ * Requests are authenticated only by session membership (P2P-FILES.md §6), so
+ * this dialog is what stands between "someone has the key" and "someone has your
+ * files".
  * ------------------------------------------------------------------ */
 
 const prompts = new Map();      // token -> {req, resolve, expires}
@@ -398,8 +369,8 @@ let nextToken = 0;
 function ask(req) {
   return new Promise(resolve => {
     const token = `ask${nextToken++}`;
-    // Never outlive the requester's own deadline: approving into a peer that
-    // has already given up would send 5 MB nowhere.
+    // Never outlive the requester's deadline: approving into a peer that gave up
+    // sends 5 MB nowhere.
     const expires = Date.now() + transfer.requestTimeoutMs();
     prompts.set(token, { req, resolve, expires });
     drawPrompts();
@@ -412,8 +383,8 @@ function settle(token, allowed, always = false) {
   if (!p) return;
   prompts.delete(token);
 
-  // "Allow all" is answered before the promise resolves, so any request already
-  // queued behind this one from the same device is covered by it too.
+  // Answered before the promise resolves, so requests already queued behind this
+  // one from the same device are covered too.
   if (always && allowed && transfer.allowPeer(p.req.from)) {
     emit(EV.TOAST, `${p.req.from} can now send and receive without asking, until this tab closes`);
     for (const [other, q] of [...prompts]) {
@@ -440,12 +411,9 @@ function sweep() {
 }
 
 /**
- * Update just the countdown text.
- *
- * Split out because the whole dialog used to be re-rendered on this 500 ms
- * timer, which destroyed and rebuilt every button and then re-focused "Send
- * it". A keyboard user who had tabbed to Deny had focus dragged onto the
- * unsafe answer twice a second — on the one screen in this app where a
+ * Split out because re-rendering the dialog on this 500 ms timer rebuilt every
+ * button and re-focused "Send it": a keyboard user who had tabbed to Deny had
+ * focus dragged onto the unsafe answer twice a second, on the one screen where a
  * decision actually stops data leaving the machine.
  */
 function tickCountdowns() {
@@ -474,21 +442,17 @@ function drawPrompts() {
     return;
   }
 
-  // The region is created once and kept. Rebuilding it with the cards already
-  // inside would put a live region into the tree pre-populated, which screen
-  // readers announce inconsistently — the same reason banners.js fills its
-  // region a frame late. Only the cards are ever replaced.
+  // Created once and kept: a live region entering the tree already populated is
+  // announced inconsistently, the same reason banners.js fills its region a
+  // frame late. Only the cards are replaced.
   let region = host.querySelector(".ask.req");
   if (!region) {
     clear(host);
     region = document.createElement("div");
-    // Not aria-modal, and no focus grab. This used to be a modal covering the
-    // screen, on the reasoning that it is the last point at which anything can
-    // stop bytes leaving the disk — true, but it also froze the editor behind
-    // it, so an incoming request stopped the app being usable for as long as
-    // nobody answered. The safety property does not actually come from being
-    // modal: it comes from nothing being sent without a click, and from an
-    // unanswered prompt expiring into a denial. Both survive here.
+    // Not aria-modal, and no focus grab. As a modal it froze the editor behind
+    // it, so an incoming request made the app unusable until someone answered.
+    // The safety does not come from being modal: it comes from nothing being
+    // sent without a click and an unanswered prompt expiring into a denial.
     region.className = "ask req";
     region.setAttribute("role", "region");
     region.setAttribute("aria-label", "File requests");
@@ -526,14 +490,10 @@ function onPromptClick(e) {
 }
 
 /**
- * Escape denies — but only while the prompt has focus.
- *
- * It used to be global, which was safe when the prompt was modal and there was
- * nothing else to be doing. Now that the app keeps working underneath it,
- * Escape belongs to whatever the user is actually in: pressing it to dismiss a
- * QR modal, or out of habit while typing, should not quietly answer a question
- * they have not read. Unanswered still ends in a denial — the countdown does
- * that — so nothing leaks by making this narrower.
+ * Escape denies, but only while the prompt has focus. Global was safe when the
+ * prompt was modal; now that the app keeps working underneath, dismissing a QR
+ * modal or hitting Escape out of habit must not answer a question nobody read.
+ * Unanswered still ends in a denial, so narrowing this leaks nothing.
  */
 function onKey(e) {
   if (e.key !== "Escape" || !prompts.size) return;
@@ -546,14 +506,11 @@ function onKey(e) {
 /* ------------------------------------------------------------------ *
  * Confirmation
  *
- * Deliberately NOT mounted in #mount-modals: drawPrompts() owns that node's
- * innerHTML outright and rewrites it whenever a request arrives or expires,
- * which would delete a confirmation mid-question — and the two can genuinely
- * overlap, since a peer can ask for a file while its owner is clearing the pane.
- *
- * window.confirm() would have been one line, but it blocks the event loop, so
- * the transfer this dialog is asking about would stall behind it, and it cannot
- * be styled, escaped or read by the same tests as the rest of the pane.
+ * NOT mounted in #mount-modals: drawPrompts() rewrites that node whenever a
+ * request arrives or expires, which would delete a confirmation mid-question —
+ * and the two overlap, since a peer can ask for a file while its owner clears
+ * the pane. window.confirm() blocks the event loop, so the transfer being asked
+ * about would stall behind it.
  * ------------------------------------------------------------------ */
 
 let pending = null;              // {el, resolve, onKey} — at most one at a time
@@ -568,8 +525,8 @@ function confirmAction({ title, file, warning, confirm }) {
     el.setAttribute("aria-modal", "true");
     el.setAttribute("aria-label", title);
 
-    // esc() on the title and the button label as well as the file name: the
-    // name is chosen by a peer, and the title quotes counts derived from it.
+    // esc() on the title and button label too: the name is peer-chosen and the
+    // title quotes counts derived from it.
     setHTML(el, `<div class="card">
       <div class="t">${esc(title)}</div>
       ${file ? `<div class="f">${esc(file)}</div>` : ""}
@@ -586,8 +543,8 @@ function confirmAction({ title, file, warning, confirm }) {
       if (e.target.closest("[data-no]") || e.target === el) closeConfirm(false);
     };
 
-    // Capture phase, so Escape settles this and stops there rather than also
-    // reaching the approval dialog's own document-level Escape handler.
+    // Capture phase, so Escape stops here rather than also reaching the approval
+    // dialog's own document-level handler.
     const onEsc = e => {
       if (e.key !== "Escape") return;
       e.preventDefault();
@@ -598,8 +555,8 @@ function confirmAction({ title, file, warning, confirm }) {
 
     document.body.appendChild(el);
     pending = { el, resolve, onKey: onEsc };
-    // Focus the safe answer, not the destructive one: Enter should not be able
-    // to discard twenty files because it was already on its way down.
+    // The safe answer: Enter must not discard twenty files because it was
+    // already on its way down.
     el.querySelector("[data-no]")?.focus?.();
   });
 }

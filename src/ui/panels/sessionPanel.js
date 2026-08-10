@@ -9,13 +9,13 @@
  *   #sbP2P    "P2P idle"   the file settings
  *   #sbGear   (gear)       key strength and pointer sharing
  *
- * This was a sidebar pane, which on a phone was one tab out of four — so every
+ * A sidebar pane before this, which on a phone was one tab of four — so every
  * setting, and the split-brain warning that means sync has silently stopped, sat
  * behind the editor until someone went looking. The status bar is on screen in
- * every view on every layout.
+ * every view at every width.
  *
- * The menus render from state on every open, so there are no switch elements to
- * initialise at boot: they do not exist until the moment they are shown.
+ * The menus render from state on every open, so there is nothing to initialise
+ * at boot: no switch exists until the moment it is shown.
  */
 
 import {
@@ -29,9 +29,8 @@ import { IS_DESKTOP } from "../../core/native.js";
 import * as os from "../../clipboard/os.js";
 import * as capture from "../../clipboard/capture.js";
 import * as menu from "../primitives/statusMenu.js";
-// The header switch and this menu are two controls for one setting, so they go
-// through the one module that owns persistence and repainting rather than each
-// poking state.settings.syncMode behind the other's back.
+// Two controls for one setting, so both go through the module that owns
+// persistence and repainting rather than poking state behind each other's back.
 import * as syncMode from "../features/syncMode.js";
 import { $, esc, on as bind } from "../primitives/dom.js";
 
@@ -50,8 +49,7 @@ export function init() {
   menu.attach("sbGear",  { label: "Settings", render: gearMenu,   onEvent: onMenuEvent });
 
   on(EV.KEY_CHANGED, ({ key }) => renderKey(key));
-  // The padlock and the Security group both read `locked`/`verified`, and the
-  // second of those can flip at any moment — the first frame that decrypts.
+  // `verified` can flip at any moment — the first frame that decrypts.
   on(EV.LOCK_STATE, () => { renderLock(); menu.refresh(); });
   // Whether this device may lock at all is answered by the relay's welcome, so
   // the Security group has to be able to change its mind after it was drawn.
@@ -59,8 +57,8 @@ export function init() {
   on(EV.PEERS_CHANGED, ({ count, list }) => renderPeers(count, list));
   on(EV.SYNC_MODE, () => menu.refresh());
   on(EV.INSTANCE_CHANGED, ({ from, to }) => { splitBrain = { from, to }; menu.refresh(); });
-  // The tray's "Copy share link" — it asks rather than being told the key, so
-  // the link is built here where the session already is.
+  // The tray asks rather than being told the key, so the link is built here,
+  // where the session already is.
   on("ui:copy-link", copyLink);
 
   renderPeers(1, []);
@@ -80,9 +78,8 @@ function onMenuEvent(e, close) {
     sw.setAttribute("aria-checked", String(next));
     state.saveSetting(sw.dataset.k, next);
 
-    // Acts on the key already saved, not only on the next session. A switch
-    // called "remember this" that leaves the last one on disk when you turn it
-    // off is making a promise it is not keeping.
+    // Acts on the key already saved: "remember this" that leaves the last one on
+    // disk when you turn it off is a promise it is not keeping.
     if (sw.dataset.k === "rememberKey") {
       const { key, locked } = state.get();
       storage.saveLastKey(key, locked, next);
@@ -115,9 +112,8 @@ function onMenuEvent(e, close) {
 }
 
 /**
- * The note travels with the payload so qr.js needs no opinion about sessions —
- * and so the caption cannot claim the code carries the PIN when it does not,
- * nor stay silent about it when that is the whole point.
+ * The note travels with the payload, so qr.js needs no opinion about sessions
+ * and the caption cannot claim the code carries the PIN when it does not.
  */
 function showQr() {
   const { key, locked } = state.get();
@@ -156,10 +152,9 @@ function devicesMenu() {
         Rooms are per-process, so devices on different replicas cannot see each
         other. Pin replicas to 1.
       </div>` : "")
-    // Copy link, Show QR and New key are the app header's three key buttons,
-    // which are on screen at every width. Repeating them here made the roster
-    // mostly a second copy of a toolbar the user was already looking at.
-    // Leaving is the one action with no other home, so it is the one that stays.
+    // Copy link, Show QR and New key are in the header at every width, so
+    // repeating them made the roster a second copy of a visible toolbar.
+    // Leaving is the one action with no other home.
     + `<div class="sacts">
          <button class="btn ghost" type="button" data-act="leave" data-mi="leave">Leave session</button>
        </div>`
@@ -179,12 +174,10 @@ function rosterRows() {
 }
 
 /**
- * The same ladder as the header switch, rendered from the same array.
- *
- * There is no "Receiving" switch any more. It used to sit here, defaulting on
- * and independent of the mode, which meant a device set to Manual stopped
- * sending while arriving clips still landed on its system clipboard. Both
- * directions belong to the rung now — see ui/features/syncMode.js.
+ * The same ladder as the header switch, from the same array. There is no
+ * "Receiving" switch: it defaulted on and independent of the mode, so a device
+ * set to Manual stopped sending while arriving clips still landed on its system
+ * clipboard. Both directions belong to the rung.
  */
 function syncMenu() {
   const mode = state.get().settings.syncMode;
@@ -199,8 +192,8 @@ function syncMenu() {
        </div>
        <div class="snote">${esc(syncMode.noteFor(mode))}</div>`
     + group("Clipboard")
-    // Polling is the browser's substitute for a clipboard-change event, so it
-    // has nothing to do below the rung that reads the clipboard at all.
+    // Polling substitutes for a clipboard-change event, so it has nothing to do
+    // below the rung that reads the clipboard.
     + (mode === SYNC_MODES.LIVE
       ? `<div class="srow">
            <div class="l"><b>Check clipboard every</b><span>Only while this window has focus</span></div>
@@ -242,13 +235,10 @@ function gearMenu() {
 }
 
 /**
- * Only in the installed app, because only there is there a tray to close to.
- *
- * The switch is off-by-default nowhere: closing to the tray is what an app
- * whose job is to keep watching should do. It is a switch rather than a fact
- * because the alternative — no way to make X mean X — is the single most
- * complained-about behaviour in tray applications, and being unable to turn it
- * off is what makes it a trap rather than a default.
+ * Only in the installed app, there being no tray to close to otherwise. On by
+ * default, because closing to the tray is what an app whose job is to keep
+ * watching should do — and a switch rather than a fact, because no way to make X
+ * mean X is the most complained-about behaviour in tray applications.
  */
 function desktopRows() {
   return group("Desktop")
@@ -260,15 +250,12 @@ function desktopRows() {
 }
 
 /**
- * Which relay this device talks to.
+ * Here rather than in a config file: the point of a self-hostable relay is that
+ * somebody other than the author can choose it, and a setting you have to
+ * rebuild the app to change is not a setting.
  *
- * Here rather than buried in a config file because the whole point of a
- * self-hostable relay is that somebody other than the author can choose it —
- * and a setting you have to rebuild the app to change is not a setting.
- *
- * Text, not a switch: the value is an address, and there is no meaningful
- * "default vs other" toggle when "other" needs typing. The host is shown rather
- * than the full URL because the scheme is derived and the path is fixed.
+ * The host is shown rather than the full URL because the scheme is derived and
+ * the path is fixed.
  */
 function relayRows() {
   const host = RELAY_URL.replace(/^wss?:\/\//, "");
@@ -287,13 +274,10 @@ function relayRows() {
 }
 
 /**
- * A prompt() rather than a field, deliberately.
- *
- * Changing the relay cannot take effect in place: RELAY_URL is resolved once at
- * module evaluation, and every open socket, the room the app is in and the
- * transport's own failover state were all built against the old one. Reloading
- * is the honest implementation of "change relay", and a modal that ends in a
- * reload does not need to be prettier than the browser's.
+ * A prompt() deliberately: this cannot take effect in place, RELAY_URL being
+ * resolved once at module evaluation with every socket, the room and the
+ * failover state built against the old one. Reloading is the honest
+ * implementation, and a modal that ends in one need not beat the browser's.
  */
 function changeRelay(reset = false) {
   if (reset) {
@@ -315,21 +299,17 @@ function changeRelay(reset = false) {
   if (!trimmed) { storage.saveRelayUrl(null); location.reload(); return; }
 
   // Bare hosts are what people paste, so assume the secure scheme rather than
-  // rejecting them. saveRelayUrl normalises and returns null if it is not a
-  // usable address at all.
+  // rejecting them. saveRelayUrl returns null if it is not usable at all.
   const saved = storage.saveRelayUrl(/^[a-z]+:\/\//i.test(trimmed) ? trimmed : `wss://${trimmed}`);
   if (!saved) { emit(EV.TOAST, "That is not a usable relay address"); return; }
   location.reload();
 }
 
 /**
- * Locking, as buttons rather than a switch.
- *
- * A switch says "an instant, local, reversible preference". This is none of
- * those: the lock is part of the room's name, so turning it on moves you to a
- * different session and leaves every device that was in the old one behind.
- * Presenting that as a toggle would be a small lie with a large consequence,
- * and the button label gets to say what actually happens.
+ * Buttons rather than a switch. A switch says "instant, local, reversible
+ * preference", and this is none of those: the lock is part of the room's name,
+ * so turning it on moves you to a different session and leaves every device in
+ * the old one behind. The button label gets to say what actually happens.
  */
 function lockRows() {
   const { locked, verified, peers } = state.get();
@@ -349,10 +329,9 @@ function lockRows() {
       ${allowed
         ? (others ? `<div class="snote">The ${others} other device${
             others === 1 ? "" : "s"} here will be disconnected.</div>` : "")
-        // Not a disabled button. The action is unavailable on this device and
-        // will not become available on it — offering a greyed control invites
-        // clicking it to find out why, and the answer fits in the space the
-        // button was taking up.
+        // Not a disabled button: the action will never become available here,
+        // and a greyed control invites clicking it to find out why. The answer
+        // fits in the space the button was taking up.
         : `<div class="snote">Only the first device in a session can lock it.
            Ask whoever started this one.</div>`}`;
   }
@@ -384,14 +363,11 @@ function renderKey(key) {
 }
 
 /**
- * The padlock, in three states rather than two.
- *
- * "Private" and "Private · unconfirmed" are genuinely different claims and the
- * bar must not merge them. A locked session where nothing has decrypted yet
- * might be a session whose other devices simply have not arrived — or it might
- * be a mistyped PIN, which puts this device alone in a room of its own. Showing
- * a confident padlock in the second case would be the app asserting something
- * it has no evidence for, about the one property the feature exists to provide.
+ * Three states, not two: "Private" and "Private · unconfirmed" are different
+ * claims. A locked session where nothing has decrypted yet may be one whose
+ * other devices have not arrived, or a mistyped PIN putting this device alone in
+ * a room of its own — and a confident padlock there asserts the one property the
+ * feature exists to provide, with no evidence for it.
  */
 function renderLock() {
   const el = $("sbLock");
@@ -415,26 +391,18 @@ function renderPeers(count, list) {
   menu.refresh();                        // a device joining while the roster is open
 }
 
-/**
- * Rotating the key means leaving the current room entirely, so main.js has to
- * tear down the connection and derive fresh crypto material. This module only
- * announces the intent — it does not own the transport.
- */
+/** This module announces the intent; main.js owns the transport teardown. */
 function newKey() {
-  // Stays locked if it was locked. "New key" answers "someone has my link", and
-  // whoever had only the link never had the PIN — so dropping the lock here
-  // would quietly downgrade a private session while the user was busy securing
-  // it. main.js reuses the existing PIN rather than asking again.
+  // Stays locked if it was. "New key" answers "someone has my link", and whoever
+  // had the link never had the PIN — dropping the lock here would downgrade a
+  // private session while the user was busy securing it.
   emit("session:rotate");
 }
 
 /**
- * Say what the setting buys in numbers, not adjectives. "More secure" is
- * unfalsifiable; "~29 bits" versus "~49 bits" lets someone decide.
- *
- * "applies to the next key" matters: flipping this does not re-key the session
- * you are already in, and silently implying otherwise would be a security claim
- * the app is not honouring.
+ * Numbers, not adjectives: "more secure" is unfalsifiable, "~29 bits" versus
+ * "~49 bits" lets someone decide. "Applies to the next key" matters too —
+ * flipping this does not re-key the session you are in.
  */
 function keyStrength() {
   const n = keys.nextLength();
@@ -445,9 +413,8 @@ async function copyLink() {
   const { key, locked } = state.get();
   const link = keys.shareLink(key, locked);
   if (!await os.write(link)) return;
-  // The toast is the only moment the app can tell someone what they have just
-  // put on their clipboard. For a locked session the important half is what is
-  // NOT in it, and that the other half still has to be sent some other way.
+  // The only moment the app can say what is now on the clipboard. For a locked
+  // session the important half is what is NOT in it.
   emit(EV.TOAST, locked
     ? "Link copied — the PIN is not in it. Send that separately"
     : "Link copied — it contains the key");

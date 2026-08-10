@@ -36,8 +36,8 @@ The trade was taken exactly as written above:
 
 Note that the paragraph above this section names "the GitHub Pages deploy" as
 what the no-build choice was protecting. Both halves of that have since gone:
-there is a build, and the host is **Cloudflare Pages** at `realtimeclipboard.com`
-(docs/SEO.md §7). The reason for the second move was one GitHub Pages could
+there is a build, and the host is **Cloudflare Pages** at `realtimeclipboard.com`.
+The reason for the second move was one GitHub Pages could
 never satisfy — it cannot set an HTTP response header at all, so `frame-ancestors`
 and `Strict-Transport-Security` were unavailable to an end-to-end-encrypted app.
 They live in `_headers` now. The original text is left standing because the

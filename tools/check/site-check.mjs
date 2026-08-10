@@ -2,20 +2,13 @@
  * Assert that an assembled `_site` is fit to publish. Run against the output of
  * tools/build/build.mjs, immediately after it, as part of the deploy.
  *
- * These checks used to be a `run: |` block in .github/workflows/pages.yml. They
- * moved here when the frontend went to Cloudflare Pages, because the deploy
- * moved with it: Cloudflare builds the site itself from a build command, and a
- * check that lives in a GitHub Actions step does not run there at all. Porting
- * them was not optional — dropping them would have traded a genuine gate for a
- * faster deploy, which is the wrong trade for the two checks below that are
- * about a silent, unrecoverable failure rather than a broken page.
+ * These lived in a GitHub Actions step until the deploy moved to Cloudflare,
+ * which builds the site itself and never runs one. A non-zero exit fails that
+ * build, and a failed build is not promoted, so production keeps serving the
+ * previous deploy.
  *
- * A non-zero exit fails the Cloudflare build, and a failed build is not
- * promoted, so production keeps serving the previous deploy.
- *
- * Node-only on purpose: the old block shelled out to `python3` for the JSON and
- * XML parsing, and the build image's Python is not something this repo should
- * depend on for whether a release ships.
+ * Node-only on purpose: the old block shelled out to `python3`, and the build
+ * image's Python is not something this repo should depend on to ship.
  *
  *   node tools/build/build.mjs _site && node tools/check/site-check.mjs _site
  */
@@ -44,15 +37,11 @@ const pass = msg => console.log(`  ok    ${msg}`);
 /* ------------------------------------------------------- files exist ---- */
 
 /**
- * src/ui/features/install.js is deliberately absent from this list: the deploy ships
- * bundles, not the module tree. src/main.js and src/landing/landing.js are the
- * entry points the HTML names, and tests/dom/bundle.mjs is what proves the chunks
- * behind them resolve.
+ * Entry points only — the deploy ships bundles, not the module tree, and
+ * tests/dom/bundle.mjs proves the chunks behind them resolve.
  *
- * `_headers` and `_redirects` are here because they are the whole reason the
- * site is on Cloudflare Pages. A missing `_headers` does not break a single
- * page — it silently drops the CSP frame-ancestors and HSTS and looks exactly
- * like a healthy deploy, which is the failure mode that most needs a check.
+ * `_headers` is here because a missing one breaks no page at all: it silently
+ * drops frame-ancestors and HSTS and looks exactly like a healthy deploy.
  */
 const REQUIRED = [
   "index.html", "app.html", "manifest.webmanifest", "sw.js", "404.html",
@@ -73,9 +62,8 @@ const REQUIRED = [
   "snapdrop-alternative/index.html", "what-is-an-online-clipboard/index.html",
   "online-clipboard-no-login/index.html", "clipboard-sync-different-networks/index.html",
   "privacy/index.html",
-  // Crawler-facing and easy to lose: none of these is referenced by any page, so
-  // a build that stopped copying them would look completely healthy. ads.txt is
-  // the one with a bill attached — AdSense refuses most demand without it.
+  // Referenced by no page, so a build that stopped copying them looks healthy.
+  // ads.txt is the one with a bill attached: AdSense refuses demand without it.
   "llms.txt", `${INDEXNOW_KEY}.txt`, "ads.txt",
 ];
 
@@ -88,11 +76,9 @@ missing.length ? missing.forEach(f => fail(`missing ${f}`))
 /* ------------------------------------------------------------ robots ---- */
 
 /**
- * The point of the whole domain move, and worth one line to prove it landed.
- * On github.io this file was served from a subdirectory, where robots.txt is
- * never fetched — it governed nothing and could not be fixed from this repo.
- * At an apex it is finally authoritative, which also means a wrong one is now
- * capable of doing damage.
+ * On github.io this sat in a subdirectory, where robots.txt is never fetched —
+ * it governed nothing. At an apex it is authoritative, which also means a wrong
+ * one can now do damage.
  */
 const robots = read("robots.txt");
 robots.includes(`Sitemap: ${ORIGIN}/sitemap.xml`)
@@ -112,18 +98,11 @@ if (!/^\s*<\?xml/.test(sitemap) || !sitemap.includes("</urlset>")) {
   else pass(`sitemap.xml: ${locs.length} URLs, all on ${ORIGIN}`);
 
   /**
-   * A sitemap entry is a request to index. Pairing one with a `noindex` on the
-   * page it names asks Google for two opposite things, and Search Console logs
-   * it as an error against the whole site on every crawl rather than ignoring
-   * the quieter of the two.
-   *
-   * /blog/ shipped exactly this way — noindex while it had no posts, listed in
-   * the sitemap regardless. The sitemap's own header warns against it for /app
-   * and the blog slipped past anyway, which is the argument for a check rather
-   * than a comment.
-   *
-   * The dead-URL half matters just as much: a <loc> for a page that is not in
-   * the deploy is a 404 handed straight to a crawler.
+   * A sitemap entry is a request to index, so pairing one with `noindex` asks
+   * for two opposite things and Search Console logs it against the whole site on
+   * every crawl. /blog/ shipped exactly that way despite the sitemap's own
+   * header warning against it — the argument for a check rather than a comment.
+   * And a <loc> for a page not in the deploy is a 404 handed to a crawler.
    */
   const sitemapPage = u => u.replace(ORIGIN, "").replace(/^\//, "").replace(/\/$/, "");
   const fileFor = u => (sitemapPage(u) ? `${sitemapPage(u)}/index.html` : "index.html");
@@ -138,11 +117,9 @@ if (!/^\s*<\?xml/.test(sitemap) || !sitemap.includes("</urlset>")) {
     : pass("sitemap.xml lists no page that asks not to be indexed");
 
   /**
-   * The other direction: a page that is indexable, reachable and absent from
-   * the sitemap. Not fatal on its own — internal links are how pages are
-   * really found — but on this site every content page is meant to be listed,
-   * and silently forgetting the entry is the documented failure mode
-   * (src/pages/CLAUDE.md: "Add it to sitemap.xml — that part is not derived").
+   * The other direction: indexable, reachable and absent from the sitemap. Every
+   * content page here is meant to be listed, and forgetting the entry is the
+   * documented failure mode (src/pages/CLAUDE.md — it is not derived).
    */
   const listed = new Set(locs.map(fileFor));
   const orphans = htmlPages().filter(f =>
@@ -157,9 +134,9 @@ if (!/^\s*<\?xml/.test(sitemap) || !sitemap.includes("</urlset>")) {
 /* --------------------------------------------------------- IndexNow ---- */
 
 /**
- * IndexNow's entire verification model is that the key sits at a public URL on
- * the origin claiming the URLs. If the file's name and its contents disagree,
- * the endpoint answers 403 and says nothing about which half is wrong.
+ * Verification is that the key sits at a public URL on the origin claiming the
+ * URLs. Name and contents disagreeing gets a 403 that says nothing about which
+ * half is wrong.
  */
 const keyBody = read(`${INDEXNOW_KEY}.txt`).trim();
 keyBody === INDEXNOW_KEY
@@ -169,16 +146,11 @@ keyBody === INDEXNOW_KEY
 /* ---------------------------------------------------------- manifest ---- */
 
 /**
- * Valid JSON, and no SVG in icons[].
- *
- * The SVG is not a harmless extra entry. An icon declaring sizes:"any"
- * satisfies Chrome's "at least one icon >= 144px" test on paper, so it wins the
- * selection — and then Chrome cannot rasterise it for an app icon, reports
- * `no-acceptable-icon`, and does NOT fall back to the PNGs sitting right above
- * it. One SVG line silently removed the install button from the omnibox while
- * every other criterion passed. Verified with Page.getInstallabilityErrors:
- * dropping it is the whole fix. icon.svg is still the favicon in index.html —
- * that is fine, a <link rel="icon"> and manifest icons[] are unrelated paths.
+ * Valid JSON, and no SVG in icons[]. An SVG declaring sizes:"any" passes
+ * Chrome's ">= 144px" test on paper and wins the selection, then cannot be
+ * rasterised — `no-acceptable-icon`, with NO fallback to the PNGs above it. One
+ * line silently removed the install button while every other criterion passed.
+ * The favicon <link rel="icon"> is an unrelated path and stays SVG.
  */
 try {
   const icons = JSON.parse(read("manifest.webmanifest")).icons || [];
@@ -197,14 +169,10 @@ try {
 /**
  * Every reference to the app points at /app, and /app resolves to something.
  *
- * tools/build/build.mjs rewrites `app.html` to `app` in the deploy only — the source
- * tree keeps the `.html` because the Tauri desktop app ships it directly over
- * a protocol that does no extension stripping. That split is exactly the kind
- * of arrangement that works until someone adds a link in a form the rewrite's
- * pattern does not match, and then ships a 404 that no test on disk can see.
- *
- * A surviving `app.html` link is a needless redirect hop — Pages 308s it to
- * /app — and a sign the rewrite silently stopped matching.
+ * tools/build/build.mjs rewrites `app.html` to `app` in the deploy only. That
+ * split works until someone writes a link the pattern does not match, and then
+ * ships a 404 no test on disk can see. A surviving `app.html` is a needless
+ * redirect hop and a sign the rewrite stopped matching.
  */
 const appLinks = htmlPages()
   .concat(["manifest.webmanifest", "src/landing/landing.js", "src/landing/redirect.js"])
@@ -216,18 +184,11 @@ appLinks.length
   : pass("every reference to the app uses /app");
 
 /**
- * No `_redirects` rule may name /app, in any form.
- *
- * `/app  /app.html  200` looked like the rule that made the pretty URL work.
- * It was the rule that broke it: Pages serves an .html asset at its
- * extensionless path and 308s the .html form onto it, and it applies that
- * canonical redirect to a rewrite's target too. /app rewrote to /app.html,
- * which redirected to /app, which rewrote again — ERR_TOO_MANY_REDIRECTS, on
- * the app only, on both hostnames, with nothing on disk able to see it.
- *
- * Pages resolves /app to app.html unaided. Anything written here about /app —
- * including a trailing-slash /app/, which is a second URL for one page — is
- * either redundant or another loop.
+ * No `_redirects` rule may name /app, in any form. `/app /app.html 200` looked
+ * like the rule that made the pretty URL work and was the rule that broke it:
+ * Pages 308s the .html form onto the extensionless path and applies that to a
+ * rewrite's target too, so /app → /app.html → /app —
+ * ERR_TOO_MANY_REDIRECTS, on the app only, with nothing on disk able to see it.
  */
 const appRule = read("_redirects").split("\n").find(l => /^\/app(?=[\s/.]|$)/.test(l));
 appRule
@@ -242,9 +203,8 @@ swShell.includes('"./app"')
 /* ------------------------------------------------------------ noindex --- */
 
 /**
- * The app must never be indexable. If this tag is ever dropped, every rendered
- * session — key, clipboard contents, history — becomes crawlable. Fail the
- * deploy rather than find out from a search result.
+ * Drop this tag and every rendered session — key, clipboard, history — becomes
+ * crawlable. Fail the deploy rather than find out from a search result.
  */
 /name="robots" content="noindex/.test(read("app.html"))
   ? pass("app.html carries its noindex meta tag")
@@ -259,21 +219,16 @@ noCsp.length ? noCsp.forEach(f => fail(`${f} is missing its Content-Security-Pol
              : pass(`${pages.length} pages carry a CSP meta tag`);
 
 /**
- * ONE policy, three declarations. `_headers` is sent by Cloudflare for every
- * path; every page — app.html included, since the no-ads-in-the-app rule was
- * removed on 2026-08-09 — declares the same policy in a meta tag for the
- * servers that are not Cloudflare. Browsers INTERSECT multiple policies rather
- * than letting the looser win, so a directive that drifts in only one
- * declaration produces a policy no file in the repo describes. Hence:
- *   1. the header matches what the crawlable pages declare (index.html stands
- *      for all of them — they are written by one script), with
- *      `frame-ancestors` the one sanctioned header-only directive;
- *   2. app.html declares the same policy as the crawlable pages;
- *   3. `trusted-types` is loose only while the tags are actually switched on.
+ * ONE policy, three declarations: the `_headers` one Cloudflare sends, and a
+ * meta tag on every page — app.html included — for the servers that are not
+ * Cloudflare. Browsers INTERSECT policies rather than letting the looser win, so
+ * a directive drifting in one declaration produces a policy no file describes.
+ * Hence: the header matches the crawlable pages with `frame-ancestors` the one
+ * sanctioned header-only directive; app.html matches them too; and
+ * `trusted-types` is loose only while the tags are switched on.
  *
- * What keeps the share key out of the ad request is no longer a CSP gap but
- * timing: src/ui/features/ads.js mounts the tag only after boot has stripped
- * the key from the fragment. gtag gets `pageLocation()` for the same reason.
+ * What keeps the share key out of the ad request is timing, not the CSP:
+ * ui/features/ads.js mounts only after boot strips the key from the fragment.
  */
 const appCsp = read("app.html").match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1];
 const siteCsp = read("index.html").match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1];
@@ -317,10 +272,9 @@ else {
   /* 3. trusted-types */
 
   /**
-   * The header's `trusted-types` is allowed to be loose — the ad tag mints
-   * `goog#html` per injected frame and will not run otherwise — but ONLY while
-   * the tags are switched on. The failure this guards against is the tokens
-   * outliving the decision: IDs emptied, policy left wide, nobody notices.
+   * Loose is allowed — the ad tag mints `goog#html` per injected frame and will
+   * not run otherwise — but only while the tags are on. The failure guarded
+   * against is the tokens outliving the decision: IDs emptied, policy left wide.
    */
   const headerTt = ttOf(headerCsp);
   const headerLoose = ["*", "'allow-duplicates'"].filter(t => headerTt?.split(/\s+/).includes(t));
@@ -345,31 +299,23 @@ else {
 /* ------------------------------------------------------- old host ------- */
 
 /**
- * The migration guard. Every canonical, og:url and JSON-LD @id in this site
- * used to name the old host, and a single survivor points search engines and
- * social cards back at a tombstone. There are too many of them across too many
- * files to re-check by eye on each release.
- *
- * Scoped to the files a crawler reads. docs/ is copied into the deploy and
- * legitimately discusses the old host in prose — docs/SEO.md §7 is the write-up
- * of this very move — so excluding it is the point, not an oversight.
+ * Every canonical, og:url and JSON-LD @id here once named the old host, and a
+ * single survivor points crawlers and social cards at a tombstone — too many
+ * across too many files to re-check by eye. Scoped to what a crawler reads;
+ * docs/ discusses the old host in prose, so excluding it is the point.
  */
 const crawlable = walk(OUT)
   .map(f => relative(OUT, f).replace(/\\/g, "/"))
   .filter(f => /\.(html|xml|txt|webmanifest)$/.test(f) && !f.startsWith("docs/"));
 
 /**
- * Comments do not count, and robots.txt is the reason.
+ * Comments do not count, and robots.txt is why: its header can only explain that
+ * the file was inert for the project's whole life by naming the old host. That
+ * is the one place the name is load-bearing, and a check that cannot tell the
+ * difference pushes you to delete the explanation to go green.
  *
- * Its header explains that this file was inert for the whole life of the
- * project because the site lived on a subpath — which it can only explain by
- * naming the old host. That is the one place the old name is load-bearing
- * rather than left over, and a check that cannot tell the difference pushes you
- * to delete the explanation to make it green.
- *
- * Only `#` comments are stripped, and only from the plain-text formats where
- * `#` means a comment. In HTML and XML the old host would sit in an href, a
- * canonical or a <loc>, all of which are real references a crawler follows.
+ * Only `#` comments, only in the formats where `#` means one. In HTML and XML
+ * the old host would sit in an href or a <loc>, which a crawler follows.
  */
 const withoutComments = (name, body) =>
   /\.(txt)$/.test(name) ? body.replace(/^\s*#.*$/gm, "") : body;

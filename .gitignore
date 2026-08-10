@@ -38,8 +38,6 @@ node_modules/
 # FastAPI Cloud link file — contains app and team ids for this machine.
 /.fastapicloud/
 
-.claude/settings.local.json
-
 # Scratch screenshots from local UI checks — output, not source.
 /.shots/
 

@@ -148,14 +148,15 @@ exclude only the eight directories above.
 **It used to be GitHub Pages, on a tag.** The move happened because GitHub Pages
 cannot set an HTTP response header at all, which left `frame-ancestors` and
 `Strict-Transport-Security` unavailable to a product whose pitch is
-end-to-end encryption — see `_headers` and docs/SEO.md §7.
+end-to-end encryption — see `_headers`.
 
 There was a `.github/workflows/tombstone.yml` to go with it, which would have
 replaced the old origin with a redirect and a self-deleting service worker. It
 was never run, and it is now deleted. GitHub Pages went down on its own — the
 old origin already answers GitHub's own *Site not found* 404 — so the workflow
-had nothing left to publish over. See docs/SEO.md §7 for what that costs, which
-is not nothing.
+had nothing left to publish over. The cost is real: every link ever shared to
+the old origin now dies there rather than redirecting, and `_redirects` catches
+only the requests that already reach this host.
 
 ---
 

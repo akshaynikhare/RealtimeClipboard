@@ -1,30 +1,17 @@
 /**
  * Assemble the deployable site — the only build step in this project.
  *
- * docs/ARCHITECTURE.md §1 chose native ES modules with no bundler, and named
- * the conditions to revisit: "if the app grows past ~40 modules … or the
- * @import chain in styles/main.css becomes a visible load delay". Both are now
- * true (47 modules, a 17-deep serial @import chain), and the same paragraph
- * says what to do about it: "add a concatenation step at *deploy* time — not a
- * build step in development."
+ * docs/ARCHITECTURE.md §1 chose no bundler and named the conditions to revisit;
+ * both fired (47 modules, a 17-deep serial @import chain) and the same paragraph
+ * says what to do: concatenate at *deploy* time, not in development. That
+ * distinction is the design of this file — it runs against a throwaway output
+ * directory and never touches `src/`.
  *
- * That distinction is the whole design of this file. It runs against a
- * throwaway output directory and never touches `src/`, so development stays
- * `python -m http.server`, the .husky checks keep running on real modules, and
- * anything else that consumes the source tree keeps working unchanged.
- *
- * It also owns the file copying that used to live in the workflow's shell, so
- * that "what ships" has ONE definition — the workflow and tests/dom/bundle.mjs both
- * call this rather than each describing the deploy in their own words.
+ * It also owns the copying that used to live in the workflow's shell, so "what
+ * ships" has ONE definition rather than one per consumer.
  *
  * Usage:  node tools/build/build.mjs [outdir]            default _site
  *         node tools/build/build.mjs <outdir> --desktop  the Tauri frontend
- *
- * --desktop produces the same bundle for the desktop shell, minus the parts
- * that only mean something to a web host. It exists because the alternative
- * was `frontendDist: "../../"` — the repository itself — which put
- * node_modules/, docs/, backend/ and any stale _site/ inside the installer,
- * roughly 30 MB of them. See desktop/README.md.
  */
 
 import { build } from "esbuild";
@@ -39,24 +26,20 @@ import { fileURLToPath } from "node:url";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
 /**
- * The desktop shell's frontend, rather than a site for a web host.
- *
- * Everything the two builds share is the point — the desktop app runs the same
- * bundle the website serves, not a variant of it. What differs is only what a
- * `tauri://` origin cannot use: no host config, no crawler files, and above all
- * no /app pretty URL, because that scheme does no extension stripping.
+ * What the two builds share is the point: the desktop app runs the same bundle
+ * the website serves. Only what a `tauri://` origin cannot use differs — no host
+ * config, no crawler files, and no /app pretty URL, that scheme doing no
+ * extension stripping. The alternative was `frontendDist: "../../"`, which put
+ * ~30 MB of node_modules, docs and stale _site into the installer.
  */
 const DESKTOP = process.argv.includes("--desktop");
 const OUT = resolve(ROOT, process.argv.slice(2).find(a => !a.startsWith("--")) || "_site");
 
 /**
- * Ceiling for the app's EAGER JavaScript, gzipped — what a first-time visitor
- * downloads before the app can start.
- *
- * A budget rather than a report, because "small payload" with no number in the
- * build decays quietly: every addition is individually reasonable and the total
- * is nobody's job. Measured at ~35 KB when this landed; the headroom is for
- * ordinary growth, not for a new dependency.
+ * Gzipped ceiling for the app's EAGER JavaScript. A budget rather than a report,
+ * because "small payload" with no number decays quietly — every addition is
+ * individually reasonable and the total is nobody's job. ~35 KB when this
+ * landed; the headroom is for growth, not for a new dependency.
  */
 const EAGER_JS_BUDGET = 45 * 1024;
 
@@ -70,56 +53,41 @@ mkdirSync(OUT, { recursive: true });
 
 for (const f of [
   "index.html", "app.html", "manifest.webmanifest", "sw.js",
-  // Pages serves index.html with HTTP 200 for unmatched paths when this file is
-  // absent, which turns every typo into a soft 404. Its presence at the root is
-  // the entire fix; the desktop shell has no router and never 404s.
+  // Without this, Pages serves index.html with HTTP 200 for unmatched paths and
+  // every typo becomes a soft 404. The desktop shell has no router.
   ...(DESKTOP ? [] : ["404.html"]),
-  // llms.txt and the IndexNow key are crawler-facing and meaningless inside the
-  // desktop shell. The key file's NAME is the credential — IndexNow verifies by
-  // fetching it at the origin root, so it has to keep both its filename and its
-  // place at the top level; tools/seo/indexnow.mjs owns the value.
-  // ads.txt is the same shape of thing as the IndexNow key: a file whose value
-  // is that a crawler finds it at the origin root. AdSense refuses most demand
-  // for a site without one.
+  // Crawler-facing, and meaningless inside the desktop shell. The IndexNow key
+  // file's NAME is the credential — it is verified by fetching it at the origin
+  // root, so filename and top-level placement both matter. ads.txt is the same
+  // shape of thing: AdSense refuses most demand for a site without one.
   ...(DESKTOP ? [] : [
     "robots.txt", "sitemap.xml", "README.md",
     "llms.txt", "d10e264a86258c1431df1f72efb3cf83.txt", "ads.txt",
   ]),
-  // Read at runtime by src/ui/features/whatsNew.js, and CHANGELOG.md is what its "full
-  // history" link points at. Both are generated by tools/release/changelog.mjs at
-  // release time and committed, so there is nothing to build — only to copy.
+  // Read at runtime by src/ui/features/whatsNew.js. Generated by
+  // tools/release/changelog.mjs and committed, so there is only copying to do.
   "changelog.json", "CHANGELOG.md",
-  // Read by Cloudflare Pages at deploy time and then removed from the served
-  // output — they configure the edge rather than ship to a browser. `_headers`
-  // carries the CSP, HSTS and the sw.js cache rule, which is to say it carries
-  // the entire reason this site is not on GitHub Pages any more.
+  // Consumed by Cloudflare Pages at deploy time, then removed from the served
+  // output. `_headers` carries the CSP, HSTS and the sw.js cache rule — which is
+  // to say the whole reason this site is not on GitHub Pages any more.
   ...(DESKTOP ? [] : ["_headers", "_redirects"]),
 ]) {
   if (existsSync(join(ROOT, f))) copyFileSync(join(ROOT, f), join(OUT, f));
 }
 
-/* assets/ splits in two, and the split is load-bearing rather than tidy:
-   assets/icons/ is the PWA icon set and every file in it is precached by the
-   service worker, while assets/social/ is a share card that only crawlers ever
-   fetch and has no business in a user's offline cache. The SHELL walk in
-   tests/unit/static-check.mjs names assets/icons for exactly that reason.
-
-   Both are copied verbatim — they are bytes, not inputs to a build. */
+/* The assets/ split is load-bearing rather than tidy: assets/icons/ is precached
+   by the service worker, while assets/social/ is a share card only crawlers
+   fetch and has no business in an offline cache. Both copied verbatim. */
 for (const d of DESKTOP ? ["assets"] : ["assets", "docs"]) {
   if (existsSync(join(ROOT, d))) cpSync(join(ROOT, d), join(OUT, d), { recursive: true });
 }
 
-/* Content sections — src/pages/{help,blog,download}. Each is a directory
-   holding an index.html, copied with whatever is nested inside it, so a new
-   article needs no change here. Found by scanning rather than named one by one
-   because a forgotten per-page edit fails silently as a 404 rather than as a
-   broken build.
+/* Found by scanning rather than named one by one, because a forgotten per-page
+   edit fails silently as a 404 rather than as a broken build.
 
-   !! src/pages/help/ is published AT /help/, one level up from where it sits on
-   disk, which is why every link inside these pages is root-absolute. A relative
-   one would resolve against the wrong depth in exactly one of the two places
-   and 404 there — see src/pages/CLAUDE.md. Nothing else in src/ is copied
-   verbatim like this; everything else is bundled. !! */
+   !! These publish one level up from where they sit on disk, which is why every
+   link inside them is root-absolute: a relative one resolves against the wrong
+   depth in exactly one of the two places. See src/pages/CLAUDE.md. !! */
 const PAGES_DIR = join(ROOT, "src/pages");
 for (const d of DESKTOP ? [] : readdirSync(PAGES_DIR)) {
   if (!statSync(join(PAGES_DIR, d)).isDirectory()) continue;
@@ -128,10 +96,9 @@ for (const d of DESKTOP ? [] : readdirSync(PAGES_DIR)) {
   console.log("  content page: " + d + "/");
 }
 
-// Vestigial since the move to Cloudflare Pages, and kept because it costs zero
-// bytes and the output tree is exactly what a self-hoster puts on GitHub Pages:
-// Jekyll runs there by default and ignores files starting with _, which is
-// every bundle chunk esbuild emits.
+// Vestigial since the move off GitHub Pages, kept because it costs nothing and
+// this output tree is what a self-hoster puts there: Jekyll ignores files
+// starting with _, which is every chunk esbuild emits.
 writeFileSync(join(OUT, ".nojekyll"), "");
 
 /* ------------------------------------------------------------ bundle ---- */
@@ -140,15 +107,12 @@ const common = {
   bundle: true,
   format: "esm",
   minify: true,
-  // Shipped on purpose. They cost a visitor nothing — browsers fetch them only
-  // when devtools is open — and they are the deliberate opposite of obfuscating
-  // an end-to-end-encrypted app whose entire trust model is that you can read
-  // it and check that it does what it claims.
+  // Shipped on purpose: fetched only when devtools is open, and the opposite of
+  // obfuscating an app whose trust model is that you can read it.
   sourcemap: true,
-  // splitting is NOT optional here. Without it esbuild INLINES dynamic imports,
-  // which would silently undo every lazy load in the codebase: the globe
-  // (landing.js) and files/registry.js + files/transfer.js (main.js). Bundling
-  // would then make the payload worse while appearing to have worked.
+  // NOT optional. Without it esbuild INLINES dynamic imports, silently undoing
+  // every lazy load in the codebase and making the payload worse while appearing
+  // to have worked.
   splitting: true,
   logLevel: "error",
 };
@@ -156,11 +120,9 @@ const common = {
 await build({ ...common, entryPoints: [join(ROOT, "src/main.js")], outdir: join(OUT, "src") });
 await build({
   ...common,
-  // Every module an HTML page names in a <script src> has to be an entry point.
-  // The deploy ships bundles, not the source tree, so a module that is only
-  // reachable from markup — never imported by another module — is invisible to
-  // the bundler and simply will not exist in _site. It 404s on the one page
-  // that needs it and nowhere else.
+  // Every module an HTML page names in a <script src> must be an entry point: the
+  // deploy ships bundles, so one reachable only from markup is invisible to the
+  // bundler and 404s on the single page that needs it.
   entryPoints: ["redirect", "landing", "faq", "download", "copy", "tags"].map(n => join(ROOT, `src/landing/${n}.js`)),
   outdir: join(OUT, "src/landing"),
 });
@@ -176,16 +138,11 @@ for (const p of ["src/styles/main.css", "src/landing/landing.css"]) {
 }
 
 /**
- * The stylesheets that are NOT bundled, because the panel that needs them
- * fetches them on first open — a QR modal's CSS has no business in the critical
- * path of an app most people never open it in.
- *
- * The directory IS the list. This used to grep every module for
- * `lazyStyleHref("…")` and copy whatever the regex found, which meant the set
- * of lazy sheets was a fact about call sites rather than about the tree — a
- * sheet could sit in styles/ and be fetched over the wire as well as bundled,
- * and nothing would say so. src/core/paths.js can only address this directory
- * now, so the two halves cannot disagree.
+ * Not bundled: the panel fetches them on first open, and a QR modal's CSS has no
+ * business in the critical path. The directory IS the list — grepping call sites
+ * for `lazyStyleHref("…")` made the set a fact about call sites rather than the
+ * tree, so a sheet could be fetched over the wire AND bundled with nothing
+ * saying so.
  */
 cpSync(join(ROOT, "src/styles/lazy"), join(OUT, "src/styles/lazy"), { recursive: true });
 
@@ -203,38 +160,25 @@ cpSync(join(ROOT, "src/styles/lazy"), join(OUT, "src/styles/lazy"), { recursive:
  * !! Rewritten in the deploy and NEVER on disk. Three things depend on the
  * source tree continuing to say `app.html`, and two of them fail silently:
  *
- *   1. desktop/src-tauri/tauri.conf.json sets `frontendDist: "../../"` — the
- *      desktop app ships this repository tree itself, served over `tauri://`,
- *      which does no extension stripping. Every `./app` link would 404 there,
- *      and nothing in the web build would show it.
+ *   1. the `tauri://` scheme does no extension stripping, so every `./app` link
+ *      would 404 in the desktop app with the web build perfectly green.
  *   2. `python -m http.server` does not strip extensions either, so rewriting
- *      the source breaks the no-build dev loop the repo is organised around
- *      (docs/ARCHITECTURE.md §1).
- *   3. tests/unit/static-check.mjs §11 pins the sw.js SHELL to files that exist on
- *      disk, and `./app` is not one. That check stays honest because the
- *      source keeps saying `./app.html`; the deploy's SHELL is generated
- *      below, from this list, and says `./app`.
+ *      the source breaks the no-build dev loop (docs/ARCHITECTURE.md §1).
+ *   3. static-check.mjs §11 pins the sw.js SHELL to files that exist on disk,
+ *      and `./app` is not one. The deploy's SHELL is generated below instead.
  *
- * Anchored on a quote so it can only ever match a URL. `app.html` is discussed
- * in prose in README.md and robots.txt, both copied verbatim into the deploy,
- * and neither should be touched. Anchored on the closing `"`, `'` or `#` so a
- * hash link — `./app.html#KEY`, which is how src/landing/landing.js hands over
- * a session — survives with its fragment intact. !!
+ * Anchored on quotes so it can only match a URL, never the prose in README.md or
+ * robots.txt, and on a closing `"`, `'` or `#` so `./app.html#KEY` — how
+ * landing.js hands over a session — keeps its fragment. !!
  *
- * The bare `/` alternative is for src/pages/, whose links are all root-absolute
- * because those pages are published one level up from where they sit. Without
- * it they would ship pointing at `/app.html` while every other page said `/app`
- * — two URLs for one page, which is the canonicalisation problem the pretty URL
- * exists to avoid. tools/check/site-check.mjs asserts the result.
+ * The bare `/` alternative is for src/pages/, whose links are root-absolute:
+ * without it they ship pointing at `/app.html` while every other page says
+ * `/app`, two URLs for one page.
  */
 const PRETTY =
   /(["'])((?:\.{1,2}\/)*|\/|https:\/\/realtimeclipboard\.com\/)app\.html(?=[#"'])/g;
 
-/* Skipped for the desktop shell, and reason 1 in the block above is why: the
-   `tauri://` scheme does no extension stripping, so every rewritten `./app`
-   would 404 inside the app while the web build stayed perfectly green. This is
-   the whole reason the shell used to point `frontendDist` at the source tree
-   instead of at a build. */
+/* Skipped for the desktop shell — reason 1 above. */
 let prettied = [];
 if (!DESKTOP) {
   for (const f of walk(OUT)) {
@@ -245,8 +189,8 @@ if (!DESKTOP) {
     writeFileSync(f, after);
     prettied.push(rel(f));
   }
-  // The landing page alone carries three of these links, so zero matches means
-  // the pattern stopped matching rather than that there was nothing to do.
+  // The landing page alone carries three, so zero matches means the pattern
+  // broke rather than that there was nothing to do.
   if (!prettied.length) die("the /app rewrite matched nothing — the link format changed");
   console.log(`  pretty URLs: ${prettied.length} files now point at /app`);
 }
@@ -254,50 +198,37 @@ if (!DESKTOP) {
 /* --------------------------------------------------- service worker ----- */
 
 /**
- * Stamp VERSION, and rewrite SHELL to what this build actually produced.
+ * Stamp VERSION, and rewrite SHELL to what this build produced.
  *
- * VERSION: a changed sw.js is what tells the browser an update exists at all,
- * and bumping it by hand is a step someone eventually forgets — which pins
- * every returning user to a stale shell. Stamped from the TAG, so the string a
- * user's cache is keyed on is the same one the app shows in "What's new".
+ * VERSION: a changed sw.js is what tells the browser an update exists, and
+ * bumping it by hand is a step someone forgets — pinning every returning user to
+ * a stale shell. SHELL: sw.js ships SOURCE paths, right for development and
+ * wrong for the deploy, and `cache.addAll()` rejects as a unit, so one stale
+ * entry kills the install and offline support with no visible symptom.
  *
- * SHELL: sw.js ships a hand-maintained list of SOURCE paths, which is right for
- * development — the same worker precaches the unbundled tree there — and wrong
- * for the deploy, where those files no longer exist. `cache.addAll()` rejects
- * as a unit, so one stale entry kills the install and offline support stops
- * working with no visible symptom. Generated for the same reason VERSION is.
- */
-/**
- * !! This used to read GITHUB_REF_NAME and nothing else, which was correct
- * while a tag push was the only thing that deployed. Cloudflare Pages builds
- * from a COMMIT — there is no tag in its environment, `GITHUB_*` is unset
- * entirely, and the old expression would have fallen through to the literal
- * string "dev" on every single production deploy. `realtimeclipboard-shell-dev`
- * is a stable cache name, so the browser would have seen a byte-identical
- * sw.js, found no update, and served the first-ever shell forever. That is a
- * silent, unrecoverable-from-the-server failure, which is why it is spelled out
- * here rather than being a one-line `??` chain. !!
+ * !! Cloudflare Pages builds from a COMMIT, with `GITHUB_*` unset entirely. An
+ * earlier version read GITHUB_REF_NAME alone and would have fallen through to
+ * the literal "dev" on every production deploy — a stable cache name, so the
+ * browser would find no update and serve the first-ever shell forever. Spelled
+ * out rather than a one-line `??` chain because that failure is silent and
+ * unrecoverable from the server. !!
  *
- * The version leads so the cache name stays legible next to a release, and the
- * commit follows because two deploys can share a version — a docs fix or a
- * copy change ships without touching package.json, and it still has to
- * invalidate the shell.
+ * The version leads so the cache name is legible next to a release; the commit
+ * follows because two deploys can share a version and still must invalidate.
  */
 const { version } = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
 const commit = (process.env.CF_PAGES_COMMIT_SHA || process.env.GITHUB_SHA || "").slice(0, 12);
 const stamp = commit ? `${version}+${commit}` : "dev";
 
 const shell = [
-  // "./app", not "./app.html": the pretty-URL pass above made /app the address
-  // every link in the deploy uses, and precaching the path nobody navigates to
-  // would leave the app itself uncached offline. The desktop build skips that
-  // pass, so there the address is still the file — precaching "./app" would
-  // make cache.addAll() reject as a unit and silently kill the whole install.
+  // The pass above made /app the address every link uses, so precaching the path
+  // nobody navigates to would leave the app uncached offline. The desktop build
+  // skips that pass, where "./app" would instead reject the whole install.
   "./", "./index.html", DESKTOP ? "./app.html" : "./app", "./manifest.webmanifest",
   "./changelog.json", "./CHANGELOG.md",
   ...walk(join(OUT, "src")).filter(f => /\.(js|css)$/.test(f)).map(f => "./" + rel(f)).sort(),
-  // assets/icons only. assets/social is the share card — crawler-facing, and
-  // precaching it would put it in every installed client's offline storage.
+  // icons only: the share card is crawler-facing and has no business in every
+  // installed client's offline storage.
   ...walk(join(OUT, "assets/icons")).map(f => "./" + rel(f)).sort(),
 ];
 
@@ -316,10 +247,8 @@ writeFileSync(swPath, withVersion);
 /* ------------------------------------------------------------ report ---- */
 
 /**
- * The eager set is main.js plus the chunks it imports STATICALLY. Chunks
- * reachable only through a dynamic import are the lazy ones and are
- * deliberately not counted — counting them would report exactly the payload the
- * split exists to avoid.
+ * main.js plus the chunks it imports STATICALLY. Counting the dynamically
+ * reachable ones would report exactly the payload the split exists to avoid.
  */
 const mainJs = readFileSync(join(OUT, "src/main.js"));
 const eager = [mainJs, ...[...mainJs.toString().matchAll(/from\s*"\.\/([\w.-]+\.js)"/g)]

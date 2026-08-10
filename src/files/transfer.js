@@ -1,39 +1,26 @@
 /**
  * File transfer — WebRTC first, relay chunks when WebRTC cannot connect.
  *
- * The wire arrives by injection, not import — see files/CLAUDE.md for why.
- * main.js makes two calls at boot:
+ * The wire arrives by injection, not import — see files/CLAUDE.md. main.js wires
+ * it at boot:
  *
- *   setSignalSender(frame => boolean)
- *       main.js seals every field except the routing ones (t, to, originId, id,
- *       seq, total, crc), puts the frame on the relay, and returns false only if
- *       it could not be sent. Any other return value is treated as sent.
- *
- *   onSignal(frame)
- *       Every inbound frame whose `.t` is in FRAMES, already decrypted. Frames
- *       addressed to somebody else are ignored here too, so a relay that
- *       broadcasts rather than unicasts is safe.
- *
- * Optional, both with safe defaults:
- *
- *   setApprover(async ({id,name,size,type,from}) => boolean)
- *       With no approver installed a request is DENIED, not silently allowed.
- *
- *   setPeerFactory(config => RTCPeerConnection)
- *       Test seam: a fake that never opens its data channel makes the ICE
- *       timeout fire deterministically, with no browser and no five-second wait.
+ *   setSignalSender(frame => boolean)   seals all but the routing fields and
+ *       returns false only if it could not send. Anything else counts as sent.
+ *   onSignal(frame)   every inbound frame whose `.t` is in FRAMES, decrypted.
+ *       Frames for somebody else are dropped here too, so a broadcasting relay
+ *       is safe.
+ *   setApprover(async meta => boolean)   with none installed a request is DENIED.
+ *   setPeerFactory(config => RTCPeerConnection)   test seam: a fake that never
+ *       opens makes the ICE timeout fire without a browser or a 5s wait.
  *
  * Route ALL of FRAMES. Without file-accept the receiver never learns the chunk
- * plan; without file-done a zero-byte file hangs. The six types absent from
- * transport/protocol.js are declared here because transport/ is not ours to
- * edit — they belong in protocol.js.
+ * plan; without file-done a zero-byte file hangs.
  *
- * WHY THERE IS NO TURN SERVER: it would fix corporate connectivity by relaying
- * the bytes, discarding the property that motivated P2P and costing bandwidth.
- * Falling back to the relay is viable only because the cap is 5 MB
- * (docs/P2P-FILES.md §4, PRD OI-14), and on the target network the fallback is
- * the expected path rather than an edge case. Which path was used is recorded on
- * the file and shown in the UI — a relay transfer is a different privacy story.
+ * WHY NO TURN SERVER: it would fix corporate connectivity by relaying the bytes,
+ * discarding the property that motivated P2P and costing bandwidth. Falling back
+ * to our own relay is viable only because the cap is 5 MB (docs/P2P-FILES.md §4,
+ * PRD OI-14). Which path was used is recorded and shown — a relay transfer is a
+ * different privacy story.
  */
 
 import { FILES, NET } from "../core/config.js";
@@ -59,9 +46,8 @@ export const FT = {
   FILE_DONE:   "file-done",      // {id, to, digest}                 relay fallback
   FILE_CANCEL: "file-cancel",    // {id, to, reason}         either direction
   FILE_ERROR:  "file-error",     // {id, to, reason}
-  // Retraction. Broadcast like file-meta, because it undoes one: the owner is
-  // telling the room the file is gone so a stale tile does not sit on every
-  // peer offering something that can no longer be fetched.
+  // Broadcast like file-meta because it undoes one: without it a stale tile sits
+  // on every peer offering something that can no longer be fetched.
   FILE_GONE:   "file-gone",      // {id}                     broadcast, no `to`
 };
 
@@ -69,10 +55,9 @@ export const FT = {
 export const FRAMES = Object.freeze(Object.values(FT));
 
 /**
- * ICE servers. STUN only — a public one, no account, no cost, and it sees only
- * that some IP asked for its own reflexive address. No TURN, deliberately.
- * (This is an endpoint rather than a limit, which is why it is not in
- * config.js; it arguably should be, alongside RELAY_URL.)
+ * STUN only, deliberately — it sees only that some IP asked for its own
+ * reflexive address. An endpoint rather than a limit, which is why it is not in
+ * config.js; it arguably should be, alongside RELAY_URL.
  */
 const ICE_SERVERS = [{ urls: "stun:stun.l.google.com:19302" }];
 
@@ -80,27 +65,23 @@ const ICE_SERVERS = [{ urls: "stun:stun.l.google.com:19302" }];
 const CHUNK_HEADER_BYTES = 8;
 
 /**
- * Backpressure. We allow this many chunks to sit in the SCTP send queue before
- * pausing. A queue depth, not a product limit — the mark we resume at is set
- * per wait, in untilBuffered().
+ * Chunks allowed in the SCTP send queue before pausing. A queue depth, not a
+ * product limit — the resume mark is set per wait, in untilBuffered().
  */
 const SEND_QUEUE_CHUNKS = 8;
 const SEND_HIGH_WATER = FILES.CHUNK_BYTES * SEND_QUEUE_CHUNKS;
 
 /**
- * Relay-fallback pacing. PRD §6 caps a connection at 10 messages/sec; we use
- * eight so heartbeats and clips still get through, and so one person's 5 MB
- * file cannot monopolise a shared free-tier relay.
+ * PRD §6 caps a connection at 10 messages/sec; eight leaves room for heartbeats
+ * and clips, and stops one 5 MB file monopolising a shared free-tier relay.
  */
 const RELAY_FRAMES_PER_SEC = 8;
 const RELAY_FRAME_GAP_MS = Math.ceil(1000 / RELAY_FRAMES_PER_SEC);
 
 /**
  * How long a transfer that HAS started may go quiet, in ICE timeouts. Bytes
- * arriving and then stopping is a different failure from never starting, and it
- * is the one that scales with the network rather than with a human — so this
- * one stays tied to the ICE timeout. What replaced its sibling, RESPONSE_GRACE,
- * is `requestTimeout` below.
+ * stopping is a different failure from never starting, and it scales with the
+ * network rather than with a human — so this one stays tied to the ICE timeout.
  */
 const IDLE_GRACE = 4;
 
@@ -120,10 +101,9 @@ export function setApprover(fn) { approver = typeof fn === "function" ? fn : nul
 export function setPeerFactory(fn) { peerFactory = typeof fn === "function" ? fn : null; }
 
 /**
- * The only place an RTCPeerConnection is constructed. Throws rather than
- * returning null when WebRTC is missing, so every caller falls into the same
- * try/catch that leads to the relay — no separate "is WebRTC supported" branch
- * to get out of sync.
+ * Throws rather than returning null when WebRTC is missing, so every caller
+ * falls into the same try/catch that leads to the relay — no separate
+ * "is WebRTC supported" branch to get out of sync.
  */
 function newPeerConnection(config) {
   if (peerFactory) return peerFactory(config);
@@ -136,12 +116,10 @@ export const iceTimeoutMs = NET.ICE_TIMEOUT_MS;
 export const currentIceTimeoutMs = () => iceTimeout;
 
 /**
- * One number for both ends: a prompt that outlives the request lets someone
- * approve a transfer whose other end has gone home, and a request that outlives
- * the prompt leaves a spinner running against a decision already made.
- *
- * Its own value rather than a multiple of the ICE timeout, which tied how long a
- * human gets to read a dialog to a network constant.
+ * One number for both ends: a prompt that outlives the request approves a
+ * transfer whose other end went home, and a request that outlives the prompt
+ * spins against a decision already made. Its own value rather than a multiple of
+ * the ICE timeout, which tied a human reading a dialog to a network constant.
  */
 let requestTimeout = FILES.REQUEST_TIMEOUT_MS;
 
@@ -161,8 +139,8 @@ export function setRequestTimeoutMs(ms) {
  * Live transfers
  * ------------------------------------------------------------------ */
 
-/** id -> transfer. Every entry owns timers and possibly an RTCPeerConnection,
- *  so every exit route goes through finish(), which deletes from here. */
+/** id -> transfer. Every entry owns timers and maybe an RTCPeerConnection, so
+ *  every exit route goes through finish(), which deletes from here. */
 const live = new Map();
 
 export const active = () => [...live.values()].map(t => ({
@@ -188,9 +166,8 @@ function makeTransfer(id, role, peer) {
  * ------------------------------------------------------------------ */
 
 /**
- * Ask a peer for a file we only have a thumbnail of. Clicking the tile is the
- * consent, so this side never prompts; the holder prompts before its bytes
- * leave the machine.
+ * Clicking the tile is the consent, so this side never prompts; the holder
+ * prompts before its bytes leave the machine.
  */
 export async function request(id) {
   const file = registry.get(id);
@@ -210,14 +187,13 @@ export async function request(id) {
     return fail(id, "could not reach the relay");
   }
 
-  // Nobody waits forever. The holder is either prompting a human, racing ICE,
-  // or gone, and this is the deadline all three share — the same one counting
-  // down on the holder's prompt, so the two ends give up together.
+  // The same deadline counts down on the holder's prompt, so both ends give up
+  // together.
   t.deadline = setTimeout(() => {
-    // Tell the holder, exactly as cancel() does. The two clocks start a network
-    // hop apart and its prompt is swept every 500 ms, so an approval can be in
-    // flight when this fires — and the holder would then stream the whole file
-    // to a transfer that no longer exists here, and report "Sent".
+    // Tell the holder, as cancel() does. The clocks start a network hop apart
+    // and its prompt is swept every 500 ms, so an approval can be in flight when
+    // this fires — the holder would stream the whole file to a transfer that no
+    // longer exists here, and report "Sent".
     signal({ t: FT.FILE_CANCEL, id, to: t.peer, reason: "the request timed out" });
     finish(t);
     fail(id, "no answer — the other device did not respond in time");
@@ -256,16 +232,13 @@ export function onSignal(frame) {
   const handler = INBOUND[frame.t];
   if (!handler) return;
 
-  // Handlers are async; onSignal is not. A rejection here must surface as a
-  // failed transfer, never as an unhandled rejection in the console.
-  //
-  // But NOT every rejection is a failed transfer. Handlers are not serialised
-  // with each other, so a WebRTC step suspended across an await can be resumed
-  // after the very thing it was racing has already settled: the relay fallback
-  // took over, or the user cancelled. The negotiation it belonged to is gone,
-  // its rejection is the expected consequence, and failing on it tore down a
-  // transfer that was delivering bytes at the time — the sender reporting
-  // "Sent" while the receiver showed "PeerConnection is closed".
+  // Handlers are async and onSignal is not, so a rejection must surface as a
+  // failed transfer rather than an unhandled one. But not every rejection is a
+  // failure: handlers are not serialised, so a WebRTC step suspended across an
+  // await can resume after the thing it raced has settled — the relay took over,
+  // or the user cancelled. Failing on those tore down transfers that were
+  // delivering bytes, the sender reporting "Sent" while the receiver showed
+  // "PeerConnection is closed".
   Promise.resolve()
     .then(() => handler(frame))
     .catch(err => {
@@ -286,9 +259,8 @@ const RTC_FRAMES = new Set([FT.RTC_OFFER, FT.RTC_ANSWER, FT.RTC_ICE]);
 
 const INBOUND = {
   [FT.FILE_META]:   onFileMeta,
-  // registry owns the rule that a peer may retract only what it announced, and
-  // never a local file — it checks the relay-stamped `from`, not the
-  // client-supplied originId, so a spoofed id cannot delete someone else's tile.
+  // registry checks the relay-stamped `from`, not the client-supplied originId,
+  // so a spoofed id cannot delete someone else's tile.
   [FT.FILE_GONE]:   f => registry.applyGone(f),
   [FT.FILE_REQ]:    onFileReq,
   [FT.FILE_ACCEPT]: onFileAccept,
@@ -307,10 +279,9 @@ const INBOUND = {
  * ------------------------------------------------------------------ */
 
 /**
- * A peer announced a file: a tile with a thumbnail, no bytes. Everything here
- * is chosen by whoever holds the session key, so nothing is taken on trust —
- * the name is escaped by the UI, the size is what a later transfer is checked
- * against, and the thumbnail must be an image data URL and nothing else.
+ * A tile with a thumbnail, no bytes. Every field is chosen by whoever holds the
+ * session key, so nothing is trusted: the size is what a later transfer is
+ * checked against, and a thumbnail must be an image data URL or nothing.
  */
 function onFileMeta(frame) {
   const size = Number(frame.size);
@@ -338,10 +309,9 @@ async function onFileReq(frame) {
     return signal({ t: FT.FILE_ERROR, id, to: peer, reason: "that file is no longer available" });
   }
   if (live.has(id)) {
-    // A repeat from the SAME peer is the SSE transport's at-least-once retry —
-    // a POST can fail after the relay accepted it — not a second asker. Telling
-    // that peer the file is already being sent fails the very transfer the
-    // duplicate belongs to, and it then ignores the bytes we go on to send.
+    // A repeat from the SAME peer is the SSE transport's at-least-once retry,
+    // not a second asker. Answering "already being sent" fails the very transfer
+    // the duplicate belongs to, and it then ignores the bytes we send.
     if (live.get(id).peer === peer) return;
     return signal({ t: FT.FILE_ERROR, id, to: peer, reason: "that file is already being sent" });
   }
@@ -363,9 +333,9 @@ async function onFileReq(frame) {
   t.digest = await chunker.digest(file.blob);
   if (t.done) return;
 
-  // The relay plan travels now so the fallback needs no second negotiation.
-  // The P2P plan rides the data channel itself, because its chunk size is only
-  // known once the SCTP association reports its maximum message size.
+  // The relay plan travels now so the fallback needs no second negotiation. The
+  // P2P plan rides the data channel, because its chunk size is known only once
+  // SCTP reports its maximum message size.
   const relayPlan = chunker.plan(file.blob, chunker.RELAY_CHUNK_BYTES);
   signal({
     t: FT.FILE_ACCEPT, id, to: peer,
@@ -377,21 +347,15 @@ async function onFileReq(frame) {
 }
 
 /**
- * FR-7.6, the part that matters. Open a peer connection and start a timer
- * against it. Whichever fires first wins: dc.onopen -> direct, or the timer ->
- * tear the whole thing down and push the bytes through the relay.
- *
- * If the browser has no WebRTC at all, or constructing the connection throws,
- * the fallback runs immediately rather than waiting out a pointless five
- * seconds.
+ * FR-7.6. A peer connection and a timer against it; whichever fires first wins.
+ * If constructing the connection throws, the fallback runs immediately rather
+ * than waiting out a race that cannot be won.
  */
 function startIceRace(t) {
   let pc;
   try {
     pc = newPeerConnection({ iceServers: ICE_SERVERS });
   } catch (err) {
-    // No WebRTC in this environment at all — do not burn five seconds on a
-    // race that cannot be won.
     return toRelay(t, describe(err));
   }
   t.pc = pc;
@@ -425,8 +389,7 @@ function startIceRace(t) {
   };
   dc.onerror = () => { if (!t.path) toRelay(t, "the data channel errored"); };
   dc.onclose = () => {
-    // Closing after we finished is normal; closing mid-transfer is not. Once
-    // everything is queued the receiver may simply have finished first.
+    // Once everything is queued the receiver may simply have finished first.
     if (t.path === PATH.P2P && !t.done && !t.queued) abort(t, "the direct connection dropped");
   };
 
@@ -489,19 +452,17 @@ async function streamOverDataChannel(t) {
     progress(t, ((c.seq + 1) / p.total) * 100);
   }
 
-  // Every chunk is queued. Past this point a close is the peer hanging up
-  // rather than a failure: the receiver completes on the last chunk, not on the
-  // fin marker, so it may already hold the whole file and be tearing down
-  // first. A genuine failure over there arrives as file-error on the relay.
+  // Past here a close is the peer hanging up, not a failure: the receiver
+  // completes on the last chunk rather than the fin marker, so it may already
+  // hold the file. A genuine failure arrives as file-error on the relay.
   t.queued = true;
 
   if (dc.readyState === "open") {
     dc.send(JSON.stringify({ fin: 1, id: t.id, digest: t.digest }));
 
-    // dc.send() only queues, and pc.close() destroys the SCTP association along
-    // with anything still in it. For a file under the high-water mark drain()
-    // never paused once, so that is frequently the whole transfer — and we
-    // would have reported "Sent" on the way out.
+    // dc.send() only queues, and pc.close() destroys the association with
+    // whatever is still in it. Under the high-water mark drain() never paused,
+    // so that is frequently the whole file — reported as "Sent" on the way out.
     if (!await flush(t) && dc.readyState === "open") {
       return abort(t, "the direct connection stalled before the file finished");
     }
@@ -514,14 +475,13 @@ async function streamOverDataChannel(t) {
 
 /**
  * Wait for the send queue to fall to `low`, having decided to wait at `gate`.
- * Resolves false if the channel died or the queue never got there — the caller
- * decides whether that is fatal.
+ * Resolves false if the channel died or never got there; the caller decides
+ * whether that is fatal.
  *
- * The threshold is set per wait rather than once at setup, because
- * bufferedamountlow fires on the downward crossing and the two waits want
- * different marks. Mid-stream we resume at one chunk so the pipe never goes
- * idle; the final flush can only accept zero, because whatever is left when
- * pc.close() runs is thrown away.
+ * The threshold is per wait because bufferedamountlow fires on the downward
+ * crossing and the two waits want different marks: mid-stream resumes at one
+ * chunk so the pipe never idles, while the final flush can accept only zero —
+ * whatever is left when pc.close() runs is thrown away.
  */
 function untilBuffered(dc, { gate, low }) {
   if (!dc || dc.readyState !== "open") return Promise.resolve(false);
@@ -545,9 +505,8 @@ function untilBuffered(dc, { gate, low }) {
 }
 
 /**
- * Pause while the send queue is deep. Without this a 5 MB file is handed to
- * SCTP as fast as the loop can read it and the buffer either balloons or the
- * channel is torn down by the browser.
+ * Without this a 5 MB file is handed to SCTP as fast as the loop reads it, and
+ * the buffer either balloons or the browser tears the channel down.
  */
 const drain = t => untilBuffered(t.dc, { gate: SEND_HIGH_WATER, low: FILES.CHUNK_BYTES });
 
@@ -555,9 +514,9 @@ const drain = t => untilBuffered(t.dc, { gate: SEND_HIGH_WATER, low: FILES.CHUNK
 const flush = t => untilBuffered(t.dc, { gate: 0, low: 0 });
 
 /**
- * Close the channel and give the stream reset a chance to land before the peer
- * connection goes. A close we asked for is not a drop, so the handlers that
- * would report it as one come off first.
+ * Give the stream reset a chance to land before the peer connection goes. A
+ * close we asked for is not a drop, so the handlers that would report it as one
+ * come off first.
  */
 function closeGracefully(t) {
   const dc = t.dc;
@@ -636,13 +595,11 @@ function onFileAccept(frame) {
 }
 
 /**
- * Never allocate on a peer's say-so.
- *
- * The Reassembler preallocates `size` bytes and a `total`-long index the moment
- * a header arrives, and a header is just a frame from whoever holds the session
- * key. Unchecked, "size: 8e9" is a one-frame denial of service, and a size that
- * disagrees with what was announced means we are being handed something other
- * than the file whose thumbnail the user clicked.
+ * Never allocate on a peer's say-so. The Reassembler preallocates `size` bytes
+ * the moment a header arrives, and a header is just a frame from whoever holds
+ * the session key: unchecked, "size: 8e9" is a one-frame denial of service, and
+ * a size disagreeing with what was announced means this is not the file whose
+ * thumbnail was clicked.
  */
 function checkedMeta(t, m) {
   const size = Number(m.size);
@@ -674,9 +631,8 @@ async function onRtcOffer(frame) {
   try {
     pc = newPeerConnection({ iceServers: ICE_SERVERS });
   } catch (err) {
-    // No WebRTC on this side — stay silent and wait. The holder's own ICE race
-    // will time out and its relay chunks will arrive on the channel we already
-    // have open.
+    // Stay silent: the holder's own ICE race times out and its relay chunks
+    // arrive on the channel already open.
     console.info(`[transfer] ${t.id}: no WebRTC here (${describe(err)}), waiting for relay chunks`);
     return;
   }
@@ -697,9 +653,9 @@ async function onRtcOffer(frame) {
       registry.setState(t.id, registry.STATE.RECEIVING);
     };
     dc.onopen = opened;
-    // A channel the remote peer announced arrives already open, and engines
-    // differ on whether an open event follows it. Without this the path is
-    // never marked and the timer below tears down a live transfer.
+    // An announced channel arrives already open and engines differ on whether an
+    // open event follows. Without this the path is never marked and the timer
+    // below tears down a live transfer.
     if (dc.readyState === "open") opened();
     dc.onmessage = msg => {
       try { onChannelMessage(t, msg.data); }
@@ -709,11 +665,10 @@ async function onRtcOffer(frame) {
     dc.onerror = () => { if (t.path === PATH.P2P && !t.done) abort(t, "the direct connection errored"); };
   };
 
-  // Every step below is a suspension, and the relay fallback can land during any
-  // of them: the holder's chunks arrive, onFileChunk closes this pc and starts a
-  // working relay receive. `t.pc !== pc` is how the continuation learns that the
-  // connection it is negotiating has already been abandoned — without it the
-  // next call rejects on a closed pc and takes the live transfer down with it.
+  // The relay fallback can land during any of the awaits below: onFileChunk
+  // closes this pc and starts a working relay receive. `t.pc !== pc` is how the
+  // continuation learns the connection was abandoned — without it the next call
+  // rejects on a closed pc and takes the live transfer down with it.
   const stale = () => t.done || t.pc !== pc;
 
   await pc.setRemoteDescription(frame.sdp);
@@ -728,9 +683,9 @@ async function onRtcOffer(frame) {
   if (stale()) return;
   signal({ t: FT.RTC_ANSWER, id: t.id, to: t.peer, sdp: pc.localDescription });
 
-  // Our own copy of the race: if nothing opens we drop the peer connection so
-  // it cannot leak, but we do NOT fail — the holder is about to start sending
-  // relay chunks and those arrive on a channel that is already open.
+  // Our own copy of the race. If nothing opens we drop the peer connection so it
+  // cannot leak, but do NOT fail: the holder's relay chunks are about to arrive
+  // on a channel that is already open.
   clearTimeout(t.iceTimer);
   t.iceTimer = setTimeout(() => {
     t.iceTimer = null;
@@ -743,16 +698,15 @@ async function onRtcOffer(frame) {
 async function onRtcAnswer(frame) {
   const t = live.get(frame.id);
   if (!t || t.role !== "send" || !t.pc) return;
-  // A second answer for a description already set is the SSE transport's
-  // at-least-once retry, not a new one. Applying it rejects — the connection is
-  // "stable" by then — and that rejection used to kill the transfer mid-stream.
+  // A second answer is the SSE transport's at-least-once retry. Applying it
+  // rejects — the connection is "stable" by then — and that rejection used to
+  // kill the transfer mid-stream.
   if (t.remoteReady) return;
 
   const pc = t.pc;
   await pc.setRemoteDescription(frame.sdp);
-  // The ICE race can expire during that await: toRelay() closes this pc and
-  // starts streaming. Marking remoteReady here would also undo closeRtc()'s
-  // reset and queue later candidates onto a dead connection.
+  // The ICE race can expire during that await. Marking remoteReady afterwards
+  // would undo closeRtc()'s reset and queue candidates onto a dead connection.
   if (t.done || t.pc !== pc) return;
   t.remoteReady = true;
   await flushIce(t);
@@ -814,8 +768,8 @@ function onFileChunk(frame) {
 function onFileDone(frame) {
   const t = live.get(frame.id);
   if (!t || t.role !== "recv" || t.done) return;
-  // A zero-byte file produces no chunks at all, so nothing has built the
-  // reassembler yet. Build it now: with total === 0 it is already complete.
+  // A zero-byte file produces no chunks, so nothing built the reassembler yet.
+  // With total === 0 it is complete on construction.
   if (!t.rx && t.meta) t.rx = new chunker.Reassembler(t.meta);
   if (t.rx?.complete) complete(t);
   else if (t.rx) abort(t, `transfer ended with ${t.rx.missing().length} chunks missing`);
@@ -923,10 +877,8 @@ function finish(t) {
  * ------------------------------------------------------------------ */
 
 /**
- * The outbound half of file-meta, which was once missing entirely: the module
- * consumed announcements but never made one, so a file added here was visible
- * only here. Only metadata and the thumbnail travel — the bytes stay put until
- * someone asks (docs/P2P-FILES.md §1).
+ * Only metadata and the thumbnail travel — the bytes stay put until someone asks
+ * (docs/P2P-FILES.md §1).
  */
 export function announce(file) {
   if (!file || file.origin !== "local") return false;
@@ -936,17 +888,12 @@ export function announce(file) {
     name: file.name,
     size: file.size,
     type: file.type,
-    // Respect the thumbnails setting: a 160px preview of a screenshot can be
-    // perfectly legible, and it travels without being requested (PRD OI-15).
+    // A 160px preview of a screenshot can be perfectly legible, and it travels
+    // without being requested (PRD OI-15).
     thumb: state.get().settings.thumbs ? file.thumb : null,
   });
 }
 
-/**
- * Re-announce everything we hold. A device that joins later has missed every
- * earlier announcement — the relay replays the last clip, not the file list —
- * so without this a new peer sees an empty panel until someone adds a file.
- */
 export function announceAll() {
   let sent = 0;
   for (const file of registry.all()) {
@@ -955,12 +902,10 @@ export function announceAll() {
   return sent;
 }
 
-/**
- * Subscribed here rather than wired in main.js: the outbound announcement was
- * originally the composition root's job and was simply never written, while the
- * inbound half existed and made everything look complete. A module that knows
- * how to announce should not depend on a distant file remembering to ask it.
- */
+// Subscribed here, not wired in main.js: a module that knows how to announce
+// should not depend on a distant file remembering to ask it. The outbound half
+// was the composition root's job and simply never got written, while the inbound
+// half existed and made everything look complete.
 on(EV.FILE_ADDED, ({ file }) => announce(file));
 
 // A device that joins later missed every earlier announcement: the relay
@@ -971,9 +916,8 @@ on(EV.PEERS_CHANGED, ({ count }) => {
   knownPeers = count;
 });
 
-// Rotating the key is how someone ejects a device from the session. An
-// allowance that survived it would let the ejected device keep pulling files,
-// which is the opposite of what the button that rotates the key promises.
+// Rotating the key is how a device is ejected. An allowance surviving it would
+// let the ejected device keep pulling files.
 on(EV.KEY_CHANGED, () => syncAllowances());
 
 function signal(frame) {
@@ -990,15 +934,11 @@ function signal(frame) {
 }
 
 /**
- * Session allowances — "stop asking me about this device". A standing grant to
- * send files off the machine without asking, so it is bounded three ways:
- *
- *   - per device, not global. `autoaccept` is the global version, in Settings.
- *   - per room, dropped when the key changes, so rotating the key — the way
- *     someone ejects a device — actually ejects it.
- *   - per tab. sessionStorage, so closing it forgets.
- *
- * And never silent: an allowed request still says out loud that it was sent.
+ * "Stop asking me about this device" — a standing grant to send files off the
+ * machine, so it is bounded three ways: per device (`autoaccept` in Settings is
+ * the global version), per room (dropped when the key changes, so rotating it
+ * ejects), and per tab (sessionStorage). And never silent — an allowed request
+ * still says out loud that it was sent.
  */
 
 let allowances = new Set();
@@ -1042,17 +982,15 @@ export function isPeerAllowed(peer) {
 const _short = v => (typeof v === "string" && v.trim() ? v.trim() : null);
 
 /**
- * Approval. autoaccept and a session allowance short-circuit it; otherwise the
- * UI decides. With no approver installed we deny, because failing open here
- * means anyone holding the session key silently pulls any file
- * (docs/P2P-FILES.md §6).
+ * With no approver installed we deny: failing open here means anyone holding the
+ * session key silently pulls any file (docs/P2P-FILES.md §6).
  */
 async function allowed(file, peer) {
   if (state.get().settings.autoaccept) return true;
 
   if (isPeerAllowed(peer)) {
-    // Said out loud on purpose. The user allowed this device, not this file,
-    // and a transfer nobody is told about is indistinguishable from a leak.
+    // The user allowed this device, not this file, and a transfer nobody is told
+    // about is indistinguishable from a leak.
     emit(EV.TOAST, `Sent ${file.name} — ${peer} is allowed for this session`);
     return true;
   }

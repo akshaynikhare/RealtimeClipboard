@@ -1,34 +1,27 @@
 /**
- * Live peer cursors — a labelled pointer for every OTHER device in the session,
- * so a room with three laptops in it feels inhabited.
+ * Live peer cursors — a labelled pointer for every OTHER device in the session.
  *
- * PRIVACY. This broadcasts a continuous signal about what a person is physically
- * doing, which is a different class of data from "a clip arrived". Three
- * properties make it defensible and all three are load-bearing:
+ * PRIVACY. This is a continuous signal about what a person is physically doing,
+ * a different class of data from "a clip arrived". Three properties make it
+ * defensible and all three are load-bearing:
  *
- *   1. ENCRYPTED. Only `t` and `originId` are cleartext, both needed to deliver
- *      the frame; x, y, name and state are sealed by main.js encryptFrame().
- *      The relay learns that some socket is moving a mouse, not where.
+ *   1. ENCRYPTED. Only `t` and `originId` are cleartext; x, y, name and state
+ *      are sealed by main.js encryptFrame(). The relay learns that some socket
+ *      is moving a mouse, not where.
  *   2. OFF-SWITCHABLE. `state.settings.cursors` gates both directions, and
- *      switching off tells peers we are gone rather than freezing a pointer on
- *      their screens.
- *   3. IT STOPS WHEN YOU ARE NOT THERE. Tab hidden, window blurred or pointer
+ *      switching off tells peers we are gone rather than freezing a pointer.
+ *   3. IT STOPS WHEN YOU ARE NOT THERE. Hidden tab, blurred window or pointer
  *      outside the viewport ends the stream. Sharing a pointer while you read
  *      email in another tab is surveillance, not presence.
  *
- * We never render our own pointer: the relay excludes the sender, and onSignal()
- * drops anything carrying our originId anyway.
+ * The wire arrives by injection, the transfer.js idiom. `.from` is stamped by
+ * the relay and is the one field a peer cannot lie about, so it beats
+ * `.originId`.
  *
- * The wire arrives by injection — setSignalSender/onSignal/init, the transfer.js
- * idiom. `.from` is stamped by the relay and is the one field a peer cannot lie
- * about, so it wins over `.originId` when present.
- *
- * RATE. A pointermove handler fires 60-120 times a second and clipboard sync is
- * the product, so presence must never compete with it. The relay gives "cursor"
- * its own 20/s class, separate from the 10/s bucket clip and ping share; we
- * still throttle to 10/s, skip movement under MIN_MOVE, and coalesce with
- * requestAnimationFrame. Smoothing is the RECEIVER's job, in CSS — a 110 ms
- * transform transition on the compositor, dropped under prefers-reduced-motion.
+ * RATE. pointermove fires 60-120 times a second and clipboard sync is the
+ * product, so presence must never compete with it: 10/s, movement under
+ * MIN_MOVE skipped, coalesced through rAF. Smoothing is the RECEIVER's job in
+ * CSS, on the compositor, dropped under prefers-reduced-motion.
  */
 
 import { on, EV } from "../../core/bus.js";
@@ -43,11 +36,8 @@ export const FT = { CURSOR: "cursor" };
 export const FRAMES = Object.freeze(Object.values(FT));
 
 /**
- * Pointer states carried in a frame.
- *
- * Deliberately two, not three. An "idle" state was considered and dropped:
- * silence already means idle, the fade renders it, and a frame whose only job
- * is to say "nothing happened" is a frame spent for no pixels.
+ * Two, not three. An "idle" state was dropped: silence already means idle, the
+ * fade renders it, and a frame saying "nothing happened" buys no pixels.
  */
 export const CURSOR_STATE = {
   MOVE: "move",   // {x, y, name} — here, and this is where
@@ -55,27 +45,22 @@ export const CURSOR_STATE = {
 };
 
 /* ------------------------------------------------------------------ *
- * Tunables
- *
- * These live here rather than in core/config.js because every one of them is
- * a property of this feature's feel, not a product limit. If a second module
- * ever needs one, that is the signal to promote it.
+ * Tunables — here rather than core/config.js because each is a property of this
+ * feature's feel, not a product limit. A second consumer is the signal to promote.
  * ------------------------------------------------------------------ */
 
 /** 10 sends/sec — half the relay's 20/s cursor budget. See the header. */
 const SEND_INTERVAL_MS = 100;
 
 /**
- * Smallest movement worth a frame, in normalised units: 0.002 is ~4 px across
- * a 1920 px window, ~2 px on a phone. Below it the send is skipped entirely,
- * so hand tremor and a mouse resting against a wheel cost nothing.
+ * ~4 px across a 1920 px window. Below it nothing is sent, so hand tremor and a
+ * mouse resting against a wheel cost nothing.
  */
 const MIN_MOVE = 0.002;
 
 /**
- * Three decimals is ~2 px of precision on a 1920 px window — past the point
- * anyone can see, and rounding is free privacy: we transmit less about where
- * exactly someone is pointing than we could.
+ * ~2 px of precision on a 1920 px window — past what anyone can see, and
+ * rounding is free privacy: less is transmitted about where someone points.
  */
 const COORD_DP = 3;
 
@@ -116,10 +101,7 @@ function signal(frame) {
   }
 }
 
-/**
- * Seam for tests: shorten the silence windows so "a peer went quiet" is
- * exercisable without a twelve-second wait. Pass nothing to restore.
- */
+/** Test seam: "a peer went quiet" without a twelve-second wait. */
 export function setSilenceMs({ fade, drop, sweep } = {}) {
   fadeAfterMs = Number.isFinite(fade) && fade > 0 ? fade : 10_000;
   dropAfterMs = Number.isFinite(drop) && drop > 0 ? drop : 12_000;
@@ -132,9 +114,8 @@ export function setSilenceMs({ fade, drop, sweep } = {}) {
  * ------------------------------------------------------------------ */
 
 /**
- * The setting. Undefined is ON — the feature ships enabled and sessionPanel
- * writes the flag only once someone touches the toggle, so treating a missing
- * value as "off" would silently disable it for every existing install.
+ * Undefined is ON. sessionPanel writes the flag only once someone touches the
+ * toggle, so reading a missing value as "off" disables it for every install.
  */
 const allowed = () => state.get().settings.cursors !== false;
 
@@ -172,9 +153,8 @@ const round = n => Number(n.toFixed(COORD_DP));
 const isCoord = n => typeof n === "number" && Number.isFinite(n);
 
 function onPointerMove(ev) {
-  // A finger is not a hovering pointer: a touch drag would render as a cursor
-  // that teleports and then vanishes, which reads as a glitch rather than a
-  // person. Mouse, trackpad and pen only.
+  // A touch drag renders as a cursor that teleports and vanishes, which reads as
+  // a glitch rather than a person. Mouse, trackpad and pen only.
   if (ev.pointerType === "touch") return;
 
   pointerInside = true;
@@ -187,11 +167,9 @@ function onPointerMove(ev) {
 }
 
 /**
- * The throttle. Never more than one pending flush: either a rAF (we are due
- * now) or a timer for the remainder of the interval (we are not). The timer
- * matters — without it, a pointer that stops moving the instant after a send
- * would leave its final position undelivered and the cursor stranded a few
- * pixels from where it actually is.
+ * Never more than one pending flush: a rAF if due now, a timer for the rest of
+ * the interval otherwise. Without the timer, a pointer stopping just after a
+ * send leaves its final position undelivered and the cursor stranded.
  */
 function schedule() {
   if (rafPending || flushTimer) return;
@@ -213,8 +191,7 @@ function flush() {
 
   const x = round(p.x);
   const y = round(p.y);
-  // Only on actual movement. This is the difference between a still mouse
-  // costing 10 frames a second and costing nothing.
+  // The difference between a still mouse costing 10 frames a second and nothing.
   if (lastSent && Math.abs(x - lastSent.x) < MIN_MOVE && Math.abs(y - lastSent.y) < MIN_MOVE) return;
 
   lastSent = { x, y };
@@ -225,11 +202,9 @@ function flush() {
 }
 
 /**
- * Stop broadcasting and say so.
- *
- * The explicit "gone" frame is what keeps a blurred window from leaving a
- * frozen pointer sitting on everyone else's screen for ten seconds. It is at
- * most one frame per blur/leave, so it deliberately ignores the throttle.
+ * The explicit "gone" frame keeps a blurred window from leaving a frozen pointer
+ * on everyone else's screen for ten seconds. One frame per blur, so it ignores
+ * the throttle.
  */
 function stopBroadcast() {
   clearTimeout(flushTimer);
@@ -242,13 +217,10 @@ function stopBroadcast() {
 }
 
 /**
- * The name rides in every frame rather than being looked up in the roster.
- *
- * It costs ~20 bytes inside an already-encrypted envelope and it makes each
- * frame self-describing: nothing replays cursor frames, so a device that joins
- * mid-stream would otherwise draw an unlabelled pointer until the next `peers`
- * frame happened to arrive. Renaming a device also takes effect on the next
- * movement instead of the next roster change.
+ * The name rides in every frame rather than being looked up in the roster: ~20
+ * bytes inside an already-encrypted envelope buys a self-describing frame.
+ * Nothing replays cursor frames, so a device joining mid-stream would otherwise
+ * draw an unlabelled pointer until the next `peers` frame happened to arrive.
  */
 function label() {
   try { return device.name(); }
@@ -265,9 +237,8 @@ export function onSignal(frame) {
   if (!allowed()) return;                       // switched off: render nothing
 
   const me = state.get().originId;
-  // `from` is stamped by the relay and cannot be forged; `originId` is what the
-  // sender claims. Either one matching us means this is our own pointer coming
-  // back, and our own pointer is the one thing we must never draw.
+  // Either field matching us is our own pointer coming back, and our own pointer
+  // is the one thing we must never draw.
   if (frame.originId === me || frame.from === me) return;
 
   const id = frame.from || frame.originId;
@@ -275,11 +246,9 @@ export function onSignal(frame) {
 
   if (frame.state === CURSOR_STATE.GONE) { removePeer(id); return; }
 
-  // Strict, not coerced. `Number(null)` is 0 and `Number("")` is 0, so a
-  // half-built frame would silently render a pointer pinned to the top-left
-  // corner — which looks like a bug in this module rather than a bad frame.
-  // These arrive as JSON from whoever holds the session key: a coordinate is
-  // a number or the frame is not a coordinate.
+  // Strict, not coerced: `Number(null)` and `Number("")` are both 0, so a
+  // half-built frame would pin a pointer to the top-left corner and read as a
+  // bug in this module rather than a bad frame.
   if (!isCoord(frame.x) || !isCoord(frame.y)) return;
 
   upsert(id, clamp01(frame.x), clamp01(frame.y), frame.name);
@@ -293,14 +262,11 @@ export function onSignal(frame) {
 const peers = new Map();
 
 /**
- * cursors.css drops the transform transition under prefers-reduced-motion and
- * remains the primary mechanism. This is the JavaScript half, doing two things
- * the stylesheet cannot: skipping the one-frame `.live` deferral, which only
- * exists to stop a new cursor sliding in from the corner and has nothing to stop
- * when there is no transition; and setting transition-property on the element,
- * because the sheet is injected at init() and may not have applied yet — or at
- * all. Only the PROPERTY, so the opacity fade cursors.css deliberately keeps
- * survives. The query is live, so toggling the OS setting mid-session applies.
+ * cursors.css is the primary mechanism. This is the half it cannot do: skipping
+ * the one-frame `.live` deferral (nothing to defer past without a transition),
+ * and setting transition-property on the element, because the sheet is injected
+ * at init() and may not have applied yet — or at all. Only the PROPERTY, so the
+ * opacity fade survives. The query is live, so the OS setting applies mid-session.
  */
 
 const motionQuery = typeof matchMedia === "function"
@@ -318,26 +284,22 @@ function onMotionChange() {
 }
 
 /**
- * The pointer glyph. Static markup with nothing interpolated into it — the one
- * peer-supplied value, the device name, goes through setName() and esc().
- * The tip sits at (1,1) in the viewBox and the element is nudged by -1px in
- * CSS, so the visible point lands exactly on the reported coordinate.
+ * Static markup, nothing interpolated — the one peer-supplied value goes through
+ * setName() and esc(). The tip sits at (1,1) in the viewBox and CSS nudges the
+ * element -1px, so the visible point lands on the reported coordinate.
  */
 const ARROW =
   '<svg class="hb-cursor-arrow" viewBox="0 0 14 22" aria-hidden="true">' +
   '<path d="M1 1L1 17L4.5 13.5L7 19L9.2 18L6.8 12.6L11.5 12.6Z"/></svg>';
 
 /**
- * Stable colour per peer: FNV-1a over the id, into a small palette of token
- * colours. Stable matters more than unique — a cursor that changes colour when
- * a peer reconnects reads as a different person. With five colours and the
- * relay's eight-peer cap, two peers can collide; the label is the identity and
- * the colour is only a hint, so that is a cost worth paying for staying inside
- * tokens.css instead of inventing hues.
+ * FNV-1a over the id into the token palette. Stable matters more than unique — a
+ * cursor changing colour on reconnect reads as a different person. Five colours
+ * against the relay's eight-peer cap will collide; the label is the identity, so
+ * that is worth staying inside tokens.css for.
  *
- * Exported because the editor tints a peer's caret line in the gutter with the
- * same index. One peer, one colour, wherever they show up — a pointer in one
- * hue and a caret in another reads as two people.
+ * Exported because the editor tints a peer's caret line with the same index. A
+ * pointer in one hue and a caret in another reads as two people.
  */
 export function paletteIndex(id) {
   let h = 0x811c9dc5;
@@ -349,9 +311,8 @@ export function paletteIndex(id) {
 }
 
 /**
- * Created on first use, not at init(): a solo session should not carry an
- * empty overlay div around. aria-hidden because a screen reader announcing
- * where somebody else's mouse is would be pure noise.
+ * On first use, not at init(): a solo session carries no empty overlay div.
+ * aria-hidden — announcing where somebody else's mouse is would be pure noise.
  */
 function layer() {
   const found = $("cursorLayer");
@@ -376,11 +337,10 @@ function upsert(id, x, y, name) {
     place(c, x, y);                       // position BEFORE the transition exists
     applyMotion(el);
     layer().appendChild(el);
-    // The transition and the fade-in are enabled a frame later. Enabled from
-    // the start, a new cursor would slide in from the top-left corner of the
-    // window on its first update instead of simply being where it is.
-    // Under reduced motion there is no transform transition to defer past, so
-    // the wait would only delay the cursor appearing.
+    // A frame later: enabled from the start, a new cursor slides in from the
+    // top-left corner on its first update instead of simply being where it is.
+    // Under reduced motion there is nothing to defer past, so waiting only
+    // delays it appearing.
     if (reducedMotion()) el.classList.add("live");
     else raf(() => el.classList.add("live"));
     ensureSweep();
@@ -397,17 +357,16 @@ function place(c, x, y) {
   c.y = y;
   const px = Math.round(x * (window.innerWidth || 0));
   const py = Math.round(y * (window.innerHeight || 0));
-  // translate3d, not left/top: transform-only movement stays on the compositor,
-  // so seven cursors gliding at once never trigger layout.
+  // translate3d, not left/top: transform stays on the compositor, so seven
+  // cursors gliding at once never trigger layout.
   c.el.style.transform = `translate3d(${px}px, ${py}px, 0)`;
 }
 
 /**
- * The device name is chosen by the peer and is attacker-controlled: anyone
- * holding the session key can name their device `<img src=x onerror=…>`, and
- * this is the only peer-supplied value in the module that reaches innerHTML.
- * esc() is the invariant (docs/ARCHITECTURE.md §5); the length cap is on top
- * of it, so a 10 KB "name" cannot stripe a label across the whole viewport.
+ * Attacker-controlled: anyone holding the session key can name their device
+ * `<img src=x onerror=…>`, and this is the module's only peer-supplied value
+ * reaching innerHTML. esc() is the invariant (docs/ARCHITECTURE.md §5); the
+ * length cap stops a 10 KB "name" striping a label across the viewport.
  */
 function setName(c, raw) {
   const clean = String(raw ?? "").replace(/\s+/g, " ").trim().slice(0, NAME_CHARS);
@@ -447,9 +406,9 @@ function stopSweep() {
 }
 
 function sweep() {
-  // state.js is not reactive, so a toggle flipped in the settings panel is
-  // noticed here. Sending is already gated by canSend(); this is what tells
-  // peers to stop drawing us and clears what we are drawing of them.
+  // state.js is not reactive, so this is where a toggle flipped in the settings
+  // panel is noticed. Sending is already gated by canSend(); this tells peers to
+  // stop drawing us and clears what we draw of them.
   if (!allowed()) {
     stopBroadcast();
     clearPeers();
@@ -481,15 +440,13 @@ export function init() {
 
   focused = typeof document.hasFocus === "function" ? document.hasFocus() : true;
 
-  // Someone can turn "reduce motion" on while the app is open; the cursors
-  // already on screen follow it rather than waiting for a reload.
+  // Cursors already on screen follow "reduce motion" without a reload.
   motionQuery?.addEventListener?.("change", onMotionChange);
 
   window.addEventListener("pointermove", onPointerMove, { passive: true });
 
-  // Every way of ceasing to be present ends in the same place. The pointer
-  // leaving the document is the common one; blur covers alt-tab, and
-  // visibilitychange covers a backgrounded tab or a locked phone.
+  // Every way of ceasing to be present ends in the same place: pointerleave is
+  // the common one, blur covers alt-tab, visibilitychange a locked phone.
   const leave = () => { pointerInside = false; stopBroadcast(); };
   document.documentElement.addEventListener("pointerleave", leave);
   window.addEventListener("blur", () => { focused = false; leave(); });
@@ -497,14 +454,14 @@ export function init() {
   document.addEventListener("visibilitychange", () => { if (hidden()) leave(); });
   window.addEventListener("pagehide", leave);
 
-  // Positions are normalised to the viewport, so a resize moves every peer.
-  // Without this they sit at their old pixel offsets until the next frame.
+  // Positions are normalised to the viewport: without this a resize leaves every
+  // peer at its old pixel offset until the next frame.
   window.addEventListener("resize", () => {
     for (const c of peers.values()) place(c, c.x, c.y);
   });
 
-  // A peer that left the room should not linger for the full fade. The roster
-  // is authoritative; anyone not on it is gone.
+  // The roster is authoritative, so a peer that left does not linger for the
+  // full fade.
   on(EV.PEERS_CHANGED, ({ count, list }) => {
     if (!Array.isArray(list) || !list.length) {
       if (count <= 1) clearPeers();       // alone in the room
@@ -514,9 +471,8 @@ export function init() {
     for (const id of [...peers.keys()]) if (!present.has(id)) removePeer(id);
   });
 
-  // Losing the relay means we simply stop hearing from anyone. Ghost pointers
-  // frozen mid-glide would read as "they are still there", which is the one
-  // thing a presence feature must not get wrong.
+  // Losing the relay just stops the frames arriving. Ghost pointers frozen
+  // mid-glide would read as "they are still there".
   on(EV.CONN_STATE, ({ state: conn }) => {
     if (conn === "offline" || conn === "reconnecting" || conn === "idle") {
       clearPeers();
@@ -531,9 +487,8 @@ export function init() {
  * ------------------------------------------------------------------ */
 
 /**
- * The --cursors-css marker is checked as well as the <link>, because either
- * could be true first: the one lazyStyle() injects, or the marker cursors.css
- * sets if main.css ever @imports it directly.
+ * The --cursors-css marker is checked as well as the <link>, because either can
+ * be true first: lazyStyle()'s injection, or main.css @importing it directly.
  */
 function ensureStyles() {
   try {

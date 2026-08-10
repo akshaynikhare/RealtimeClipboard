@@ -7,9 +7,9 @@
  * duplicated work. **Google does not participate** and has said it is not
  * evaluating it; Google is Search Console's job and nothing here substitutes.
  *
- * Bing is worth this on its own even at Bing's market share, because Copilot
- * and ChatGPT ground their answers on Bing's index. A page Bing has not
- * crawled cannot be cited by either, whatever Google thinks of it.
+ * Bing is worth this on its own even at Bing's market share, because the answer
+ * engines ground their citations on Bing's index. A page Bing has not crawled
+ * cannot be cited by them, whatever Google thinks of it.
  *
  * Run it by hand AFTER a deploy has gone live — the endpoint fetches each URL
  * to verify it, so submitting a URL that Cloudflare is still building gets it
