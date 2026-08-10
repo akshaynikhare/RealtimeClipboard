@@ -88,10 +88,10 @@ Based · Clipboard · Peer-to-Peer.
 | **r/coolgithubprojects** | RealtimeClipboard — end-to-end encrypted online clipboard, no account, files peer-to-peer over WebRTC |
 | **r/opensource** | RealtimeClipboard: MIT-licensed encrypted clipboard sync between devices, no account, self-hostable relay |
 | **r/webdev** *(Showoff Saturday only)* | Built an E2EE clipboard sync: WebRTC data channels for files, AES-GCM in the browser, and a relay that only ever sees SHA-256(key) |
-| **r/degoogle / r/fossdroid** | Free, open-source clipboard sync between Android and desktop — no Google account, no telemetry, end-to-end encrypted |
+| **r/degoogle / r/fossdroid** | ⚠️ **Not a launch-day channel — see below.** Free, open-source clipboard sync between Android and desktop — no Google account, end-to-end encrypted |
 | **Hacker News** | RealtimeClipboard – an end-to-end encrypted clipboard shared by typing the same key |
 
-⚠️ **Two corrections to this table, 2026-08-10.**
+⚠️ **Three corrections to this table, 2026-08-10.**
 
 **The r/SideProject key length was wrong** — it read *6-character key*. Keys are `KEY.LENGTH = 10`,
 and 16 on desktop. Six was dropped in v0.5.0 as a **defect**, not a preference: 29.4 bits, ~12
@@ -100,6 +100,14 @@ would have advertised the exact weakness the release fixed, to the one audience 
 
 **The Hacker News row said to lead on P2P file transfer.** §6 and §7.3 both later decided the
 opposite and this row was never updated. The title above is clipboard-led, per that decision.
+
+**The r/degoogle / r/fossdroid title claimed "no telemetry", which is no longer true.** AdSense and
+GA4 went live on the crawlable pages on 2026-08-08 — `adsEnabled()` and `analyticsEnabled()` are
+both true. §3 and §7.3 already removed both subs as launch-day channels for exactly that reason,
+and §1 records the pattern: these audiences find the tags and lead with them. The claim is struck
+from the title and the row is flagged, because a title that is checkably false is worse in these
+two subs than no post at all. **Do not restore the phrase unless the tags come off** — the same
+condition that closed `pluja/awesome-privacy` (§3).
 
 **Hacker News, specifically.** §6 measured the ceiling: clipboard posts top out around 141 points
 ever, file-sharing posts reach 923. It also found every large post in this category was a
@@ -500,14 +508,33 @@ Three revisions, each with its reason recorded elsewhere in this file:
 | # | When | Channel | Notes |
 |---|---|---|---|
 | 0 | days before | **AlternativeTo** | account created 2026-08-09, so submittable from **2026-08-16** — that date is the earliest the day can be |
-| 1 | morning | **r/coolgithubprojects** | the dry run. Low ceiling (top hot post: 49), no promo rule, and it surfaces the first objections while the stakes are nil |
-| 2 | +1h | **r/InternetIsBeautiful** | 🥇 the only 1,000+ shot. Clipboard-led. Link the **live site**, not GitHub. Rule 6 bans sites needing an email — written for this. Rule 8 removes posts whose site buckles |
-| 3 | +2h | **r/SideProject** | no configured rules, best reach-to-risk |
-| 4 | +3h | **r/opensource** | needs correct flair and hours in the comments; Rule 6 removes drive-by posts |
-| 5 | +4h | **Hacker News** | plain link, **not** a Show HN. Every large post in this category was a plain link |
+| 1 | morning | **r/coolgithubprojects** | ✅ **Posted 2026-08-10.** The dry run. Low ceiling (top hot post: 49), no promo rule, and it surfaces the first objections while the stakes are nil |
+| 2 | +1h | **r/InternetIsBeautiful** | ✅ **Posted 2026-08-10 — the one shot is spent.** 🥇 the only 1,000+ shot. Clipboard-led. Link the **live site**, not GitHub. Rule 6 bans sites needing an email — written for this. Rule 8 removes posts whose site buckles |
+| 3 | +2h | **r/SideProject** | ✅ **Posted 2026-08-10.** No configured rules, best reach-to-risk |
+| 4 | +3h | **r/opensource** | ✅ **Posted 2026-08-10.** Needs correct flair and hours in the comments; Rule 6 removes drive-by posts |
+| 5 | +4h | **Hacker News** | ⬜ **Not posted.** Plain link, **not** a Show HN. Every large post in this category was a plain link. Title and first comment: §2 and §2.1 |
 | — | next day | **Brodie Robertson / Lon.TV** | only *after* traction. They mine HN and Reddit anyway |
 | — | ~Nov 5 | r/selfhosted | 3-month rule. Megathread or a Wednesday tools post |
 | — | ~Dec 7 | awesome-selfhosted | 4 months from first release. PR `awesome-selfhosted-data` |
+
+**What actually happened, 2026-08-10.** All four Reddit channels went out on the 10th rather than
+on or after the 16th that row 0 sets as the earliest possible day, and Hacker News did not go with
+them. Recording it because two things in this section were predicated on the opposite:
+
+- **The one-day rule was for star velocity.** GitHub Trending ranks a repo against its own
+  baseline, so the concentrated spike was the entire argument for firing together (§7). Reddit
+  landing without HN splits that spike across two days, and HN is the larger half.
+- **Row 0's date came from AlternativeTo's one-week account rule**, not from readiness. That
+  submission is the only item the date actually gated.
+
+**The live consequence: §7.4 is now the work, not the posting.** Four threads are open and the
+first three hours decide them. Answer the crypto question before it is asked, link
+`docs/THREAT-MODEL.md` in your own first comment, never argue the 5 MB cap, disclose authorship,
+and do not ask for stars. **PR #46 is also unmerged**, so the site those threads point at does not
+yet carry the schema and favicon fixes — merging is what deploys them.
+
+For HN, whenever it goes: the title and the full first comment are ready in §2 and §2.1, and the
+first comment volunteers PBKDF2 before the thread finds it.
 
 Spacing them by an hour is deliberate: it is how many comment threads one person can actually hold
 at once, and an unanswered thread in the first hour is what kills a post that was otherwise fine.
