@@ -3,10 +3,10 @@
  * is the cleanup routine. A local entry holds the Blob; a remote entry holds
  * metadata and a thumbnail until someone requests the bytes.
  *
- * Every entry carries the two facts the UI must show and never hide
- * (docs/ARCHITECTURE.md §5): `state`, so a dead transfer leaves a visible reason
- * rather than an abandoned progress bar, and `path`, set when it is decided
- * rather than at completion, so a relay transfer is labelled while still running.
+ * Every entry carries the two facts the UI may never hide
+ * (docs/ARCHITECTURE.md §5): `state`, so a dead transfer leaves a reason rather
+ * than an abandoned bar, and `path`, set when decided rather than at completion,
+ * so a relay transfer is labelled while it runs.
  */
 
 import { FILES } from "../core/config.js";
@@ -41,13 +41,10 @@ export const isBusy = id => BUSY.has(get(id)?.state);
 
 /**
  * Two seams, because this module sits UNDER both the transport and the transfer
- * machinery and may import neither. `setSignalSender` takes the same
- * encrypt-and-send closure main.js hands transfer.js; `setCanceller` takes
- * transfer.cancel from ui/filesPanel.js, since importing transfer.js here would
- * be a cycle pointing the wrong way.
- *
- * Both default to "not wired", and every call site treats that as "do the local
- * half and carry on" — a missing collaborator must never block a removal.
+ * machinery and may import neither — importing transfer.js here would be a cycle
+ * pointing the wrong way. Both default to "not wired", and every call site
+ * treats that as "do the local half and carry on": a missing collaborator must
+ * never block a removal.
  */
 
 let sendSignal = null;
@@ -71,10 +68,9 @@ export async function add(fileList, { makeThumbs = true } = {}) {
       continue;
     }
 
-    // The slot is taken BEFORE the thumbnail is awaited. Decoding an image is
-    // tens of milliseconds, and a concurrent add — a second drop, or a peer's
-    // file-meta — checked the cap during that gap and passed on the same stale
-    // count, so the session cap FR-7.7 exists to bound was quietly overshot.
+    // The slot is taken BEFORE the thumbnail is awaited: decoding takes tens of
+    // milliseconds, and a concurrent add checked the cap during that gap against
+    // the same stale count, overshooting the cap FR-7.7 exists to bound.
     const item = {
       id: crypto.randomUUID().slice(0, 8),
       name: file.name,
@@ -95,9 +91,8 @@ export async function add(fileList, { makeThumbs = true } = {}) {
     if (makeThumbs) item.thumb = await thumbs.make(file);
 
     added++;
-    // Announced individually rather than via FILES_CHANGED: that event carries
-    // the whole list and fires for progress ticks too, so a listener could not
-    // tell "this one is new and needs sending" from "something moved".
+    // Individually, not via FILES_CHANGED: that carries the whole list and fires
+    // for progress ticks, so a listener cannot tell "new" from "something moved".
     emit(EV.FILE_ADDED, { file: item });
   }
 
@@ -106,20 +101,16 @@ export async function add(fileList, { makeThumbs = true } = {}) {
 }
 
 /**
- * A filename chosen by somebody else.
+ * A filename chosen by somebody else, rendered in the grid and used as the
+ * `download` attribute. Browsers already refuse a path separator there, so this
+ * is not about traversal but about the name reading as what it is:
  *
- * It is rendered in the grid and, if the file is saved, becomes the `download`
- * attribute — the name the browser writes to disk and the user reads before
- * opening it. Browsers already refuse a path separator there, so this is not
- * about traversal; it is about the name being read as what it is:
- *
- *   - bidi and control characters, via stripInvisible(). `report[RLO]txt.exe`
- *     renders as `reportexe.txt` and runs as an executable.
- *   - path separators and `..`, because `download` is not the only consumer —
- *     the CLI and any future export path would take this string too, and a
- *     sanitiser that relies on its caller is one refactor from being wrong.
+ *   - bidi and control characters: `report[RLO]txt.exe` renders as
+ *     `reportexe.txt` and runs as an executable.
+ *   - path separators and `..`, because `download` is not the only consumer and
+ *     a sanitiser relying on its caller is one refactor from being wrong.
  *   - leading dots, which hide a file on every unix desktop.
- *   - length, because a 30 KB name is a rendering problem in the grid.
+ *   - length, because a 30 KB name is a rendering problem.
  *
  * Never empty: a nameless tile cannot be described, asked for, or reported.
  */
@@ -143,12 +134,7 @@ export function addRemote({ id, name, size, type, thumb, originId }) {
   emit(EV.FILES_CHANGED, items);
 }
 
-/**
- * `path` rides along in the payload so a listener can label the progress it is
- * showing. ui/statusbar.js currently hard-codes "P2P %" for every tick, which
- * mislabels a relay transfer while it runs; this makes that a one-line fix in
- * a file this change does not own.
- */
+/** `path` rides along so a listener can label the progress it is showing. */
 export function setProgress(id, percent) {
   const f = get(id);
   if (!f) return;
@@ -158,8 +144,8 @@ export function setProgress(id, percent) {
 }
 
 /**
- * Where this file is in its lifecycle. Moving out of ERROR clears the old
- * message so a retry does not show the previous failure under a live bar.
+ * Moving out of ERROR clears the message, so a retry does not show the previous
+ * failure under a live bar.
  */
 export function setState(id, state, error = null) {
   const f = get(id);
@@ -170,9 +156,8 @@ export function setState(id, state, error = null) {
 }
 
 /**
- * Record the transport path as soon as it is known — not at completion.
- * A user watching a slow relay transfer should see RELAY the whole way through,
- * not a P2P badge that turns yellow at the end.
+ * As soon as it is known, not at completion: someone watching a slow relay
+ * transfer sees RELAY throughout, not a P2P badge that turns at the end.
  */
 export function setPath(id, path) {
   const f = get(id);
@@ -212,9 +197,8 @@ export function fail(id, reason = "transfer failed") {
 }
 
 /**
- * Abort bookkeeping. Does not itself stop a transfer — files/transfer.js owns
- * the sockets; this records the outcome. The UI calls transfer.cancel(), which
- * calls back in here.
+ * Bookkeeping only — transfer.js owns the sockets. The UI calls transfer.cancel(),
+ * which calls back in here.
  */
 export function cancel(id) {
   const f = get(id);
@@ -222,13 +206,13 @@ export function cancel(id) {
   f.error = null;
 
   if (f.blob) {
-    // We still hold the bytes — a cancelled *send* damages nothing, so the tile
-    // goes back to rest rather than wearing a failure it did not suffer.
+    // The bytes are still here, so a cancelled send damages nothing and the tile
+    // must not wear a failure it did not suffer.
     f.state = f.origin === "local" ? STATE.IDLE : STATE.DONE;
     f.progress = f.origin === "local" ? 0 : 100;
   } else {
-    // A cancelled *download* must stay visibly incomplete, and must not claim
-    // a transport path for a transfer that never landed.
+    // A cancelled download stays visibly incomplete and claims no transport path
+    // for a transfer that never landed.
     f.state = STATE.CANCELLED;
     f.progress = 0;
     f.path = null;
@@ -249,40 +233,23 @@ export function reset(id) {
 }
 
 /**
- * Removal, in this order, none of it optional:
+ * Removal happens in this order, none of it optional:
  *
- *   1. STOP ANY TRANSFER FIRST. Dropping the entry under a running send makes
- *      transfer.js discover mid-loop that the file went away and report an error
- *      to a peer that did nothing wrong; on the receive side it leaves the
- *      holder streaming into a tab that stopped listening.
- *   2. TELL THE ROOM, if it was ours, or every peer keeps a tile for a file that
- *      no longer exists and only finds out by clicking it.
- *   3. RELEASE THE BYTES. Splicing the array is not enough — an entry can still
- *      be held by a render pass or an object URL, and a Blob lives exactly as
- *      long as the last thing pointing at it.
- */
-
-/**
- * ⚠️ NOT YET DELIVERABLE END TO END. The outbound half is here and tested, but
- * three things outside this module must land before a peer can act on it, and
- * until then nothing reaches the wire at all:
- *
- *   - backend/main.py: "file-gone" must join ROOM_WIDE, or the relay rejects it.
- *   - main.js: registry.setSignalSender(...) and a route into applyGone().
- *   - files/transfer.js: FRAMES is frozen at load and main.js routes strictly
- *     off it, so the type must be declared there to be routed.
- *
- * Until then removal is local-only: a peer requesting a file we no longer hold
- * gets file-error from onFileReq(), which is honest but late.
+ *   1. STOP ANY TRANSFER FIRST, or transfer.js discovers mid-loop that the file
+ *      went away and errors at a peer that did nothing wrong — and on the
+ *      receive side leaves the holder streaming into a tab that stopped
+ *      listening.
+ *   2. TELL THE ROOM if it was ours, or every peer keeps a tile for a file that
+ *      no longer exists and finds out by clicking it.
+ *   3. RELEASE THE BYTES. Splicing the array is not enough: an entry can still be
+ *      held by a render pass or an object URL, and a Blob lives as long as the
+ *      last thing pointing at it.
  */
 export const FRAME_GONE = "file-gone";
 
 /**
- * Drop a file from this session.
- *
- * `announce:false` is how an inbound retraction is applied — a peer telling us
- * its file is gone must not make us broadcast a retraction of our own, or two
- * devices bounce the same news around the room.
+ * `announce:false` is how an inbound retraction is applied: rebroadcasting one
+ * would have two devices bouncing the same news around the room.
  */
 export function remove(id, { announce = true, reason = "the file was removed" } = {}) {
   const f = get(id);
@@ -323,26 +290,23 @@ export function clear({ announce = true, reason = "the file list was cleared" } 
 /** Tell the room a local file is gone, so its tile disappears there too. */
 export function announceGone(file) {
   if (!file || file.origin !== "local") return false;
-  // Only routing fields: main.js seals everything else, and there is nothing
-  // here worth sealing — an id the room already saw in the file-meta it retracts.
+  // Nothing here is worth sealing: an id the room already saw in the file-meta
+  // this retracts.
   return signal({ t: FRAME_GONE, id: file.id });
 }
 
 /**
- * Apply an inbound retraction. Hostile by assumption, like every other frame:
- * membership of the session is the only thing authenticating it (P2P-FILES §6),
- * so a peer may retract what IT announced and nothing else. Without the owner
- * check, anyone holding the key could clear everybody's file list.
+ * Hostile by assumption: session membership is the only thing authenticating a
+ * frame (P2P-FILES §6), so a peer may retract what IT announced and nothing
+ * else. Without the owner check, anyone with the key clears everybody's list.
  */
 export function applyGone(frame) {
   if (!frame || frame.t !== FRAME_GONE || frame.id == null) return false;
   const f = get(String(frame.id));
   if (!f) return false;
   if (f.origin !== "local") {
-    // `from` is stamped by the relay on the socket the frame arrived on and is
-    // the one field a client cannot lie about; `originId` is whatever the
-    // sender typed. Prefer the former, and refuse outright if a file we know
-    // the owner of comes with neither.
+    // `from` is stamped by the relay and is the one field a client cannot lie
+    // about; `originId` is whatever the sender typed.
     const from = frame.from ?? frame.originId;
     if (f.owner && from !== f.owner) return false;
     return remove(f.id, { announce: false, reason: "the other device removed it" });
@@ -355,9 +319,8 @@ export function applyGone(frame) {
 /* ---- the two halves of "actually gone" ---- */
 
 /**
- * Release everything this entry holds on to. `items.splice()` only drops one
- * reference; a 5 MB Blob survives an object URL, and it survives whatever else
- * still points at the entry object (a render pass, a closure mid-await).
+ * `items.splice()` drops one reference; a 5 MB Blob survives an object URL and
+ * whatever else points at the entry (a render pass, a closure mid-await).
  * Nulling the fields makes the removal collectible now rather than eventually.
  */
 function release(f) {
@@ -378,8 +341,8 @@ function abortTransfer(id, reason) {
   if (!canceller) return false;
   try { return canceller(id, reason) !== false; }
   catch (err) {
-    // A cancel that throws must not strand the file in the list — the user
-    // asked for it gone, and the worst case is a transfer that times out.
+    // A cancel that throws must not strand the file: the user asked for it gone,
+    // and the worst case is a transfer that times out.
     console.error("[registry] canceller threw", err);
     return false;
   }
@@ -406,14 +369,10 @@ function signal(frame) {
 }
 
 /**
- * Trigger a browser download of a file we already hold.
- *
- * The object URL used to be revoked on the very next line, which races the
- * download: the URL can be dead before the browser has started fetching it,
- * and the failure mode is a save button that does nothing on some browsers and
- * not others. It is now kept on the entry and revoked either when the file is
- * removed — release() does it immediately, so a removed file cannot be held
- * alive by a URL nobody can reach — or on a timer, whichever comes first.
+ * Revoking the object URL on the next line races the download — the URL can die
+ * before the browser starts fetching it, and it fails as a save button that does
+ * nothing on some browsers and not others. Kept on the entry instead, revoked by
+ * release() or by this timer, whichever comes first.
  */
 const SAVE_URL_TTL_MS = 60_000;
 

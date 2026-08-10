@@ -289,8 +289,8 @@ ok("no module resolves a path from import.meta.url", bad.length === 0,
 /* ---------- 13-15. the CSP holds ----------
    Discovered the same way tools/build/build.mjs collects content pages — any
    directory under src/pages/ holding an index.html — so a page added later is
-   covered here without anyone remembering to add it. docs/SEO.md §2 plans a
-   dozen more.
+   covered here without anyone remembering to add it, and a dozen more are
+   planned.
 
    The two app documents are named rather than scanned: they sit at the root and
    are the only HTML there. */
@@ -449,8 +449,8 @@ bad = [];
 for (const f of PROSE) {
   const src = read(f);
   for (const m of src.matchAll(/\b((?:tests|tools)\/[\w./-]+\.(?:mjs|py))/g)) {
-    // Struck-through paths are deliberately historical — M0-RESULTS records what
-    // was deleted when the milestone closed.
+    // Struck-through paths are deliberately historical — a doc may name a file
+    // that was deleted when its milestone closed.
     if (src.includes(`~~\`${m[1]}\`~~`)) continue;
     if (!existsSync(join(ROOT, m[1]))) bad.push(`${rel(f)} -> ${m[1]}`);
   }

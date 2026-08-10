@@ -10,8 +10,7 @@
 | [P2P-FILES.md](P2P-FILES.md) | Thumbnails over the relay, bytes over WebRTC, and the corporate-network problem |
 | [ACCESSIBILITY.md](ACCESSIBILITY.md) | Keyboard paths, focus handling, and what the screen reader announces |
 | [SELF-HOSTING.md](SELF-HOSTING.md) | Running your own relay and pointing a build at it |
-| [SEO.md](SEO.md) | Search, answer-engine and distribution strategy |
-| [M0-RESULTS.md](M0-RESULTS.md) | Transport gate results |
+| [THREAT-MODEL.md](THREAT-MODEL.md) | What the relay can see, what an attacker can reach, and what is out of scope |
 
 Per-directory rules live next to the code: [../src/CLAUDE.md](../src/CLAUDE.md),
 [../tests/CLAUDE.md](../tests/CLAUDE.md), [../tools/CLAUDE.md](../tools/CLAUDE.md), and one in each

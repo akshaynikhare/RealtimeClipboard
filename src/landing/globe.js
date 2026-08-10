@@ -1,30 +1,23 @@
 /**
- * RealtimeClipboard — live globe.
+ * Live globe — a marker on every country that currently has a session. Canvas
+ * 2D, no library and no CDN: a marketing page is not the place to acquire this
+ * repo's first dependency.
  *
- * A rotating wireframe globe with a marker on every country that currently has a
- * session. Canvas 2D, no library and no CDN — a marketing page is not the place
- * to acquire this repo's first dependency.
+ * WHAT IT SHOWS IS WHAT IS THERE. Motion may come from three places and no
+ * others — the globe turning, your pointer, and a marker easing because the
+ * relay's answer changed. Animation may show what changed, never invent what is
+ * happening; an unreachable endpoint goes back to "—" rather than presenting a
+ * stale number as current.
  *
- * WHAT IT SHOWS IS WHAT IS THERE. No floor, no demo mode, no seeded traffic: a
- * new product with three users looks like a new product with three users. Motion
- * may come from three places and no others — the globe turning, your pointer,
- * and a marker easing in or out because the relay's answer changed. Markers do
- * not pulse or travel between each other, and arcs are absent on purpose: the
- * relay reports per-country totals and nothing about who is paired with whom, so
- * an arc would draw something we do not know. Animation may show what changed,
- * never invent what is happening. When the endpoint is unreachable the numbers
- * go back to "—" rather than showing a stale one as current.
- *
- * PRIVACY. A GET and nothing else — no credentials, no referrer, no body, no
- * query string, no beacon on unload — and the response carries counts only.
+ * PRIVACY. A GET and nothing else — no credentials, referrer, body, query string
+ * or unload beacon — and the response carries counts only.
  */
 
 import { RELAY_HTTP_URL } from "../core/config.js";
 import { LAND } from "./land.js";
 
-/** Derived from the relay host so there is one host in the codebase, not two.
- *  wss:// → https://, and ws://127.0.0.1:8000 → http://127.0.0.1:8000 for local
- *  development, where a missing relay simply lands in the unavailable path. */
+/** Derived so there is one relay host in the codebase, not two. Locally a
+ *  missing relay simply lands in the unavailable path. */
 const STATS_URL = `${RELAY_HTTP_URL}/stats`;
 
 const POLL_MS      = 30_000;    // the floor the endpoint asked for
@@ -34,10 +27,9 @@ const STALE_MS     = 120_000;   // after this, numbers are no longer "right now"
 const DEG_PER_MS   = 0.006;     // one turn a minute
 
 /**
- * Approximate country centroids, ISO-3166-1 alpha-2. Whole degrees: at 320
- * pixels across, a degree is under a pixel and a centroid is a fiction anyway.
- * Codes absent from this table are still counted in the totals — they simply
- * have nowhere to be drawn.
+ * ISO-3166-1 alpha-2 centroids in whole degrees: at 320 pixels across a degree
+ * is under a pixel, and a centroid is a fiction anyway. Codes missing here still
+ * count in the totals — they just have nowhere to be drawn.
  */
 const CENTROIDS = parseCentroids(`
 AD 43 2    AE 24 54   AF 33 66   AG 17 -62  AI 18 -63  AL 41 20   AM 40 45
@@ -100,11 +92,10 @@ let onScreen = false, mounted = false;
 let rate = 0, fling = 0;
 let dragging = false, dragX = 0, hovering = false;
 
-/* One entry per country the relay has mentioned recently. `a` is how far it has
-   eased in (0 gone, 1 present) and `h` how far it is highlighted; both are
-   targets chased over time, which is what makes a country appearing in the
-   numbers a thing you can SEE happen rather than a value that was suddenly
-   different the next time you looked. */
+/* One entry per country the relay mentioned recently: `a` is how far it has
+   eased in, `h` how far it is highlighted. Both are chased over time, which is
+   what makes a country appearing something you SEE happen rather than a value
+   that was different the next time you looked. */
 const marks = new Map();
 let hover = null;                // country under the pointer, or from the list
 let busiest = null;              // highlighted when nothing else is
@@ -139,13 +130,9 @@ function readColours() {
   colour.markRGB = toRGB(colour.mark) || [78, 201, 176];
 
   /**
-   * The sphere's own three tones, mixed FROM the page's accent rather than
-   * picked next to it — so the globe still belongs to this palette when the
-   * accent is retuned, and a light theme gets a light planet for free.
-   *
-   *   lit   the sunward crescent, accent pulled toward the section's teal
-   *   deep  the shaded limb and the terminator
-   *   air   the halo outside the sphere
+   * Mixed FROM the accent rather than picked next to it, so the globe still
+   * belongs to the palette when the accent is retuned and a light theme gets a
+   * light planet free. lit = sunward crescent, deep = terminator, air = halo.
    */
   const dark = isDark();
   colour.litRGB = mix(colour.blueRGB, colour.markRGB, dark ? 0.34 : 0.22);
@@ -155,8 +142,8 @@ function readColours() {
 }
 
 /** The stylesheet is the authority on the theme, not the media query: a forced
- *  theme or a future toggle changes the tokens, and everything here is derived
- *  from those. Read the page background and ask whether it is dark. */
+ *  theme or a future toggle changes the tokens, and everything here derives from
+ *  those. */
 function isDark() {
   const bg = toRGB(getComputedStyle(document.documentElement)
     .getPropertyValue("--bg").trim()) || [30, 30, 30];
@@ -170,24 +157,19 @@ const mix = (a, b, t) => [
 ];
 
 /**
- * One ready-made fill per brightness step.
+ * One ready-made fill per brightness step. A dot further from the light cools
+ * toward the page's secondary grey while the lit side warms toward the accent;
+ * baking colour AND alpha into one string per step lets the draw loop set a fill
+ * eight times a frame instead of touching globalAlpha a thousand times.
  *
- * A dot that is further from the light does not just fade — it cools, toward
- * the same grey the rest of the page uses for secondary text, while the lit
- * side warms toward the accent. Baking colour AND alpha into one style string
- * per step means the draw loop sets a fill eight times a frame instead of
- * touching globalAlpha a thousand times.
- *
- * --rule2 is deliberately NOT the dot colour: it is the page's component-edge
- * grey, three shades off the background, and a sphere drawn in it is invisible
- * at any alpha.
+ * --rule2 is deliberately NOT the dot colour: it is the component-edge grey,
+ * three shades off the background, invisible as a sphere at any alpha.
  */
 function buildDotStyles() {
   const dark = isDark();
-  // Land has to win against the ocean under it, and the ocean is now a real
-  // blue. On a dark page that means the lit side goes almost white with a
-  // breath of the section's teal in it; on a light page it goes the other way,
-  // because "more visible" there means darker.
+  // Land has to win against the ocean under it. On a dark page that means almost
+  // white; on a light one it goes darker, because that is what "more visible"
+  // means there.
   const lit = dark
     ? mix([255, 255, 255], colour.markRGB, 0.20)
     : mix(colour.textRGB, colour.blueRGB, 0.34);
@@ -204,10 +186,9 @@ function buildDotStyles() {
 }
 
 /**
- * Hex → [r,g,b]. Canvas has no color-mix and no relative colour syntax, so the
- * gradients below have to be assembled by hand from whatever the stylesheet
- * says. The tokens are all hex; anything else returns null and the caller falls
- * back to a flat colour rather than drawing `rgba(NaN,…)`.
+ * Canvas has no color-mix and no relative colour syntax, so the gradients are
+ * assembled by hand from the stylesheet's hex tokens. Anything else returns null
+ * and the caller falls back to a flat colour rather than drawing `rgba(NaN,…)`.
  */
 function toRGB(css) {
   const m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(css || "");
@@ -264,23 +245,19 @@ function resize() {
 
 /* --------------------------------------------------------------- rotation */
 
-/** The speed the globe should be turning at right now.
- *
- *  It stops under the pointer. Not as a trick — a label you are trying to read
- *  while the thing carrying it slides out from under you is a label you cannot
- *  read, and the countries are the point of the section. */
 /** Whether a transition would actually be seen. Everything that eases checks
- *  this before easing, and jumps straight to its target when it is false. */
+ *  this first and jumps straight to its target when it is false. */
 const canAnimate = () => onScreen && !document.hidden && !reduced.matches;
 
+/** It stops under the pointer: a label sliding out from under you is a label you
+ *  cannot read, and the countries are the point of the section. */
 function wantRate() {
   if (!canAnimate() || dragging || hovering) return 0;
   return DEG_PER_MS;
 }
 
-/** Whether anything on screen is still moving. Nothing is: stop the loop.
- *  A globe that keeps a requestAnimationFrame alive to redraw an identical
- *  frame is a battery bug with a nice gradient on it. */
+/** A globe holding a requestAnimationFrame open to redraw an identical frame is
+ *  a battery bug with a nice gradient on it. */
 function busy() {
   if (wantRate() > 0 || dragging) return true;
   if (Math.abs(rate) > 1e-5 || Math.abs(fling) > 1e-4) return true;
@@ -290,8 +267,8 @@ function busy() {
   return false;
 }
 
-/** Put every transition straight to its conclusion. Used when there is nobody
- *  to watch it finish — the alternative is animating carefully off screen. */
+/** Every transition straight to its conclusion, for when nobody is watching —
+ *  the alternative is animating carefully off screen. */
 function settle() {
   rate = 0;
   fling = 0;
@@ -310,9 +287,8 @@ function loop() {
   if (!go) draw();
 }
 
-/** Frame-rate-independent approach: the fraction of the remaining distance to
- *  close in `dt` ms, given a time constant. Same easing on a 60 Hz laptop and a
- *  120 Hz phone. */
+/** Fraction of the remaining distance to close in `dt` ms — same easing on a
+ *  60 Hz laptop and a 120 Hz phone. */
 const ease = (dt, tau) => 1 - Math.exp(-dt / tau);
 
 function tick(now) {
@@ -353,12 +329,9 @@ function project(lat, lon, r, cx, cy) {
 /* -------------------------------------------------------------- the field */
 
 /**
- * The land mask, unpacked on first use.
- *
- * One bit per cell of a 240 × 120 equirectangular grid. Kept packed in the
- * source and expanded here rather than shipped as an array of coordinates: the
- * whole coastline of the world costs 4.8 kB this way, and this module is not
- * fetched at all until the section it lives in comes near the viewport.
+ * One bit per cell of a 240 × 120 equirectangular grid, unpacked on first use.
+ * Packed in the source rather than shipped as coordinates: the whole coastline
+ * of the world costs 4.8 kB this way.
  */
 let MASK = null;
 function mask() {
@@ -377,40 +350,35 @@ function isLand(lat, lon) {
   return (m[bit >> 3] >> (7 - (bit & 7))) & 1;
 }
 
-/**
- * The dots, built once: the continents, and nothing else. An earlier version
- * drew a graticule over the whole sphere and read as a mesh ball, which is not
- * what anyone recognises. Land only, ocean left to the wash underneath, and the
- * shape becomes Earth in the first frame.
- *
- * A dot with any ocean in the four cells around it is COAST and is drawn
- * brighter. That single flag turns a scatter of dots into an outline: the eye
- * gets a continuous edge to follow, so the fill inside can sit back.
- *
- * Stored as unit-sphere trigonometry, not angles, so rotating by `spin` is four
- * multiplies and two adds rather than two sines and two cosines — across ~3,000
- * points at 60fps, a measurable slice of the frame.
- */
-/**
- * Dot spacing is chosen from the RADIUS, not fixed.
- *
- * A step that looks right on a 300px globe leaves 8px gaps on a 600px one, and
- * the continents come apart into confetti. So aim for a constant spacing in
- * PIXELS — the same visual density at any size — and quantise the result so a
- * window drag rebuilds the field a handful of times rather than every frame.
- *
- * The floor is the mask's own resolution: sampling finer than the source data
- * just draws the same cell twice and gives coastlines a staircase.
- */
 const DOT_PX = 5.4;       // target gap between neighbouring dots
 let FIELD = null;
 let fieldStep = 0;
 
+/**
+ * Spacing comes from the RADIUS, not a fixed step: one that looks right on a
+ * 300px globe leaves 8px gaps on a 600px one and the continents come apart into
+ * confetti. Quantised so a window drag rebuilds the field a handful of times
+ * rather than every frame, and floored at the mask's own resolution — sampling
+ * finer draws the same cell twice and gives coastlines a staircase.
+ */
 function stepFor(r) {
   const deg = (DOT_PX / Math.max(1, r)) * (180 / Math.PI);
   return Math.min(2.6, Math.max(LAND.step, Math.round(deg * 4) / 4));
 }
 
+/**
+ * The dots, built once: continents and nothing else. An earlier version drew a
+ * graticule over the whole sphere and read as a mesh ball, which is not what
+ * anyone recognises.
+ *
+ * A dot with ocean in any of the four cells around it is COAST and drawn
+ * brighter. That one flag turns a scatter of dots into an outline the eye can
+ * follow, so the fill inside can sit back.
+ *
+ * Stored as unit-sphere trigonometry, not angles, so rotating by `spin` costs
+ * four multiplies rather than four trig calls — across ~3,000 points at 60fps, a
+ * measurable slice of the frame.
+ */
 function buildField(step) {
   fieldStep = step;
   const cosLa = [], sinLa = [], cosLon = [], sinLon = [], weight = [];
@@ -441,21 +409,19 @@ function buildField(step) {
   };
 }
 
-/* A light, so the sphere has a lit side and a dark one. Front-left and a little
-   above — the same direction the page's panel shadows imply. Unit length. */
+/* Front-left and a little above — the direction the page's panel shadows imply.
+   Unit length. */
 const LX = -0.42, LY = 0.40, LZ = 0.82;
 
-/* Alpha is quantised into buckets and each bucket drawn in one pass. Setting
-   globalAlpha per dot costs a state change per dot; eight passes cost eight. */
+/* One pass per alpha bucket: globalAlpha per dot is a state change per dot. */
 const BUCKETS = 8;
 const bucket = Array.from({ length: BUCKETS }, () => []);
 
 function draw() {
   if (!ctx || !size) return;
 
-  // 0.405 rather than a rounder number: a highlighted marker's halo reaches
-  // about 36px past its centre, and at the limb that has to stay inside the
-  // canvas or the glow gets a straight edge cut across it.
+  // 0.405, not a rounder number: a highlighted marker's halo reaches ~36px past
+  // its centre and must stay inside the canvas, or the glow is cut off square.
   const cx = size / 2, cy = size / 2, r = size * 0.405;
 
   const step = stepFor(r);
@@ -463,10 +429,9 @@ function draw() {
 
   ctx.clearRect(0, 0, size, size);
 
-  // ATMOSPHERE — outside the sphere, so the planet sits in something rather
-  // than being pasted onto the page. It is the one part of this drawing that is
-  // purely for effect, which is why it is kept to a thin band: a wide glow round
-  // a small disc reads as a lens flare, not as air.
+  // ATMOSPHERE, so the planet sits in something rather than being pasted onto
+  // the page. Kept to a thin band: a wide glow round a small disc reads as a
+  // lens flare, not as air.
   const air = ctx.createRadialGradient(cx, cy, r * 0.94, cx, cy, r * 1.16);
   air.addColorStop(0, rgba(colour.airRGB, 0));
   air.addColorStop(0.38, rgba(colour.airRGB, 0.26));
@@ -476,11 +441,9 @@ function draw() {
   ctx.arc(cx, cy, r * 1.16, 0, Math.PI * 2);
   ctx.fill();
 
-  // OCEAN. With the dots on land only, this carries the entire surface between
-  // the continents, so it is a real gradient and not a wash: a bright cyan-lit
-  // crescent where the light is, falling through the accent blue to a deep
-  // indigo at the terminator. Three stops, because two make a vignette and four
-  // make a beach ball.
+  // OCEAN. With dots on land only, this carries the whole surface between the
+  // continents, so it is a real gradient and not a wash. Three stops, because
+  // two make a vignette and four make a beach ball.
   const body = ctx.createRadialGradient(
     cx + LX * r * 0.6, cy - LY * r * 0.6, r * 0.04,
     cx, cy, r * 1.02);
@@ -492,9 +455,8 @@ function draw() {
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.fill();
 
-  // The edge, so the object closes. A gradient rather than a flat hairline: a
-  // rim brightest on the lit side reads as curvature, a uniform ring reads as a
-  // sticker.
+  // A gradient rim rather than a flat hairline: brightest on the lit side reads
+  // as curvature, a uniform ring reads as a sticker.
   const rim = ctx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
   rim.addColorStop(0, rgba(colour.litRGB, 0.75));
   rim.addColorStop(0.5, rgba(colour.blueRGB, 0.40));
@@ -514,17 +476,15 @@ function drawField(r, cx, cy) {
   const sp = spin * RAD;
   const cs = Math.cos(sp), ss = Math.sin(sp);
   const ct = Math.cos(TILT), st = Math.sin(TILT);
-  // Near-constant, because the SPACING is near-constant: stepFor() already
-  // holds the gap between dots at roughly 5px whatever the sphere's size, so
-  // scaling the dots as well would only close that gap back up.
+  // Near-constant, because stepFor() already holds the gap at roughly 5px at any
+  // size — scaling the dots too would just close that gap back up.
   const base = size < 260 ? 1.7 : 2.3;
   const px = 1 / dpr;                       // one device pixel, in CSS units
 
   for (const b of bucket) b.length = 0;
 
   for (let i = 0; i < f.n; i++) {
-    // Rotate about the pole, cheaply: sin/cos of (lon + spin) from the stored
-    // sin/cos of lon.
+    // sin/cos of (lon + spin) from the stored sin/cos of lon.
     const sinLo = f.sinLon[i] * cs + f.cosLon[i] * ss;
     const cosLo = f.cosLon[i] * cs - f.sinLon[i] * ss;
 
@@ -535,16 +495,15 @@ function drawField(r, cx, cy) {
     const z = y0 * st + z0 * ct;
     if (z <= 0.02) continue;                // the far side is not drawn at all
 
-    // Two things dim a dot: facing away from the light, and lying near the limb
-    // where the surface turns away from the viewer. The second is what stops
-    // the sphere ending in a hard ring of dots.
+    // Two things dim a dot: facing away from the light, and lying near the limb.
+    // The second is what stops the sphere ending in a hard ring of dots.
     const lambert = Math.max(0, x * LX + y * LY + z * LZ);
-    // The ambient floor matters: with none, the unlit side loses its dots
-    // entirely and the globe reads as a crescent moon rather than a planet.
+    // Without the ambient floor the unlit side loses its dots entirely and the
+    // globe reads as a crescent moon rather than a planet.
     const shade = Math.min(1, (0.44 + 0.56 * lambert) * (0.46 + 0.54 * z) * f.weight[i]);
 
-    // Snapped to whole device pixels in both position and size: a 1.4px square
-    // at a fractional offset is a grey smudge, and a thousand of them is fog.
+    // Snapped to whole device pixels: a 1.4px square at a fractional offset is a
+    // grey smudge, and a thousand of them is fog.
     const s = Math.max(px, Math.round(base * (0.6 + 0.4 * z) * dpr) / dpr);
     const sx = Math.round((cx + x * r) * dpr) / dpr;
     const sy = Math.round((cy - y * r) * dpr) / dpr;
@@ -561,9 +520,8 @@ function drawField(r, cx, cy) {
   }
 }
 
-/** Where every live marker currently is on screen. Rebuilt each frame and read
- *  back by the pointer code, so hit-testing agrees with what you can see rather
- *  than with a second, subtly different projection. */
+/** Rebuilt each frame and read back by the pointer code, so hit-testing agrees
+ *  with what is on screen rather than a second, subtly different projection. */
 let placed = [];
 
 function drawMarkers(r, cx, cy) {
@@ -575,8 +533,8 @@ function drawMarkers(r, cx, cy) {
   const markRGB = colour.markRGB;
   const px = 1 / dpr;
 
-  // Back to front, so a marker near the limb cannot paint over one in front of
-  // it. Sorting by z is what stops the far side of the sphere bleeding through.
+  // Back to front: sorting by z is what stops the far side of the sphere
+  // bleeding through.
   const drawn = [];
   for (const m of marks.values()) {
     const p = project(m.lat, m.lon, r, cx, cy);
@@ -590,8 +548,7 @@ function drawMarkers(r, cx, cy) {
 
   for (const { m, p } of drawn) {
     const { x, y, z } = p;
-    // `a` scales the mark as it arrives and shrinks it away as it leaves; `h`
-    // is how highlighted it is. Neither ever loops.
+    // `a` scales the mark in and out, `h` is highlight. Neither ever loops.
     const grow = m.a * m.a * (3 - 2 * m.a);          // smoothstep — no rubber-band
     const s = (4 + 3 * (max > 1 ? (m.n - 1) / (max - 1) : 0)) * (0.4 + 0.6 * grow) * (1 + 0.28 * m.h);
     const vis = grow * Math.min(1, z + 0.35);
@@ -607,8 +564,8 @@ function drawMarkers(r, cx, cy) {
     ctx.arc(x, y, halo, 0, Math.PI * 2);
     ctx.fill();
 
-    // A ring, not a pulse. It gives the mark a size the eye can judge against
-    // its neighbours without implying that anything is happening.
+    // A ring, not a pulse: a size the eye can judge against its neighbours
+    // without implying that anything is happening.
     ctx.globalAlpha = (0.30 + 0.45 * m.h) * vis;
     ctx.strokeStyle = colour.mark;
     ctx.lineWidth = 1;
@@ -616,17 +573,15 @@ function drawMarkers(r, cx, cy) {
     ctx.arc(x, y, s * (1.75 + 0.5 * m.h), 0, Math.PI * 2);
     ctx.stroke();
 
-    // The mark itself: square, like every other marker on the page, snapped to
-    // the pixel grid so a 5px square is 5 crisp pixels and not 7 soft ones.
+    // Square like every other marker on the page, snapped to the pixel grid so a
+    // 5px square is 5 crisp pixels and not 7 soft ones.
     ctx.globalAlpha = Math.min(1, 0.6 + z) * grow;
     ctx.fillStyle = colour.mark;
     ctx.fillRect(Math.round((x - s / 2) / px) * px, Math.round((y - s / 2) / px) * px, s, s);
   }
 
-  // The label goes last and alone. Three captions over a rotating sphere is
-  // three things to read and no way to know which matters; one, on whichever
-  // country you are pointing at — or the busiest, when you are pointing at
-  // nothing — is a readout.
+  // One label, last and alone. Three captions over a rotating sphere is three
+  // things to read and no way to know which matters; one is a readout.
   const lead = drawn.find(d => d.m.h > 0.02 && d.p.z > 0.06);
   if (lead && size >= 200) label(lead, r, cx, cy);
 
@@ -639,10 +594,8 @@ function label({ m, p }, r, cx, cy) {
   const w = ctx.measureText(text).width;
   const h = 20;
 
-  // Out along the radius, so the leader never crosses the globe on its way to
-  // the plate, and flipped to the inside when the marker is near the right
-  // edge. Then clamped to the canvas: a marker at the top would otherwise hang
-  // its plate half outside, and half a label is worse than none.
+  // Out along the radius so the leader never crosses the globe, flipped inside
+  // near the right edge, then clamped: half a label is worse than none.
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   const ux = (p.x - cx) / r, uy = (p.y - cy) / r;
   const out = 16 + 10 * Math.abs(ux);
@@ -651,8 +604,8 @@ function label({ m, p }, r, cx, cy) {
   const bx = Math.round(clamp(flip ? p.x - out - bw : p.x + out, 2, size - bw - 2));
   const by = Math.round(clamp(p.y + uy * 14 - h / 2, 2, size - h - 2));
 
-  // The leader ends on whichever side of the plate faces the marker, so it
-  // stays a short connector instead of a line drawn across the label.
+  // Ends on whichever side of the plate faces the marker, so it stays a short
+  // connector instead of a line drawn across the label.
   ctx.globalAlpha = m.h * 0.8;
   ctx.strokeStyle = colour.mark;
   ctx.lineWidth = 1;
@@ -674,22 +627,17 @@ function label({ m, p }, r, cx, cy) {
 /* ------------------------------------------------- markers and highlighting */
 
 /**
- * Fold the relay's latest answer into the marker set.
- *
- * Markers are not rebuilt from scratch each poll, they are RECONCILED: a
- * country that is still there keeps its identity and just updates its count, a
- * new one starts at zero and eases in, and one that has gone is left in place
- * with a target of zero so it can ease out and then be dropped. That is the
- * only reason any of this animates — something in the numbers changed.
+ * Markers are RECONCILED, not rebuilt: one still there keeps its identity and
+ * updates its count, a new one eases in from zero, and a departed one is left
+ * with a target of zero to ease out before being dropped. Something changing in
+ * the numbers is the only reason any of this animates.
  */
 function syncMarks() {
   const live = fresh() && stats ? stats.countries : null;
   const seen = new Set();
-  // Only animate the arrival if there is someone to watch it. Off screen, in a
-  // hidden tab, or with reduced motion asked for, a marker is simply THERE.
   // Visibility must never be something a frame has to deliver: a browser
-  // throttling rAF would otherwise leave the globe permanently blank, which is
-  // a far worse failure than a missing transition.
+  // throttling rAF would leave the globe permanently blank, far worse than a
+  // missing transition.
   const animate = canAnimate();
 
   if (live) {
@@ -718,9 +666,8 @@ function syncMarks() {
   applyHighlight();
 }
 
-/** One country is highlighted at a time: whichever you are pointing at, or the
- *  busiest when you are pointing at nothing. The globe and the list below it
- *  are driven from the same value, so they can never disagree. */
+/** One country at a time: whichever you point at, or the busiest. The globe and
+ *  the list run off the same value, so they cannot disagree. */
 function applyHighlight() {
   const want = hover && marks.has(hover) ? hover : busiest;
   const animate = canAnimate();
@@ -741,9 +688,8 @@ function setHover(code) {
 
 /* --------------------------------------------------------------- the pointer */
 
-/** Nearest marker to a point, within a comfortable finger's reach. Hit-testing
- *  reads the positions the last frame actually drew, so it can never disagree
- *  with what is on screen. */
+/** Nearest marker within a finger's reach, read off the positions the last frame
+ *  drew, so hit-testing cannot disagree with what is on screen. */
 function pick(x, y) {
   let code = null, best = 22 * 22;
   for (const p of placed) {
@@ -758,8 +704,8 @@ function bindPointer() {
     const b = canvas.getBoundingClientRect();
     return { x: e.clientX - b.left, y: e.clientY - b.top };
   };
-  /** Dragging the full diameter turns the globe half way round — the surface
-   *  keeps up with the finger instead of sliding under it. */
+  /** A full-diameter drag turns the globe half way round, so the surface keeps
+   *  up with the finger instead of sliding under it. */
   const degPerPx = () => 90 / Math.max(1, size * 0.405);   // matches draw()'s radius
 
   let moveAt = 0;
@@ -786,9 +732,8 @@ function bindPointer() {
       draw();
       return;
     }
-    // Hovering stops the rotation, so only a real pointer may do it — a tap on
-    // a phone fires these too, and a globe that stopped for good after one tap
-    // would look broken.
+    // Hovering stops the rotation, so only a real pointer may: a phone tap fires
+    // these too, and a globe stopped for good after one tap looks broken.
     if (e.pointerType === "mouse") {
       hovering = true;
       const code = pick(x, y);
@@ -819,9 +764,8 @@ function bindPointer() {
     loop();
   });
 
-  // The list under the readout is the same data in words. Pointing at a line
-  // lights its country on the globe, and vice versa — one highlight, two views
-  // of it. Delegated, because the list is rewritten on every poll.
+  // The list is the same data in words — one highlight, two views of it.
+  // Delegated, because the list is rewritten on every poll.
   const list = document.getElementById("countryList");
   if (list) {
     list.addEventListener("pointerover", e => {
@@ -853,8 +797,7 @@ async function poll() {
   const abort = new AbortController();
   const cut = setTimeout(() => abort.abort(), TIMEOUT_MS);
   try {
-    // A bare GET. No credentials, no referrer, no query string, no body:
-    // there is nothing about this visitor the relay should learn.
+    // There is nothing about this visitor the relay should learn.
     const res = await fetch(STATS_URL, {
       method: "GET",
       mode: "cors",
@@ -870,8 +813,8 @@ async function poll() {
     statsAt = Date.now();
     failures = 0;
   } catch {
-    // Unreachable, 404, CORS, malformed, or offline — all the same to the page.
-    // Keep the last numbers only while they can still be called current.
+    // Unreachable, 404, CORS, malformed or offline are all the same here. Keep
+    // the last numbers only while they can still be called current.
     failures = Math.min(failures + 1, 4);
     if (!fresh()) stats = null;
   } finally {
@@ -902,12 +845,9 @@ function clean(raw) {
 /* ------------------------------------------------------------------ readout */
 
 /**
- * How old the numbers are, said plainly.
- *
- * It matters because a failed poll does not immediately blank the readout — the
- * last figures stay up to STALE_MS. Saying "just now" over two-minute-old data
- * would be a small lie, and the point of this section is that it does not tell
- * them.
+ * A failed poll does not blank the readout — the last figures stay up to
+ * STALE_MS — so saying "just now" over two-minute-old data would be a small lie,
+ * and not telling them is the point of this section.
  */
 function age(ms) {
   if (ms < 45_000) return "just now";
@@ -930,16 +870,13 @@ function render() {
     el.classList.toggle("none", value === null);
   }
 
-  // Lit only when the last request actually succeeded. Retained numbers still
-  // show — with their age — but the indicator does not claim a live connection
-  // it has not got.
+  // Only when the last request actually succeeded. Retained numbers still show,
+  // with their age, but the dot claims no connection it has not got.
   const dot = document.getElementById("liveDot");
   if (dot) dot.classList.toggle("on", !!live && failures === 0);
 
-  // Wording, in order of what is true:
-  //   no data          → the neutral caption, which claims nothing
-  //   zero rooms       → say zero. It is a fair thing to know about a new tool.
-  //   otherwise        → the count, as reported.
+  // No data claims nothing; zero rooms says zero, which is a fair thing to know
+  // about a new tool.
   let state = "Sessions worldwide";
   if (live && rooms === 0) state = "Nothing open right now — yours would be the first";
   else if (live) state = "Live · updated " + age(Date.now() - statsAt);
@@ -951,8 +888,8 @@ function render() {
     if (live) {
       for (const [code, n] of [...stats.countries.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8)) {
         const li = document.createElement("li");
-        // The code is what ties a line to a marker: the delegated handler in
-        // bindPointer() reads it, and applyHighlight() writes the class back.
+        // Ties the line to a marker: bindPointer() reads it, applyHighlight()
+        // writes the class back.
         if (CENTROIDS.has(code)) li.dataset.code = code;
         const b = document.createElement("b");
         b.textContent = code;

@@ -368,7 +368,7 @@ Hobby tier allowances, and what each means here:
   requirements.txt
   test_relay.py  test_idle.py
 /tests/live/e2e.mjs         → end-to-end: two peers, real crypto, live relay
-/docs/                 → PRD.md, ARCHITECTURE.md, CLIPBOARD-FLOW.md, P2P-FILES.md, M0-RESULTS.md
+/docs/                 → PRD.md, ARCHITECTURE.md, CLIPBOARD-FLOW.md, P2P-FILES.md
 ```
 
 Both halves live in one repo and deploy independently:
@@ -790,7 +790,7 @@ Severity: **Blocker** = stops the build · **High** = silent wrong behaviour if 
 
 | # | Severity | Issue | Proposed resolution | Owner milestone |
 |---|---|---|---|---|
-| ~~**OI-1**~~ | ✅ **CLOSED** | ~~WebSocket support on FastAPI Cloud is unverified~~ | **Resolved 2026-08-05: it works.** 20/20 gate against `wss://realtimeclipboard.fastapicloud.dev`, upgrade accepted in 973 ms. The SSE+POST fallback is no longer needed; the transport interface stays isolated anyway since it cost nothing. See [M0-RESULTS §4](M0-RESULTS.md) | M0 ✅ |
+| ~~**OI-1**~~ | ✅ **CLOSED** | ~~WebSocket support on FastAPI Cloud is unverified~~ | **Resolved 2026-08-05: it works.** 20/20 gate against `wss://realtimeclipboard.fastapicloud.dev`, upgrade accepted in 973 ms. The SSE+POST fallback is no longer needed; the transport interface stays isolated anyway since it cost nothing | M0 ✅ |
 | **OI-2** | 🟠 High | **Key collision joins a stranger's room.** The app auto-generates a key on first visit and connects. If that key matches a *live* room, two unrelated people silently share a clipboard. The protocol currently has no create-vs-join distinction | Add `intent: "create" \| "join"` to the connect frame. On `create`, if `welcome.peers > 0`, discard the key, regenerate, retry (max 5). On `join`, `peers == 0` is legitimate (first arrival). See §6 | M1 |
 | **OI-3** | 🟠 High | **Multi-replica split-brain** (R1). Room state is a process-local dict; two devices on different replicas silently never see each other | Pin max replicas to 1. Add `GET /health` returning an instance id so the client can detect a mismatch and warn loudly rather than failing quietly | M0 |
 | **OI-4** | 🟡 Medium | **Duplicate sends from multiple tabs.** Two RealtimeClipboard tabs on one machine both poll the same system clipboard and both broadcast the same clip | Leader election across tabs via the Web Locks API (fallback: `BroadcastChannel`). Only the leader tab polls and sends; followers render | M2 |
