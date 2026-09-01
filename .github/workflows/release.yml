@@ -62,7 +62,7 @@ jobs:
           fi
           echo "releasing ${{ github.ref_name }} from $GITHUB_SHA, which main contains"
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with: { node-version: 22, cache: npm }
       - run: npm ci
       - run: npm run verify
@@ -111,7 +111,7 @@ jobs:
       # tauri.conf.json's beforeBuildCommand runs tools/build/build.mjs, which
       # imports esbuild. Without the devDependencies the bundle step fails
       # inside the frontend build with "Cannot find package 'esbuild'".
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with: { node-version: 22, cache: npm }
       - run: npm ci
 
@@ -233,7 +233,7 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with: { node-version: 22, cache: npm, registry-url: "https://registry.npmjs.org" }
       - run: npm ci
       # `npx realtimeclipboard` installs src/core and src/transport — the same modules the
