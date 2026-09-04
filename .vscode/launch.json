@@ -1,0 +1,14 @@
+{
+  // The extension's manifest points `main` at vscode/src/extension.js, so this
+  // needs no preLaunchTask — F5 loads the source tree and the module graph it
+  // imports out of src/. Only the .vsix is ever bundled.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "VS Code extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/vscode"]
+    }
+  ]
+}

@@ -2,7 +2,7 @@
  * Every tunable constant. A magic number anywhere else is a bug.
  */
 
-import { IS_DESKTOP } from "./native.js";
+import { IS_INSTALLED } from "./native.js";
 
 // Guarded: node tests import this and have no `location`; a bare reference
 // throws at import time and takes the whole graph down.
@@ -215,7 +215,7 @@ export const KEY = {
    * An installed app links by QR or link and never pays the typing cost — and it
    * is the surface reading every copy all day, so it takes the longer option.
    */
-  DEFAULT_LONG: IS_DESKTOP,
+  DEFAULT_LONG: IS_INSTALLED,
 };
 
 export const CRYPTO = {

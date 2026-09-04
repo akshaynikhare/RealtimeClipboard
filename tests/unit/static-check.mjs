@@ -441,7 +441,8 @@ const PROSE = [
   ...walk(join(ROOT, "tools")),
   ...["README.md", "CONTRIBUTING.md", "CLAUDE.md", "package.json", "sw.js",
       "cli/realtimeclipboard.mjs", "backend/README.md", "backend/CLAUDE.md",
-      "desktop/README.md", "desktop/CLAUDE.md", "desktop/src-tauri/tauri.conf.json"]
+      "desktop/README.md", "desktop/CLAUDE.md", "desktop/src-tauri/tauri.conf.json",
+      "vscode/README.md", "vscode/CLAUDE.md", "vscode/package.json"]
     .map(f => join(ROOT, f)),
 ].filter(f => /\.(md|ya?ml|json|m?js)$/.test(f) && existsSync(f));
 
@@ -464,7 +465,7 @@ ok(`paths named in docs, config and comments resolve (${PROSE.length} files)`,
    directory with neither is a directory whose rules are back to being folklore. */
 const DOCUMENTED = [
   ...readdirSync(join(ROOT, "src")).map(d => `src/${d}`).filter(d => statSync(join(ROOT, d)).isDirectory()),
-  "src", "tests", "tools", "cli", "backend", "desktop", "docs", "assets",
+  "src", "tests", "tools", "cli", "backend", "desktop", "docs", "assets", "vscode",
 ];
 bad = DOCUMENTED.flatMap(d => ["CLAUDE.md", "README.md"]
   .filter(f => !existsSync(join(ROOT, d, f)))
@@ -518,9 +519,15 @@ const lockVersion = read(join(SRC_TAURI, "Cargo.lock"))
 /* The config may either restate the version or point at package.json. Pointing
    is preferred — it is the copy that cannot drift — so both are accepted. */
 const confOk = conf.version === "../../package.json" || conf.version === pkgVersion;
-ok(`desktop and package.json versions agree (${pkgVersion})`,
-   confOk && cargoVersion === pkgVersion && lockVersion === pkgVersion,
-   `package.json ${pkgVersion}, Cargo.toml ${cargoVersion}, Cargo.lock ${lockVersion}, tauri.conf ${conf.version}`);
+/* The extension manifest cannot point at package.json the way tauri.conf.json
+   can — the Marketplace reads a literal — so it is a fifth copy that must not
+   drift, and tools/release/release.mjs rewrites it with the others. */
+const vsceVersion = JSON.parse(read(join(ROOT, "vscode/package.json"))).version;
+ok(`desktop, extension and package.json versions agree (${pkgVersion})`,
+   confOk && cargoVersion === pkgVersion && lockVersion === pkgVersion
+     && vsceVersion === pkgVersion,
+   `package.json ${pkgVersion}, Cargo.toml ${cargoVersion}, Cargo.lock ${lockVersion}, `
+   + `tauri.conf ${conf.version}, vscode ${vsceVersion}`);
 
 /* ---------- 23b-23f. the desktop shell's native half is actually reachable ----
    Every one of these shipped wrong, silently, and each has the same shape: the
@@ -560,6 +567,17 @@ bad = jsFiles
   .filter(f => /__TAURI__|__TAURI_INTERNALS__/.test(stripComments(read(f))))
   .map(rel);
 ok("Tauri globals confined to core/native.js", bad.length === 0, bad.join(", "));
+
+/* Same rule, second host. A surface that declares itself is only safe while
+   exactly one file reads the declaration — two readers is two answers, which is
+   the failure the Tauri check above was written after. The extension ASSIGNS it
+   (vscode/src/extension.js) and core/native.js READS it; nothing in src/ else. */
+bad = jsFiles
+  .filter(f => rel(f) !== "src/core/native.js")
+  .filter(f => /__REALTIMECLIPBOARD_SURFACE__/.test(stripComments(read(f))))
+  .map(rel);
+ok("the declared-surface global is read only by core/native.js",
+   bad.length === 0, bad.join(", "));
 
 /* A bare generate() ignores the key-length setting. Two of the six call sites
    did, and they were the two that generate a key FOR the user rather than at

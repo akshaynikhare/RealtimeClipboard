@@ -1,7 +1,7 @@
 /**
  * Capture tiers — the heart of the sending half. See docs/CLIPBOARD-FLOW.md.
  *
- *   T0  native clipboard watch  desktop app only — the OS tells us
+ *   T0  native clipboard watch  a native host tells us — desktop app, VS Code
  *   T1  paste event             always works, no permission
  *   T2  read on focus           needs clipboard-read
  *   T3  poll while focused      needs clipboard-read
@@ -9,9 +9,15 @@
  *
  * There is no clipboard-change event on the web platform, so in a browser
  * "capture" means "look at the moments we are allowed to look". T0 is the
- * exception and the reason the desktop app exists: a native listener inside the
- * Tauri shell reports every change, focused or not. That is not T4 — the code
- * doing the watching is not the web page.
+ * exception and the reason the installed surfaces exist: a listener outside the
+ * page reports every change, focused or not. That is not T4 — the code doing the
+ * watching is not the web page.
+ *
+ * T1-T3 are browser workarounds and self-skip where there is no `document`. What
+ * a host without one still gets from this file is everything that is NOT a
+ * workaround: the funnel, the dedupe, the pending queue, the local-copy grace
+ * window, the guard calls and writeNow()'s ordering. Reimplementing those per
+ * host is how two ends come to disagree silently.
  *
  * !! T0 makes the loop-suppression ordering in writeNow() far more dangerous.
  * T3 polled only while focused, so a mistake was bounded by the user looking at
@@ -28,6 +34,9 @@ import * as os from "./os.js";
 let pollTimer = null;
 let started = false;
 
+/** A native host writes whenever it likes; a browser tab needs focus first. */
+const canWriteNow = () => typeof document === "undefined" || document.hasFocus();
+
 /** No instanceof — jsdom's elements come from another realm. */
 const editsText = (el) =>
   Boolean(el && (el.tagName === "TEXTAREA" || el.tagName === "INPUT" || el.isContentEditable));
@@ -36,6 +45,15 @@ export function start() {
   if (started) return;
   started = true;
 
+  // T1 and T2 are events on a document. A native host has none and needs none —
+  // it is told about every change instead, below.
+  if (typeof document !== "undefined") wireDomTiers();
+
+  startNative();
+  detectTier();
+}
+
+function wireDomTiers() {
   // T1 — the only path that still runs below the Clipboard rung: pasting is the
   // deliberate act, and it keeps images working on a rung that never reads the
   // clipboard by itself.
@@ -60,18 +78,15 @@ export function start() {
     await flushPending();
     tryRead();
   });
-
-  startNative();
-  detectTier();
 }
 
 /**
- * T0 — the desktop shell's clipboard watcher. The native side owns the OS
- * boundary and emits `clipboard://text`, which lands in the same capture()
- * funnel as every other tier: a whole new capture mechanism, no UI file changed.
+ * T0 — a native host's clipboard watcher. That side owns the OS boundary and
+ * emits `clipboard://text`, which lands in the same capture() funnel as every
+ * other tier: a whole new capture mechanism, no UI file changed.
  */
 function startNative() {
-  if (!native.IS_DESKTOP) return;
+  if (!native.hasNativeClipboard()) return;
 
   native.listen("clipboard://text", text => {
     // Checked here as well as natively: "nothing leaves this machine" must not
@@ -81,13 +96,15 @@ function startNative() {
     if (typeof text === "string" && text) fromClipboard(text, "Copied anywhere");
   });
 
-  state.setTier("T0", "watching the system clipboard");
+  // The host says how it watches: the desktop shell is told by the OS, the
+  // extension polls. Claiming an event we do not get would be a lie in the UI.
+  state.setTier("T0", native.hostNote());
 }
 
 export async function detectTier() {
   // The native watcher depends on no permission and no focus, so the browser's
   // own detection must not downgrade the reported tier underneath it.
-  if (native.IS_DESKTOP) return;
+  if (native.hasNativeClipboard()) return;
   if (!os.canRead()) return state.setTier("T1", "paste only");
 
   const apply = s => {
@@ -112,6 +129,10 @@ export async function requestPermission() {
 /** T3 — only meaningful while the window is focused, and only on the top rung. */
 export function startPolling() {
   clearInterval(pollTimer);
+  // T3 reads through the browser's clipboard API. A surface with no document has
+  // no such API, and its host's own watcher is T0 — already reporting everything
+  // this would look for.
+  if (typeof document === "undefined") return;
   if (!bindsClipboard(state.get().settings.syncMode)) return;
   const ms = POLL_OPTIONS[state.get().settings.poll] ?? 0;
   if (!ms) return;
@@ -242,11 +263,11 @@ export async function apply(raw) {
   // focus is not a decision, it is what happens when you alt-tab back.
   const risk = guard.looksExecutable(text);
 
-  if (risk || !document.hasFocus() || state.recentLocalCopy()) {
+  if (risk || !canWriteNow() || state.recentLocalCopy()) {
     pending = text;
     pendingRisk = risk;
     emit(EV.PENDING_CLIP, { pending: true, text, risk, altered: guard.wasAltered(raw) });
-    if (!risk && document.hasFocus()) scheduleGraceFlush();
+    if (!risk && canWriteNow()) scheduleGraceFlush();
     return false;
   }
   return writeNow(text);
@@ -267,7 +288,7 @@ function scheduleGraceFlush() {
     graceTimer = null;
     if (pending === null || pendingRisk) return;
     if (state.recentLocalCopy()) return scheduleGraceFlush();   // a fresher copy moved it
-    if (!document.hasFocus()) return;                           // focus will flush it
+    if (!canWriteNow()) return;                                 // focus will flush it
     flushPending();
   }, Math.max(0, left) + 50);
 }
@@ -306,7 +327,7 @@ export async function putOnClipboard(text) {
   if (!text) return false;
   // A blur-commit runs after alt-tab has taken the focus writeText() needs, so
   // it queues rather than drops. The next focus flushes it.
-  if (!document.hasFocus()) {
+  if (!canWriteNow()) {
     pending = text;
     pendingRisk = null;                 // your own text needs no click
     emit(EV.PENDING_CLIP, { pending: true, text });

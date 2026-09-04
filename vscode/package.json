@@ -1,0 +1,122 @@
+{
+  "name": "realtimeclipboard",
+  "displayName": "RealtimeClipboard",
+  "description": "End-to-end encrypted clipboard sync between your machines, without leaving the editor.",
+  "version": "0.6.0",
+  "publisher": "akshaynikhare",
+  "license": "MIT",
+  "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akshaynikhare/RealtimeClipboard.git",
+    "directory": "vscode"
+  },
+  "homepage": "https://realtimeclipboard.com",
+  "bugs": "https://github.com/akshaynikhare/RealtimeClipboard/issues",
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "clipboard",
+    "clipboard-sync",
+    "end-to-end-encrypted",
+    "remote",
+    "share"
+  ],
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "main": "./src/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      { "command": "realtimeclipboard.newSession", "title": "New Session", "category": "RealtimeClipboard" },
+      { "command": "realtimeclipboard.joinSession", "title": "Join Session…", "category": "RealtimeClipboard" },
+      { "command": "realtimeclipboard.copyShareLink", "title": "Copy Share Link", "category": "RealtimeClipboard" },
+      { "command": "realtimeclipboard.sendSelection", "title": "Send Selection", "category": "RealtimeClipboard" },
+      { "command": "realtimeclipboard.sendClipboard", "title": "Send Clipboard Now", "category": "RealtimeClipboard" },
+      { "command": "realtimeclipboard.pasteLatest", "title": "Paste Latest Clip", "category": "RealtimeClipboard" },
+      { "command": "realtimeclipboard.insertLatest", "title": "Insert Latest Clip at Cursor", "category": "RealtimeClipboard" },
+      { "command": "realtimeclipboard.history", "title": "History…", "category": "RealtimeClipboard" },
+      { "command": "realtimeclipboard.syncMode", "title": "Set Sync Mode…", "category": "RealtimeClipboard" },
+      { "command": "realtimeclipboard.lockSession", "title": "Lock Session…", "category": "RealtimeClipboard" },
+      { "command": "realtimeclipboard.unlockSession", "title": "Remove Session PIN", "category": "RealtimeClipboard" },
+      { "command": "realtimeclipboard.leaveSession", "title": "Leave Session", "category": "RealtimeClipboard" },
+      { "command": "realtimeclipboard.openInBrowser", "title": "Open Session in Browser", "category": "RealtimeClipboard" },
+      { "command": "realtimeclipboard.menu", "title": "Show Menu", "category": "RealtimeClipboard" }
+    ],
+    "keybindings": [
+      {
+        "command": "realtimeclipboard.sendSelection",
+        "key": "ctrl+alt+c",
+        "mac": "cmd+alt+c",
+        "when": "editorHasSelection"
+      },
+      {
+        "command": "realtimeclipboard.insertLatest",
+        "key": "ctrl+alt+v",
+        "mac": "cmd+alt+v",
+        "when": "editorTextFocus"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        { "command": "realtimeclipboard.menu", "when": "false" },
+        { "command": "realtimeclipboard.copyShareLink", "when": "realtimeclipboard.connected" },
+        { "command": "realtimeclipboard.sendSelection", "when": "realtimeclipboard.connected && editorHasSelection" },
+        { "command": "realtimeclipboard.sendClipboard", "when": "realtimeclipboard.connected" },
+        { "command": "realtimeclipboard.leaveSession", "when": "realtimeclipboard.connected" },
+        { "command": "realtimeclipboard.openInBrowser", "when": "realtimeclipboard.connected" },
+        { "command": "realtimeclipboard.lockSession", "when": "realtimeclipboard.connected" },
+        { "command": "realtimeclipboard.unlockSession", "when": "realtimeclipboard.locked" }
+      ],
+      "editor/context": [
+        {
+          "command": "realtimeclipboard.sendSelection",
+          "when": "realtimeclipboard.connected && editorHasSelection",
+          "group": "9_cutcopypaste"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "RealtimeClipboard",
+      "properties": {
+        "realtimeclipboard.syncMode": {
+          "type": "string",
+          "enum": ["off", "manual", "live"],
+          "enumDescriptions": [
+            "Nothing leaves this machine and nothing arrives.",
+            "The session syncs, but your system clipboard is never read or written.",
+            "Your system clipboard is wired to the room in both directions."
+          ],
+          "default": "live",
+          "markdownDescription": "How far the sync reaches on this machine. Each rung adds exactly one thing to the one below."
+        },
+        "realtimeclipboard.pollMs": {
+          "type": "number",
+          "enum": [0, 500, 1000, 2000],
+          "enumDescriptions": ["Off", "500ms", "1s", "2s"],
+          "default": 1000,
+          "markdownDescription": "How often to check the system clipboard for something new. `Off` still sends what you share by hand."
+        },
+        "realtimeclipboard.pollWhenUnfocused": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Keep watching the clipboard while VS Code is in the background. This is the one thing the web app cannot do; turn it off if you would rather VS Code read the clipboard only while you are looking at it."
+        },
+        "realtimeclipboard.rememberKey": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Reopen the last session on startup. The key is stored in your operating system keychain, never in a settings file. Turning this off erases what is already stored."
+        },
+        "realtimeclipboard.relayUrl": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Relay to route through. Leave empty for the default. The relay stores nothing and can read nothing — it sees a room hash and ciphertext."
+        }
+      }
+    }
+  }
+}
