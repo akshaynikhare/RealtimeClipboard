@@ -211,8 +211,27 @@ an anti-exfiltration rule: a background tab that could silently read your
 clipboard would harvest every password you copy.
 
 A Chrome extension with the `clipboardRead` permission *can* poll in the
-background — but extensions are blocked in the target corporate environment
-(PRD §1.4), so that door is closed permanently, not just for v1.
+background — but browser extensions are blocked in the target corporate
+environment (PRD §1.4), so that door is closed permanently, not just for v1.
+
+**An installed surface is a different question, and the answer there is yes.**
+The desktop shell and the VS Code extension both watch the clipboard whether or
+not their window has focus, because the code doing the watching is not a web
+page. That is T0. It is not a loophole in the rule above — it is the reason those
+surfaces exist, and it is why "install the app" is the honest answer to anyone
+who wants background capture.
+
+T0 has two implementations, and they differ in one visible way:
+
+| | how it learns | tier note |
+|---|---|---|
+| desktop | a Rust thread polls at 400 ms and emits `clipboard://text` | "watching the system clipboard" |
+| VS Code | the extension host polls `vscode.env.clipboard` on the same interval | "polling the system clipboard" |
+
+Neither is told by the OS — there is no monitoring portal on GNOME Wayland, and
+`vscode.env.clipboard` has no change event — so both poll and both say so.
+`native.hostNote()` carries the wording, because claiming an event we do not get
+would be a lie in the UI.
 
 **The honest mental model to build into the UI:**
 
@@ -241,6 +260,22 @@ Three guards, any one of which would mostly work; together they close it:
    the value we just wrote recognises it (FR-2.7)
 3. **`originId` + suppression window** — 1500 ms after applying a remote clip,
    local capture is muted (FR-2.6)
+
+**Guard 2 is upheld twice on a native host, and the second one is newer and
+easier to get wrong.** `capture.js` `writeNow()` sets `lastSent` before calling
+`os.write()`; the host's own `set_clipboard` then records the value before it
+reaches the OS — `main.rs` on desktop, `vscode/src/host.mjs` in the extension.
+Both are needed, because the host's watcher is a separate loop that never sees
+`lastSent`.
+
+Reversing either pair is the bug this whole section exists for, and it is worse
+on an installed surface than in a tab: a browser polls only while focused, so a
+mistake is bounded by the user looking away, while T0 sees every clipboard change
+on the machine for as long as the app runs. `tests/unit/vscode-host.mjs` pins the
+extension's half — and note what that suite had to learn: a fake clipboard whose
+write resolves instantly cannot tell a correct implementation from a reversed
+one, because it leaves no window for a poll tick to land in. That window is the
+entire point.
 
 ---
 

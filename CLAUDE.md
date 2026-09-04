@@ -6,9 +6,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 RealtimeClipboard — an end-to-end encrypted online clipboard. Text is encrypted in the browser
 (AES-GCM), routed by `SHA-256(key)` through a relay that stores nothing; files go peer-to-peer over
-WebRTC. Four surfaces share one codebase: the web app (`app.html` + `src/`), the marketing landing
-page (`index.html` + `src/landing/`), a Node CLI (`cli/`), and a Tauri desktop shell
-(`desktop/`) that loads `src/` unmodified.
+WebRTC. Five surfaces share one codebase: the web app (`app.html` + `src/`), the marketing landing
+page (`index.html` + `src/landing/`), a Node CLI (`cli/`), a Tauri desktop shell
+(`desktop/`) that loads `src/` unmodified, and a VS Code extension (`vscode/`) that imports
+`src/core/`, `src/transport/` and `src/clipboard/` on the extension host.
+
+`cli/` and `vscode/` are **consumers** of `src/`, not members of it: they sit outside the rank table
+below and carry their own `CLAUDE.md`. The rule both obey is the one in `cli/CLAUDE.md` — nothing
+there may reimplement a protocol detail. `desktop/` and `vscode/` are both **native hosts**, and
+`core/native.js` is the single file that knows one exists.
 
 **Zero runtime dependencies. No build step for development.** `src/` is native ES modules served
 as-is; `npm run build` exists only to assemble the deploy.
