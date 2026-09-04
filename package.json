@@ -47,6 +47,7 @@
     "test:cli": "node tests/live/cli.mjs",
     "build": "node tools/build/build.mjs",
     "build:site": "node tools/build/build.mjs _site && node tools/check/site-check.mjs _site",
+    "size:record": "node tools/build/build.mjs _site --record-size",
     "build:desktop": "node tools/build/build.mjs _desktop --desktop",
     "build:vscode": "node tools/build/build-vscode.mjs",
     "package:vscode": "node tools/build/build-vscode.mjs --package",

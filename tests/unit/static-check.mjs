@@ -449,7 +449,7 @@ const PROSE = [
 bad = [];
 for (const f of PROSE) {
   const src = read(f);
-  for (const m of src.matchAll(/\b((?:tests|tools)\/[\w./-]+\.(?:mjs|py))/g)) {
+  for (const m of src.matchAll(/\b((?:tests|tools)\/[\w./-]+\.(?:mjs|py|json))/g)) {
     // Struck-through paths are deliberately historical — a doc may name a file
     // that was deleted when its milestone closed.
     if (src.includes(`~~\`${m[1]}\`~~`)) continue;

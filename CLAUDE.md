@@ -153,6 +153,15 @@ shipped once:
 
 ## Traps
 
+- **The eager JS has two gates, and they answer different questions.** A recorded
+  baseline (`tools/build/eager-size.json`) fails the build on any *increase* past 2%; a hard
+  ceiling in `tools/build/build.mjs` fails it on a disaster the baseline would otherwise ratchet
+  towards. Growth is fine and expected — it just has to be deliberate: run `npm run size:record`
+  and commit the file, so the number moving is in the diff where a reviewer sees it. The failure
+  names the source modules that moved, via esbuild's metafile, because the emitted chunk names are
+  content hashes and point at nothing. **Both are measured in brotli**, which is what Cloudflare
+  Pages serves; the gate counted gzip for its whole life and gzip is ~14% larger here, so the
+  number it enforced was never the size anybody downloaded.
 - **The service worker will lie to you.** Tick "Bypass for network" in DevTools once per profile.
   When you touch `src/` or the HTML, bump `VERSION` in `sw.js` and add new modules to `SHELL`.
   (Both are rewritten at deploy by `tools/build/build.mjs`; the committed values are what development uses.)
