@@ -21,6 +21,7 @@
 @import url("./qr.css");
 @import url("./hints.css");
 @import url("./ads.css");
+@import url("./appfoot.css");
 /* LAST, and it has to be: nearly every rule in it overrides an earlier sheet's
    at the same specificity, and source order is what settles that. */
 @import url("./mobile.css");

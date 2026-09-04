@@ -36,6 +36,12 @@ const BROWSERS = [
   "C:/Program Files/Google/Chrome/Application/chrome.exe",
   "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
   "/usr/bin/google-chrome", "/usr/bin/chromium",
+  // macOS was missing until 2026-09-04, so this check skipped rather than ran
+  // on every Mac — and a skip prints green. It is the only gate that loads the
+  // real CSP in a real browser.
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+  "/Applications/Chromium.app/Contents/MacOS/Chromium",
+  "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
 ];
 const browser = BROWSERS.find(existsSync);
 if (!browser) { console.log("\nSKIP: no Chromium found\n"); process.exit(0); }
@@ -118,8 +124,8 @@ try {
   await send("Runtime.enable");
   await send("Page.enable");
 
-  for (const path of ["/index.html", "/app.html#CSPTEST", "/help/", "/blog/",
-                    "/download/", "/help/install/"]) {
+  for (const path of ["/index.html", "/app.html#CSPTEST", "/help/", "/about/",
+                    "/contact/", "/terms/", "/download/", "/help/install/"]) {
     violations.length = 0; consoleErrors.length = 0;
     await send("Page.navigate", { url: `http://127.0.0.1:${PORT}${path}` });
     await new Promise(r => setTimeout(r, 3500));

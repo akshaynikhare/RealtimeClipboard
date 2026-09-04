@@ -1,0 +1,38 @@
+/* The line under the ad slot. It carries what the app page otherwise has none
+   of: who publishes this, and a route to the policies. Static markup in
+   app.html rather than a module — it has no state and nothing to bind. */
+
+.appfoot {
+  flex:none;                    /* the editor absorbs the leftover height */
+  padding:8px 16px 10px 56px;   /* 56px lines up with the editor text, past the gutter */
+  border-top:1px solid var(--bd);
+  background:var(--editor);
+  color:var(--dim);
+  font:10.5px/1.6 var(--ui-font);
+}
+
+.appfoot p {
+  margin:0;
+  opacity:.62;
+}
+
+.appfoot nav {
+  display:flex;
+  flex-wrap:wrap;
+  gap:0 10px;
+  margin-top:3px;
+  opacity:.75;
+}
+
+.appfoot a {
+  color:inherit;
+  text-decoration:none;
+  border-bottom:1px solid var(--bd2);
+}
+.appfoot a:hover { color:var(--fg); }
+
+/* Same trade the ad slot makes: on a short viewport the editor is the scarce
+   thing, so the sentence goes and the policy links stay. */
+@media (max-height:620px) {
+  .appfoot p { display:none; }
+}

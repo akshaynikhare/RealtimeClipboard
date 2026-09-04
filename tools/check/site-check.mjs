@@ -52,7 +52,7 @@ const REQUIRED = [
   "assets/icons/icon-192.png", "assets/icons/icon-512.png",
   "assets/icons/maskable-192.png", "assets/icons/maskable-512.png",
   "assets/social/og-card.png",
-  "help/index.html", "blog/index.html",
+  "help/index.html",
   "help/clipboard-sync-not-working/index.html", "help/install/index.html",
   "help/install/windows/index.html", "help/install/mac/index.html",
   "help/install/linux/index.html", "help/install/android/index.html",
@@ -61,7 +61,8 @@ const REQUIRED = [
   "download/index.html", "download/download.css", "src/landing/download.js",
   "snapdrop-alternative/index.html", "what-is-an-online-clipboard/index.html",
   "online-clipboard-no-login/index.html", "clipboard-sync-different-networks/index.html",
-  "privacy/index.html",
+  "privacy/index.html", "about/index.html", "contact/index.html",
+  "terms/index.html",
   // Referenced by no page, so a build that stopped copying them looks healthy.
   // ads.txt is the one with a bill attached: AdSense refuses demand without it.
   "llms.txt", `${INDEXNOW_KEY}.txt`, "ads.txt",
@@ -100,8 +101,8 @@ if (!/^\s*<\?xml/.test(sitemap) || !sitemap.includes("</urlset>")) {
   /**
    * A sitemap entry is a request to index, so pairing one with `noindex` asks
    * for two opposite things and Search Console logs it against the whole site on
-   * every crawl. /blog/ shipped exactly that way despite the sitemap's own
-   * header warning against it — the argument for a check rather than a comment.
+   * every crawl. An empty /blog/ shipped exactly that way despite the sitemap's
+   * own header warning against it — the argument for a check over a comment.
    * And a <loc> for a page not in the deploy is a 404 handed to a crawler.
    */
   const sitemapPage = u => u.replace(ORIGIN, "").replace(/^\//, "").replace(/\/$/, "");

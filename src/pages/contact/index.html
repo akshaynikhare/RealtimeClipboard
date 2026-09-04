@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+  There is no contact form and there will not be one: a form needs somewhere to
+  post to, and this site is static by design — the only server in the project
+  is the relay, which is deliberately incapable of storing anything. An address
+  and an issue tracker do the same job without giving the site a backend it
+  otherwise does not have.
+
+  The "never send your session key" warning is not boilerplate. A share key is
+  a bearer credential, so a key pasted into a bug report hands the session to
+  everyone who reads it.
+-->
+<title>Contact RealtimeClipboard — Support, Security and Enquiries</title>
+<meta name="description" content="How to reach RealtimeClipboard: email info@realtimeclipboard.com for general and business enquiries, GitHub issues for bugs, and a private advisory for security reports. Response times included.">
+<link rel="canonical" href="https://realtimeclipboard.com/contact/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:title" content="Contact RealtimeClipboard">
+<meta property="og:description" content="Where to send support questions, bug reports, security disclosures and business enquiries — and what to expect back.">
+<meta property="og:url" content="https://realtimeclipboard.com/contact/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "ContactPage",
+      "@id": "https://realtimeclipboard.com/contact/#webpage",
+      "url": "https://realtimeclipboard.com/contact/",
+      "name": "Contact RealtimeClipboard",
+      "description": "How to reach the maintainer of RealtimeClipboard for support, security reports and business enquiries.",
+      "inLanguage": "en",
+      "datePublished": "2026-09-04",
+      "dateModified": "2026-09-04",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" }
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://realtimeclipboard.com/#org",
+      "email": "info@realtimeclipboard.com",
+      "contactPoint": [
+        {
+          "@type": "ContactPoint",
+          "contactType": "customer support",
+          "email": "info@realtimeclipboard.com",
+          "availableLanguage": "English"
+        },
+        {
+          "@type": "ContactPoint",
+          "contactType": "technical support",
+          "url": "https://github.com/akshaynikhare/RealtimeClipboard/issues",
+          "availableLanguage": "English"
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "RealtimeClipboard",
+          "item": "https://realtimeclipboard.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Contact",
+          "item": "https://realtimeclipboard.com/contact/"
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/tags.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="/download/">Download</a>
+      <a class="tlink" href="/help/">Help</a>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Open the app</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Breadcrumb">
+        <a href="/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Contact</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>Contact</h1>
+
+        <p class="lede">
+          <b>Email <a href="mailto:info@realtimeclipboard.com">info@realtimeclipboard.com</a> and
+          it reaches the person who maintains the project.</b> RealtimeClipboard
+          is run by one maintainer, so there is no queue and no support tier —
+          but there is also no overnight rota, and the timings below are honest
+          rather than aspirational.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2>Before you write: do not send your session key</h2>
+
+        <p>
+          <b>Never include a share key or a session PIN in an email, a bug report
+          or a screenshot.</b> The key is the whole of the security — anyone
+          holding it can open the session and read it. If you need to demonstrate
+          a problem, start a throwaway session and use that. A screenshot of the
+          app is fine as long as the key panel is cropped out or the key is
+          blanked.
+        </p>
+
+        <h2>Support and general questions</h2>
+
+        <p>
+          <a href="mailto:info@realtimeclipboard.com">info@realtimeclipboard.com</a>. Expect a
+          reply within about three working days.
+        </p>
+
+        <p>
+          Most "it is not syncing" questions have a faster answer than an email
+          can give, because the causes are few and well understood — a browser
+          that will not read the clipboard without permission, two devices on
+          different keys, or an extension blocking the connection. The
+          <a href="/help/clipboard-sync-not-working/">sync troubleshooting
+          guide</a> walks through them in order, and the
+          <a href="/help/">help section</a> covers installing on each platform.
+          Try those first and you will usually be done in a minute.
+        </p>
+
+        <h2>Bugs and feature requests</h2>
+
+        <p>
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">Open
+          an issue on GitHub</a>. This is better than email for anything
+          reproducible: it is public, so the next person hitting the same problem
+          finds the answer, and it is where the fix will be linked when it lands.
+        </p>
+
+        <p>
+          A useful report says which browsers and operating systems were on both
+          ends, what you expected, what happened instead, and anything in the
+          browser console. Everything in the project is open source, so if you
+          would rather send a pull request than a description, that works too.
+        </p>
+
+        <h2>Security disclosures</h2>
+
+        <p>
+          Security problems have their own route and should not go in a public
+          issue.
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/security/advisories/new">Open
+          a private advisory</a> — it stays visible only to you and the
+          maintainer — or email
+          <a href="mailto:info@realtimeclipboard.com">info@realtimeclipboard.com</a> if that form
+          is not available to you.
+        </p>
+
+        <p>
+          Expect an acknowledgement within about a week. Valid reports are
+          credited in the advisory and the changelog unless you would rather they
+          were not. There is no bug bounty and no money — it is a free tool with
+          one maintainer, and pretending otherwise would waste your time. The
+          full policy, including which known trade-offs are deliberate design
+          rather than defects, is in
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/blob/main/SECURITY.md">SECURITY.md</a>.
+        </p>
+
+        <h2>Privacy requests</h2>
+
+        <p>
+          Send them to <a href="mailto:info@realtimeclipboard.com">info@realtimeclipboard.com</a>.
+          Be aware in advance that the usual answer is that there is nothing to
+          hand over: there is no account, no email on file and no server-side
+          record of any session, so the material a service would normally hold
+          about you does not exist. For the advertising and analytics data Google
+          holds, the links in the <a href="/privacy/">privacy policy</a> reach
+          further than any request to this site could.
+        </p>
+
+        <h2>Press, advertising and business enquiries</h2>
+
+        <p>
+          <a href="mailto:info@realtimeclipboard.com">info@realtimeclipboard.com</a>, with
+          "press" or "business" in the subject. RealtimeClipboard is published by
+          CadNative. Logos and the icon set are in the
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">repository</a>
+          and may be used to refer to the project.
+        </p>
+
+        <h2>Why there is no contact form</h2>
+
+        <p>
+          A form has to post somewhere, and that would mean a server that stores
+          messages. The only server in this project is the relay, which is built
+          to be incapable of storing anything and is more useful staying that
+          way. An email address does the same job and leaves the architecture
+          honest.
+        </p>
+
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Open source — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/">Home</a> · <a href="/download/">Download</a> · <a href="/help/">Help</a> · <a href="/about/">About</a> · <a href="/contact/">Contact</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a></p>
+      <p>Sessions are held in memory and never written to disk. Clipboard contents are
+         encrypted in your browser before they are sent.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

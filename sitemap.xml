@@ -3,11 +3,10 @@
      deliberately absent: it is noindex, and listing a page you have asked
      crawlers to skip is a mixed signal.
 
-     /blog/ is absent for the same reason and only while it stays empty: it
-     carries `noindex, follow` until it has posts. Add it back in the same
-     commit that deletes that robots tag, not before — a sitemap entry is a
-     request to index, so shipping one for a noindex page asks Search Console
-     to log an error against the site on every crawl.
+     A sitemap entry is a request to index, so never list a page carrying
+     `noindex` — that asks Search Console to log an error against the site on
+     every crawl. An empty /blog/ shipped exactly that way and was removed
+     rather than padded; tools/check/site-check.mjs now fails on the pairing.
 
      lastmod is the one field here Google actually reads — changefreq and
      priority are ignored, and are kept only because they cost nothing. Set it
@@ -124,9 +123,31 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+  <!-- Publisher identity. Low priority as search targets and load-bearing as
+       trust signals: an ad network, a security researcher and a first-time
+       visitor all look for these, and a site monetised without them reads as
+       unattended. -->
+  <url>
+    <loc>https://realtimeclipboard.com/about/</loc>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://realtimeclipboard.com/contact/</loc>
+    <lastmod>2026-09-04</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
   <url>
     <loc>https://realtimeclipboard.com/privacy/</loc>
     <lastmod>2026-08-08</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  <url>
+    <loc>https://realtimeclipboard.com/terms/</loc>
+    <lastmod>2026-09-04</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>

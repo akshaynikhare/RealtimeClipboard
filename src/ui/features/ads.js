@@ -60,8 +60,39 @@ export function init() {
   // Empty IDs mean a fork or local checkout loads no third-party script.
   if (!adsEnabled() || !GOOGLE.ADSENSE_SLOTS.APP) return;
 
+  consentLink();
+
   if (!location.hash) return mount();
   on(EV.KEY_CHANGED, () => { if (!location.hash) mount(); });
+}
+
+/**
+ * Reveal "Privacy & cookie settings" in the app footer.
+ *
+ * Withdrawing consent has to be as easy as giving it, and Google's CMP renders
+ * no control of its own once dismissed. landing/tags.js does the same job for
+ * the crawlable pages and builds its anchor in JS because it serves twenty
+ * documents; this is one document, so the anchor is markup in app.html and
+ * only the wiring is here — which is also what keeps the eager bundle inside
+ * the build's budget.
+ *
+ * Hidden until the CMP reports in: outside the EEA there is no dialog to
+ * reopen. That wait settles the locked-link case for free — the CMP arrives
+ * with the ad script, which does not load until the key has left the URL.
+ */
+function consentLink() {
+  const a = $("consentPrefs");
+  if (!a) return;
+
+  a.addEventListener("click", e => {
+    e.preventDefault();
+    window.googlefc?.showRevocationMessage?.();
+  });
+
+  const fc = (window.googlefc = window.googlefc || {});
+  (fc.callbackQueue = fc.callbackQueue || []).push({
+    CONSENT_DATA_READY: () => { a.hidden = false; },
+  });
 }
 
 /**
