@@ -64,3 +64,22 @@ desktop.ini
 .env
 .env.*
 !.env.example
+
+# ---- the VS Code extension --------------------------------------------------
+
+# Build output: the bundle plus the staged package root tools/build/build-vscode.mjs
+# assembles. vscode/ on disk is never written to, the same way build.mjs never
+# writes back into src/.
+/vscode/dist/
+
+# `vsce package` output, produced when checking a .vsix before publishing.
+*.vsix
+
+# A trap worth the four lines. `.vscode/` above has no leading slash, so it
+# matches at EVERY level — which is right for a personal settings directory and
+# wrong for the one file that makes F5 work on a fresh clone. Git will not
+# descend into an excluded directory, so re-including the file needs the
+# directory re-included first, then its contents re-excluded around it.
+!/.vscode/
+/.vscode/*
+!/.vscode/launch.json

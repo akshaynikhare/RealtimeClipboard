@@ -20,7 +20,7 @@ import {
   statSync, copyFileSync, cpSync, rmSync, existsSync,
 } from "node:fs";
 import { join, dirname, resolve, relative } from "node:path";
-import { gzipSync } from "node:zlib";
+import { gzipSync, brotliCompressSync } from "node:zlib";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -36,18 +36,45 @@ const DESKTOP = process.argv.includes("--desktop");
 const OUT = resolve(ROOT, process.argv.slice(2).find(a => !a.startsWith("--")) || "_site");
 
 /**
- * Gzipped ceiling for the app's EAGER JavaScript. A budget rather than a report,
- * because "small payload" with no number decays quietly — every addition is
- * individually reasonable and the total is nobody's job. ~35 KB when this
- * landed; the headroom is for growth, not for a new dependency.
+ * Two gates on the app's EAGER JavaScript, because they answer different
+ * questions. A budget rather than a report, because "small payload" with no
+ * number decays quietly — every addition is individually reasonable and the
+ * total is nobody's job.
+ *
+ * BASELINE (eager-size.json) stops silent creep. It fails on any INCREASE past
+ * a small tolerance, so growth has to be deliberate: the fix is to re-record the
+ * number, which puts it in the diff where a reviewer sees it. That is the same
+ * shape as the sw.js SHELL list and build-icons.py --check — the value is on
+ * disk and the check is that reality still matches it.
+ *
+ * CEILING stops a deliberate disaster the baseline would happily ratchet
+ * towards — a new dependency, a lazy panel gone eager. It is deliberately
+ * generous, and that is only safe BECAUSE the baseline exists: creep is the
+ * baseline's job now, so the ceiling does not have to be tight to be useful.
+ *
+ * 45 KB gzip was the original single gate and it did its job — ~35 KB when it
+ * landed, and growth consumed the headroom until it fired. What it could not
+ * survive was having no headroom left and no defined response: a gate that
+ * blocks every change equally has stopped distinguishing between them. So the
+ * headroom is restored (~20% over today) and the ratchet is what makes that
+ * safe.
+ *
+ * MEASURED IN BROTLI, because that is what Cloudflare Pages serves. The gate
+ * counted gzip for its whole life and gzip is ~14% larger here, so the number
+ * written above was never the delivered size it was defending.
  */
-const EAGER_JS_BUDGET = 45 * 1024;
+const EAGER_JS_CEILING = 48 * 1024;
+
+/** How much the baseline may drift before it must be re-recorded. Small enough
+ *  that a real addition trips it, loose enough that a minifier bump does not. */
+const BASELINE_TOLERANCE = 0.02;
 
 /** Kept in step with SITE_ORIGIN in src/core/config.js, which this cannot import. */
 const SITE_ORIGIN = "https://realtimeclipboard.com";
 
 const rel = f => relative(OUT, f).replace(/\\/g, "/");
 const gz = buf => gzipSync(buf, { level: 9 }).length;
+const br = buf => brotliCompressSync(buf).length;
 
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
@@ -120,7 +147,12 @@ const common = {
   logLevel: "error",
 };
 
-await build({ ...common, entryPoints: [join(ROOT, "src/main.js")], outdir: join(OUT, "src") });
+// metafile: the chunk filenames esbuild emits are content hashes, so they change
+// whenever their contents do and are worthless for "what grew". The metafile maps
+// every chunk back to the SOURCE modules inside it, which are stable names.
+const appBuild = await build({
+  ...common, entryPoints: [join(ROOT, "src/main.js")], outdir: join(OUT, "src"), metafile: true,
+});
 await build({
   ...common,
   // Every module an HTML page names in a <script src> must be an entry point: the
@@ -276,22 +308,81 @@ writeFileSync(swPath, withVersion);
  * reachable ones would report exactly the payload the split exists to avoid.
  */
 const mainJs = readFileSync(join(OUT, "src/main.js"));
-const eager = [mainJs, ...[...mainJs.toString().matchAll(/from\s*"\.\/([\w.-]+\.js)"/g)]
-  .map(m => readFileSync(join(OUT, "src", m[1])))];
-const eagerBytes = gz(Buffer.concat(eager));
+const eagerNames = ["main.js", ...[...mainJs.toString().matchAll(/from\s*"\.\/([\w.-]+\.js)"/g)]
+  .map(m => m[1])];
+const eager = eagerNames.map(n => readFileSync(join(OUT, "src", n)));
+const eagerBytes = br(Buffer.concat(eager));
+
+/* Per SOURCE MODULE, so a failure names a culprit a person can open. Minified
+   bytes-in-output rather than compressed: attribution wants a stable per-module
+   number, and compressing a module alone answers a question nobody asked —
+   shared strings across modules only compress once, so those figures would not
+   sum to anything either. The total above is the real, compressed one. */
+const eagerSet = new Set(eagerNames);
+const perModule = {};
+for (const [outPath, out] of Object.entries(appBuild.metafile.outputs)) {
+  if (!eagerSet.has(outPath.split("/").pop())) continue;
+  for (const [src, info] of Object.entries(out.inputs)) {
+    perModule[src] = (perModule[src] ?? 0) + info.bytesInOutput;
+  }
+}
+const ranked = Object.entries(perModule)
+  .map(([name, bytes]) => ({ name, bytes }))
+  .sort((a, b) => b.bytes - a.bytes);
 
 console.log("\nBuild\n");
 console.log(`  service worker  VERSION = ${stamp}`);
-console.log(`  app JS, eager   ${(eagerBytes / 1024).toFixed(1)} KB gzip   (${eager.length} files)`);
+console.log(`  app JS, eager   ${(eagerBytes / 1024).toFixed(1)} KB brotli   (${eager.length} files)`);
 console.log(`  app CSS         ${(gz(readFileSync(join(OUT, "src/styles/main.css"))) / 1024).toFixed(1)} KB gzip   (1 file, was a 17-deep @import chain)`);
 console.log(`  shell entries   ${shell.length}`);
 console.log(`  files to publish ${walk(OUT).length}`);
 
-if (eagerBytes > EAGER_JS_BUDGET) {
-  die(`eager JS is ${(eagerBytes / 1024).toFixed(1)} KB gzip, over the `
-    + `${(EAGER_JS_BUDGET / 1024).toFixed(0)} KB budget in tools/build/build.mjs`);
+const BASELINE_FILE = join(ROOT, "tools/build/eager-size.json");
+const baseline = existsSync(BASELINE_FILE)
+  ? JSON.parse(readFileSync(BASELINE_FILE, "utf8"))
+  : null;
+
+if (process.argv.includes("--record-size")) {
+  writeFileSync(BASELINE_FILE, `${JSON.stringify(
+    { bytes: eagerBytes, compression: "brotli", modules: perModule }, null, 2)}\n`);
+  console.log(`\n  recorded ${eagerBytes} B brotli as the new baseline\n`);
+} else if (eagerBytes > EAGER_JS_CEILING) {
+  blame(baseline);
+  die(`eager JS is ${(eagerBytes / 1024).toFixed(1)} KB brotli, over the hard `
+    + `${(EAGER_JS_CEILING / 1024).toFixed(0)} KB ceiling in tools/build/build.mjs. `
+    + `This one is not a ratchet — get back under it, or change the ceiling on purpose.`);
+} else if (baseline && eagerBytes > baseline.bytes * (1 + BASELINE_TOLERANCE)) {
+  blame(baseline);
+  die(`eager JS grew ${eagerBytes - baseline.bytes} B over the recorded `
+    + `${baseline.bytes} B baseline. If that is intended, run `
+    + `\`npm run build -- --record-size\` and commit tools/build/eager-size.json `
+    + `so the growth is in the diff.`);
+} else {
+  const left = EAGER_JS_CEILING - eagerBytes;
+  console.log(`\n  within budget (${(left / 1024).toFixed(1)} KB under the ceiling`
+    + `${baseline ? `, ${eagerBytes - baseline.bytes >= 0 ? "+" : ""}${eagerBytes - baseline.bytes} B vs baseline` : ""})\n`);
 }
-console.log(`\n  within budget (${(EAGER_JS_BUDGET / 1024).toFixed(0)} KB)\n`);
+
+/** Name the movers. Without this a budget failure is a number and a shrug. */
+function blame(base) {
+  const was = base?.modules ?? {};
+  const moved = [...new Set([...Object.keys(perModule), ...Object.keys(was)])]
+    .map(name => ({ name, delta: (perModule[name] ?? 0) - (was[name] ?? 0) }))
+    .filter(m => m.delta !== 0)
+    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+    .slice(0, 8);
+
+  if (moved.length) {
+    console.log("\n  moved since the baseline (minified bytes in the eager output):");
+    for (const m of moved) {
+      console.log(`    ${((m.delta > 0 ? "+" : "") + m.delta).padStart(8)} B  ${m.name}`);
+    }
+  } else {
+    console.log("\n  biggest eager modules (minified bytes in the eager output):");
+    for (const m of ranked.slice(0, 8)) console.log(`    ${String(m.bytes).padStart(8)} B  ${m.name}`);
+  }
+  console.log("");
+}
 
 function walk(dir, out = []) {
   for (const entry of readdirSync(dir)) {

@@ -10,20 +10,19 @@ import * as native from "../core/native.js";
 /**
  * Requires document focus in a browser. Needs no permission.
  *
- * In the desktop shell it needs neither. The native side owns the OS clipboard
- * there, so an arriving clip lands immediately rather than queueing until the
- * user happens to focus the window — which removes the "1 pending" state
- * entirely on desktop, and with it half of what makes the browser version feel
- * like a compromise.
+ * Under a native host it needs neither: that side owns the OS clipboard, so an
+ * arriving clip lands immediately rather than queueing until the user happens to
+ * focus the window — which removes the "1 pending" state entirely there, and
+ * with it half of what makes the browser version feel like a compromise.
  *
- * The ordering invariant is upheld on the far side: main.rs `set_clipboard`
- * records the value BEFORE writing it, so the native watcher recognises its own
- * echo instead of broadcasting it back (docs/CLIPBOARD-FLOW.md §6).
+ * The ordering invariant is upheld on the far side: every host's `set_clipboard`
+ * records the value BEFORE writing it, so its watcher recognises its own echo
+ * instead of broadcasting it back (docs/CLIPBOARD-FLOW.md §6).
  */
 export async function write(text) {
   // Falls through to the web path rather than failing: a shell too old to know
   // this command should degrade to the browser behaviour, not lose the clip.
-  if (native.IS_DESKTOP && await native.invoke("set_clipboard", { text }) !== null) {
+  if (native.hasNativeClipboard() && await native.invoke("set_clipboard", { text }) !== null) {
     return true;
   }
 
