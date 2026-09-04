@@ -357,6 +357,10 @@ def build():
         out[ROOT / f"assets/icons/icon-{size}.png"] = png(app, size)
         out[ROOT / f"assets/icons/maskable-{size}.png"] = png(maskable, size, "RGB")
 
+    # The Marketplace listing icon. One more consumer of the same master render,
+    # so the extension's mark cannot drift from the app's.
+    out[ROOT / "vscode/icon.png"] = png(app, 128)
+
     icons = ROOT / "desktop/src-tauri/icons"
     for name, size in DESKTOP.items():
         out[icons / name] = png(app, size)

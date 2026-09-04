@@ -294,12 +294,82 @@ jobs:
   # /download/ reads the releases API, and /releases/latest skips drafts — so
   # until this runs, the buttons keep pointing at the generic releases page.
   #
-  # `needs: desktop` and deliberately NOT npm. They are separate channels, and
+  # ── the VS Code extension ────────────────────────────────────────────────
+  # Two jobs on purpose, and the split is the same lesson the npm job records.
+  #
+  # `vscode` only builds the .vsix and attaches it to the draft. It needs no
+  # external token, so it cannot fail for a reason outside this repository —
+  # which is what makes it safe for publish-release to wait on, and what earns
+  # the .vsix a line in SHA256SUMS and a sideloadable asset.
+  #
+  # `vscode-publish` talks to two registries with two tokens that expire, and
+  # NOTHING waits on it. An expired Marketplace PAT must not hide three
+  # perfectly good installers behind a draft nobody can reach.
+  vscode:
+    needs: desktop            # the draft release exists by then
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      # --package shells out to `npx @vscode/vsce`, which is deliberately not a
+      # devDependency: it pulls a large tree and is only ever wanted here. Three
+      # devDependencies is a stated property of this repo.
+      - run: npm run package:vscode
+      - name: Attach the .vsix to the draft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.ref_name }}" vscode/dist/*.vsix --clobber
+
+  vscode-publish:
+    needs: vscode
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+        with: { node-version: 22 }
+      # From the release rather than a workflow artifact: it is the same file,
+      # gh is already this workflow's idiom for reaching a draft, and it saves
+      # pinning two more actions to hand one file between two jobs.
+      - name: Fetch the .vsix
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p dist
+          gh release download "${{ github.ref_name }}" --repo "${{ github.repository }}" \
+            --pattern '*.vsix' --dir dist
+      # Skipped rather than failed when the token is absent, so a fork — and the
+      # first tag cut before the publisher ID exists — still produces a .vsix
+      # instead of a red workflow. The `secrets` context is not available in a
+      # job-level `if`, hence the env indirection.
+      #
+      # --skip-duplicate for the same reason the npm job checks `npm view`
+      # first: a release re-run after one platform failed must not go red on the
+      # channel that succeeded the first time. Neither registry will replace a
+      # published version, and rightly so.
+      - name: Visual Studio Marketplace
+        if: env.VSCE_PAT != ''
+        run: npx --yes @vscode/vsce publish --packagePath dist/*.vsix --skip-duplicate
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      # VSCodium, Cursor, Windsurf, Gitpod and code-server: none of them may use
+      # the Microsoft Marketplace, so this is not a nice-to-have second channel.
+      - name: Open VSX
+        if: env.OVSX_PAT != ''
+        run: npx --yes ovsx publish dist/*.vsix --skip-duplicate -p "$OVSX_PAT"
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+
+  # `needs: [desktop, vscode]` and deliberately NOT npm. They are separate channels, and
   # coupling them means an expired npm token hides three perfectly good
   # installers behind a draft nobody can reach — which is what happened on the
   # first attempt at v0.3.0.
   publish-release:
-    needs: desktop
+    needs: [desktop, vscode]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
@@ -321,6 +391,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p dist && cd dist
+          # Every asset already attached, which is why the vscode job has to have
+          # finished — see this job's `needs`.
           gh release download "${{ github.ref_name }}" --pattern '*' --skip-existing
           # Sorted, so the file is byte-identical for the same set of assets
           # whatever order the matrix finished in — a diff between two runs

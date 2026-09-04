@@ -34,6 +34,7 @@ const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const PKG = join(REPO, "package.json");
 const CARGO_TOML = join(REPO, "desktop/src-tauri/Cargo.toml");
 const CARGO_LOCK = join(REPO, "desktop/src-tauri/Cargo.lock");
+const VSCODE_PKG = join(REPO, "vscode/package.json");
 
 const args = process.argv.slice(2);
 const DRY = args.includes("--dry");
@@ -185,6 +186,14 @@ writeFileSync(PKG, JSON.stringify(pkg, null, 2) + "\n");
 replaceOnce(CARGO_TOML, /(\[package\][\s\S]*?\r?\nversion = )"[^"]+"/, `$1"${version}"`);
 replaceOnce(CARGO_LOCK, /(name = "realtimeclipboard"\r?\nversion = )"[^"]+"/, `$1"${version}"`);
 
+/* The extension manifest is a fifth copy, and unlike tauri.conf.json it cannot
+   point at package.json — the Marketplace reads a literal. Missing it fails
+   static-check §23 on the release commit itself, which is the good failure, but
+   only after the human step. */
+const vscodePkg = JSON.parse(readFileSync(VSCODE_PKG, "utf8"));
+vscodePkg.version = version;
+writeFileSync(VSCODE_PKG, JSON.stringify(vscodePkg, null, 2) + "\n");
+
 /* ---------------------------------------------- land it through a pull request
 
    The ruleset on main requires one and has no bypass actors, so `git push
@@ -194,7 +203,8 @@ replaceOnce(CARGO_LOCK, /(name = "realtimeclipboard"\r?\nversion = )"[^"]+"/, `$
 git("switch", "-c", releaseBranch);
 
 git("add", "CHANGELOG.md", "changelog.json", "package.json",
-    "desktop/src-tauri/Cargo.toml", "desktop/src-tauri/Cargo.lock");
+    "desktop/src-tauri/Cargo.toml", "desktop/src-tauri/Cargo.lock",
+    "vscode/package.json");
 
 // --no-verify, and it is not a shortcut: the hook's gate is `npm run verify`,
 // which ran a few seconds ago against this same tree, and nothing has changed

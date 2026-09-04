@@ -93,6 +93,48 @@ confirmation that both joined the same room — you will see two
 `WebSocket /ws/<hash>` lines with an **identical hash**. The hash is a digest of
 the key; the relay never learns `DEVKEY` itself.
 
+### The VS Code extension
+
+`vscode/package.json` points `main` at `vscode/src/extension.js` — the source
+tree — so **F5 needs no build**. Open the repo in VS Code and press it; the
+Extension Development Host launches with `--extensionDevelopmentPath` pointed at
+`vscode/`, and the modules it imports out of `src/` are the ones on disk.
+
+The launch config lives at `.vscode/launch.json`, and it is committed **through a
+four-line escape hatch in `.gitignore`**. The `.vscode/` rule there has no leading
+slash, so it matches at every depth and would swallow the one file that makes F5
+work on a fresh clone. If you ever see "F5 does nothing", check that first.
+
+Only the `.vsix` is bundled. `npm run build:vscode` stages a package root under
+`vscode/dist/pkg/` with its own manifest whose `main` points at the bundle —
+`vscode/` on disk is never written to, the same way `build.mjs` never writes back
+into `src/`. Rewriting the source manifest to match the shipped one silently
+breaks the dev loop.
+
+To see it work, join the same room from two surfaces:
+
+```bash
+npm run relay                                     # :8000
+node tools/build/build-vscode.mjs                 # only if you want the bundle
+# F5, then "RealtimeClipboard: New Session", then "Copy Share Link"
+npx ./cli/realtimeclipboard.mjs <KEY> --relay ws://127.0.0.1:8000
+```
+
+Copy something in either and it lands in the other. `npm run test:vscode` does
+this without a human — it drives the built bundle under a fake `vscode` API with
+the CLI as the peer.
+
+The extension host is bare Node, so **there is no `document`, no `localStorage`
+and no `EventSource`**. The first two are shimmed in `vscode/src/storage.js`
+before any `src/` module loads; the third means this surface is WebSocket-only,
+which `transport/relay.js` already handled. If you are wondering whether some
+browser global exists there, ask rather than assume:
+
+```bash
+ELECTRON_RUN_AS_NODE=1 "/Applications/Visual Studio Code.app/Contents/MacOS/Code" \
+  -e 'console.log(process.versions.node, typeof WebSocket, typeof crypto.subtle)'
+```
+
 ---
 
 ## 3. The service worker will lie to you

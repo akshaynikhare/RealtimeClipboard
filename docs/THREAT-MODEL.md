@@ -223,6 +223,15 @@ Limits: **5 MB** per file, 20 files per session, memory only.
 - **A compromised endpoint.** Malware, a hostile browser extension, or someone reading your screen
   defeats every clipboard tool including this one. The clipboard is readable by any app on the
   machine by design.
+- **What an installed surface can reach.** The desktop shell and the VS Code extension are not
+  sandboxed the way a tab is: the extension host has the user's full filesystem access and sits
+  beside an integrated terminal. Two consequences worth stating rather than implying. First, **they
+  read every clipboard change on the machine while running**, not only while focused — that is T0,
+  it is the feature, and `realtimeclipboard.pollWhenUnfocused` turns it off for anyone who would
+  rather it did not. Second, `clipboard/guard.js` matters more there than anywhere else, because a
+  planted `curl … | sh` is one keystroke from a shell rather than a browser tab; the extension holds
+  a flagged clip behind a modal and `capture.confirmPending()` is the only path that writes it.
+  Neither surface executes anything it receives.
 - **Traffic analysis.** Frame sizes and timing are not padded.
 - **The relay operator's honesty about §2.** You are trusting a deployment you cannot inspect.
   `deploy/docker-compose.yml` brings up your own with TLS in one command; that is the answer, and

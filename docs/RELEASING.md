@@ -40,7 +40,7 @@ Every rule that follows from that diagram is enforced rather than trusted:
 | Tests pass before a commit exists | `.husky/pre-commit` → `npm run verify` |
 | A commit says what kind of change it is | `.husky/commit-msg` |
 | A broken site is never promoted | `tools/check/site-check.mjs`, in the Cloudflare build |
-| Only a tag ships CLI/desktop/relay | `.github/workflows/release.yml` — its only trigger is `push: tags: v*` |
+| Only a tag ships CLI/desktop/extension/relay | `.github/workflows/release.yml` — its only trigger is `push: tags: v*` |
 | And only a tag `main` already contains | `release.yml` → *Refuse a tag that is not on main* |
 | Nothing else builds anything, anywhere | no workflow has a branch trigger; Pages previews are off |
 
@@ -131,8 +131,8 @@ nothing the site is made of — and they are set to `*`, everything, on purpose.
 `changelog.json` into `_site` alongside `src/` and `assets/`. A docs-only commit
 therefore *does* change the deployed site, and excluding `docs/*` — the first
 thing anyone reaches for — would silently stop publishing it. What is genuinely
-not an input is `backend/`, `cli/`, `desktop/`, `deploy/`, `tests/`, `.github/`,
-`.husky/` and `tools/release/`.
+not an input is `backend/`, `cli/`, `desktop/`, `vscode/`, `deploy/`, `tests/`,
+`.github/` and `.husky/` and `tools/release/`.
 
 Which is a real but small saving, against a failure mode this repo goes out of
 its way to avoid everywhere else: a skipped build looks exactly like a
@@ -267,10 +267,20 @@ has to be re-deployed when the binaries land.
 ### What the jobs do, and what stops
 
 ```
-verify ──┬── desktop  (windows / macos / ubuntu-22.04)  ─┬── publish-release ── manifests
-         ├── npm                                        ─┘
+verify ──┬── desktop  (windows / macos / ubuntu-22.04) ──┬── publish-release ── manifests
+         │        └── vscode ── vscode-publish        ───┘
+         ├── npm
          └── relay-image
 ```
+
+`publish-release` waits on `desktop` and `vscode`, and on neither of the two jobs
+that talk to an external registry. That split is the whole design: `vscode`
+builds the `.vsix` and attaches it to the draft using only `GITHUB_TOKEN`, so it
+cannot fail for a reason outside this repository — which is what earns it a line
+in `SHA256SUMS` and a sideloadable asset. `vscode-publish` and `npm` hold tokens
+that expire, and **nothing waits on either**, because an expired Marketplace PAT
+must not hide three perfectly good installers behind a draft nobody can reach.
+That is not hypothetical; it is what happened on the first attempt at v0.3.0.
 
 `publish-release` is the job that makes the release public, and it needs **all
 three** desktop legs. A partial build therefore leaves a draft nobody can
@@ -438,7 +448,44 @@ when the running version differs from the last one this browser saw. Two rules:
 
 A missing or malformed `changelog.json` produces silence, not an error.
 
+### The extension's one-time steps
+
+**`VSCE_PAT` and the publisher ID.** `vscode-publish` skips itself when these are
+missing, so a tag still produces a `.vsix` — it just never reaches anybody who
+would install it from inside their editor.
+
+1. Create the publisher at <https://marketplace.visualstudio.com/manage>. The ID
+   is **lowercase and permanent**, and it must equal `publisher` in
+   `vscode/package.json` or `vsce` refuses the upload.
+2. Mint a PAT in Azure DevOps with scope **Marketplace → Manage**, and
+   organisation **All accessible organizations** — scoped to one org it fails
+   with an error that does not say why.
+3. `gh secret set VSCE_PAT`
+
+**Azure DevOps PATs expire**, and a silently expired one is a channel that stops
+updating while every other channel keeps working — the same failure shape as the
+npm token, and worth a calendar entry. Microsoft is retiring global PATs on
+1 December 2026 in favour of Entra ID; when that lands, this moves the same way
+npm's 2FA-bypass token moves to Trusted Publishing.
+
+**`OVSX_PAT`.** Open VSX is where Cursor, Windsurf, VSCodium, Gitpod and
+code-server get their extensions — none of them **may** use the Microsoft
+Marketplace, so this is a second audience rather than a second-best mirror. Sign
+in at <https://open-vsx.org>, agree the publisher agreement, create a namespace
+matching the publisher ID (`ovsx create-namespace <id>`), then
+`gh secret set OVSX_PAT`. There is no review queue.
+
+Publish `0.0.1` by hand once before a tag depends on it, so the Marketplace page
+is known to render.
+
 ### One version, one identity
+
+The version is written in **five** places and `tools/release/release.mjs` moves
+all of them: `package.json`, `Cargo.toml`, `Cargo.lock`, `vscode/package.json`
+and — by reference rather than by copy — `tauri.conf.json`, which reads
+`"../../package.json"`. The extension manifest cannot do that, because the
+Marketplace reads a literal. `tests/unit/static-check.mjs` asserts all five
+agree, so a missed one fails the release commit itself.
 
 `tools/build/build.mjs` stamps `sw.js`'s `VERSION` as **`<package.json version>+<short
 commit sha>`** — `0.3.1+9f2c4ab10e77`. The leading half is the same string that
