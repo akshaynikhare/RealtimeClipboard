@@ -9,7 +9,7 @@ please report one privately and give it a chance to be fixed before it is public
 **[Open a private advisory](https://github.com/akshaynikhare/RealtimeClipboard/security/advisories/new)**
 — it is private to you and the maintainer, and it is the preferred route.
 
-If that form is unavailable to you, email **info@cadnative.com** with
+If that form is unavailable to you, email **info@realtimeclipboard.com** with
 `SECURITY` in the subject.
 
 Please do **not** open a public issue for a working attack on someone's session.

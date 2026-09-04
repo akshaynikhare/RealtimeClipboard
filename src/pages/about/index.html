@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+  Publisher identity. Not an SEO page and not a pitch: an ad network, a
+  security researcher and a first-time visitor all arrive wanting the same
+  three facts — who runs this, how it is paid for, and what it does with what
+  you paste. Answering them in one place is the whole job.
+
+  Keep it specific. A page that could describe any product describes nothing,
+  and vagueness about funding is exactly what this page exists to remove.
+-->
+<title>About RealtimeClipboard — Who Builds It and How It Is Funded</title>
+<meta name="description" content="RealtimeClipboard is a free, end-to-end encrypted online clipboard built by Akshay Nikhare at CadNative. Who makes it, how it works, what it deliberately does not do, and how it pays for itself.">
+<link rel="canonical" href="https://realtimeclipboard.com/about/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:title" content="About RealtimeClipboard">
+<meta property="og:description" content="Who builds RealtimeClipboard, how the encryption works, what it deliberately does not do, and how a free service with no accounts pays for its server.">
+<meta property="og:url" content="https://realtimeclipboard.com/about/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "AboutPage",
+      "@id": "https://realtimeclipboard.com/about/#webpage",
+      "url": "https://realtimeclipboard.com/about/",
+      "name": "About RealtimeClipboard",
+      "description": "Who builds RealtimeClipboard, how it works, what it deliberately does not do, and how it is funded.",
+      "inLanguage": "en",
+      "datePublished": "2026-09-04",
+      "dateModified": "2026-09-04",
+      "about": { "@id": "https://realtimeclipboard.com/#org" },
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" }
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://realtimeclipboard.com/#org",
+      "founder": {
+        "@type": "Person",
+        "name": "Akshay Nikhare",
+        "url": "https://github.com/akshaynikhare"
+      },
+      "email": "info@realtimeclipboard.com",
+      "foundingDate": "2026"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "RealtimeClipboard",
+          "item": "https://realtimeclipboard.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "About",
+          "item": "https://realtimeclipboard.com/about/"
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/tags.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="/download/">Download</a>
+      <a class="tlink" href="/help/">Help</a>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Open the app</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Breadcrumb">
+        <a href="/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">About</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>About RealtimeClipboard</h1>
+
+        <p class="lede">
+          <b>RealtimeClipboard is a free online clipboard that moves text and
+          files between your own devices without an account.</b> It is built and
+          run by Akshay Nikhare at CadNative, the source is public under the MIT
+          licence, and it is paid for by the ad slot below the editor. This page
+          covers all three of those, plus the things it deliberately refuses to
+          do.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2>Why it exists</h2>
+
+        <p>
+          Moving a paragraph from a work laptop to a personal phone is a solved
+          problem only if both devices happen to agree on an ecosystem. Apple
+          devices have Universal Clipboard, and it stops at the edge of Apple.
+          Local tools like Snapdrop need both machines on the same Wi-Fi, which
+          rules out a phone on mobile data, a locked-down office network, or a
+          machine two countries away. Everything else ends up being the same
+          workaround: email it to yourself, or paste it into a chat with
+          yourself, and let a company you did not choose keep a copy forever.
+        </p>
+
+        <p>
+          RealtimeClipboard is the narrow answer to that. You open the same short
+          key on two devices and they share a clipboard. There is no account to
+          make, nothing to install, no network requirement beyond both devices
+          being online, and no copy left behind when you close the tab.
+        </p>
+
+        <h2>How it works</h2>
+
+        <p>
+          What you copy is encrypted in your browser with AES-GCM before it
+          leaves the machine, using a key derived from the short session key you
+          type. <b>That session key is never transmitted.</b> The server receives
+          a SHA-256 hash of it, which is enough to know which room to forward a
+          message to and not enough to open one, plus ciphertext it has no way to
+          read.
+        </p>
+
+        <p>
+          The relay holds messages in memory for the moment it takes to pass them
+          on and writes nothing to disk. Files skip the server entirely — they
+          travel directly between your devices over WebRTC, so a large transfer
+          costs the service nothing and never exists anywhere in the middle. A
+          session can be locked with a PIN, which is also never transmitted.
+        </p>
+
+        <p>
+          None of that requires trusting a description of it. The
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">full source</a>
+          is public, the wire protocol and threat model are written down in the
+          repository, and the relay is a separate service that shares no code
+          with the browser — only the documented protocol.
+        </p>
+
+        <h2>What it will not do</h2>
+
+        <p>
+          A short list, because what a product refuses is more informative than
+          what it promises:
+        </p>
+
+        <p>
+          <b>It will not merge two people typing at once.</b> Conflict-free
+          collaborative editing is a real and heavy piece of engineering, and
+          this is a clipboard. When two devices type together you see the other
+          caret coming in its own colour, and an arriving clip is offered rather
+          than silently applied over your work.
+        </p>
+
+        <p>
+          <b>It will not remember you.</b> No account, no email, no profile, no
+          server-side history. Settings and clipboard history live in your own
+          browser storage and are never uploaded. This is also the honest cost of
+          the design: lose the key and there is no reset link, because there is
+          nothing on the server that knows the session was yours.
+        </p>
+
+        <p>
+          <b>It will not pretend the key is more than it is.</b> The share key is
+          a bearer credential — anyone who has it can read the session, which is
+          exactly what makes a five-character key with no login possible. That
+          trade is documented rather than hidden, and a PIN lock exists for when
+          it is the wrong trade.
+        </p>
+
+        <p>
+          <b>It will not sell what you paste.</b> It could not: the contents are
+          encrypted before they are sent and the server has no key.
+        </p>
+
+        <h2>How it is paid for</h2>
+
+        <p>
+          The relay is a rented server with a real monthly bill, and there is no
+          subscription, no paid tier and no account to attach one to. A single ad
+          slot below the editor, served by Google AdSense, is what covers it.
+        </p>
+
+        <p>
+          It is worth being precise about what that means, since the two claims
+          sit next to each other. An ad tag is third-party code running inside
+          the page, and in the app that page is the one showing your decrypted
+          text — so Google's script runs where that content is visible, the same
+          as any script on any page. What it does not get is your session key:
+          the app strips the key out of the address bar before the ad tag is
+          allowed to load at all. The encryption between your devices and the
+          relay is unaffected either way. The
+          <a href="/privacy/">privacy policy</a> sets out the whole of it,
+          including what Google Analytics sees.
+        </p>
+
+        <h2>Who builds it</h2>
+
+        <p>
+          RealtimeClipboard is made by <b>Akshay Nikhare</b>, a software engineer,
+          and published by <b>CadNative</b>. It is not a venture-funded company
+          and there is no team behind it — it is one maintainer, which is the
+          reason the scope stays this narrow and the reason a bug report gets read
+          by the person who can fix it.
+        </p>
+
+        <p>
+          The project is open source under the MIT licence. It ships as four
+          things from one codebase: the web app, this site, a Node command-line
+          client, and a desktop build for Windows, macOS and Linux. Contributions,
+          bug reports and security disclosures are all welcome — see
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">the repository</a>
+          for how the code is laid out and what the rules are.
+        </p>
+
+        <h2>Getting in touch</h2>
+
+        <p>
+          Questions, corrections, press and business enquiries all go to
+          <a href="mailto:info@realtimeclipboard.com">info@realtimeclipboard.com</a>. Bugs and
+          feature requests are better as
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">GitHub issues</a>,
+          and security problems have
+          <a href="/contact/">their own private route</a>. The
+          <a href="/contact/">contact page</a> has the detail, including what to
+          expect and how long it takes.
+        </p>
+
+        <p>
+          If something on this site is wrong, say so. It gets fixed and the
+          change is in the public history.
+        </p>
+
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Open source — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/">Home</a> · <a href="/download/">Download</a> · <a href="/help/">Help</a> · <a href="/about/">About</a> · <a href="/contact/">Contact</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a></p>
+      <p>Sessions are held in memory and never written to disk. Clipboard contents are
+         encrypted in your browser before they are sent.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

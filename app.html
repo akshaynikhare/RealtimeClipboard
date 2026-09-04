@@ -220,6 +220,33 @@
       <!-- The single ad slot. Below the editor, never beside the file or
            session controls — see src/ui/features/ads.js for why. -->
       <div id="mount-ad"></div>
+
+      <!-- The app page's own publisher line. It exists because this document
+           is where the ad unit serves, and an ad running on a page with no
+           statement of who publishes it and no route to the policies is the
+           thing ad networks reject a site for. Static, because it has no state
+           — see styles/appfoot.css. -->
+      <footer class="appfoot">
+        <p>
+          RealtimeClipboard is a free, end-to-end encrypted online clipboard by
+          CadNative. What you type here is encrypted in this browser before it
+          is sent; the relay routes it without being able to read it, and files
+          go straight between your devices. Ads pay for the relay.
+        </p>
+        <nav aria-label="Site">
+          <a href="/">Home</a>
+          <a href="/help/">Help</a>
+          <a href="/download/">Download</a>
+          <a href="/about/">About</a>
+          <a href="/contact/">Contact</a>
+          <a href="/privacy/">Privacy</a>
+          <!-- Unhidden by ui/features/ads.js once Google's CMP reports in.
+               Hidden until then because outside the EEA there is no dialog to
+               reopen, and a link that does nothing is worse than no link. -->
+          <a href="#" id="consentPrefs" hidden>Privacy &amp; cookie settings</a>
+          <a href="/terms/">Terms</a>
+        </nav>
+      </footer>
     </main>
 
     <!-- Drag to widen or narrow the sidebar. -->

@@ -15,7 +15,10 @@ The indexable content pages. Static HTML, no app JavaScript, published at the si
 | `help/install/relay/` | `/help/install/relay/` | Running your own relay |
 | `help/clipboard-sync-not-working/` | `/help/clipboard-sync-not-working/` | The most-searched failure case |
 | `download/` | `/download/` | Platform downloads. Has its own `download.css` |
-| `blog/` | `/blog/` | Blog index |
+| `privacy/` | `/privacy/` | Privacy policy |
+| `about/` | `/about/` | Publisher identity: who builds it, how it is funded |
+| `contact/` | `/contact/` | Support, security and business routes |
+| `terms/` | `/terms/` | Terms of use |
 
 Every URL in `sitemap.xml` except `/` is one of these pages, so their paths are load-bearing for
 search. `tools/check/site-check.mjs` pins each of them by name in `REQUIRED`, because the build

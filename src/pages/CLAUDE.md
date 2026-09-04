@@ -1,6 +1,6 @@
 # src/pages/
 
-Static content pages — `/help/`, `/blog/`, `/download/`. The one part of `src/` that is **copied
+Static content pages — `/help/`, `/download/`, `/about/`. The one part of `src/` that is **copied
 verbatim rather than bundled**, and the one part whose disk path is not its URL:
 
 ```

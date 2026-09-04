@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+  Terms for a service with no accounts, which makes most of a standard terms
+  page inapplicable: there is nothing to suspend, no subscription to cancel and
+  no data to return. What is left is the part that actually matters here — that
+  the key is a bearer credential, that nothing is retained, and that losing the
+  key is unrecoverable by design rather than by neglect.
+
+  Written to be read. A clause nobody reads protects nobody.
+-->
+<title>Terms of Use — RealtimeClipboard</title>
+<meta name="description" content="The terms for using RealtimeClipboard: acceptable use, what the service does not guarantee, why lost session keys cannot be recovered, and the limits of liability for a free tool.">
+<link rel="canonical" href="https://realtimeclipboard.com/terms/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:title" content="Terms of Use — RealtimeClipboard">
+<meta property="og:description" content="Acceptable use, what is and is not guaranteed, and why a lost session key cannot be recovered.">
+<meta property="og:url" content="https://realtimeclipboard.com/terms/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://realtimeclipboard.com/terms/#webpage",
+      "url": "https://realtimeclipboard.com/terms/",
+      "name": "Terms of Use",
+      "description": "The terms for using RealtimeClipboard, including acceptable use and limits of liability.",
+      "inLanguage": "en",
+      "datePublished": "2026-09-04",
+      "dateModified": "2026-09-04",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "RealtimeClipboard",
+          "item": "https://realtimeclipboard.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Terms of Use",
+          "item": "https://realtimeclipboard.com/terms/"
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/tags.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="/download/">Download</a>
+      <a class="tlink" href="/help/">Help</a>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Open the app</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Breadcrumb">
+        <a href="/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Terms of Use</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>Terms of Use</h1>
+
+        <p class="lede">
+          <b>RealtimeClipboard is a free tool with no accounts, provided as-is.</b>
+          Most of what a terms page usually governs does not exist here — there is
+          no subscription, no login and no stored data — so this is short, and it
+          concentrates on the parts that genuinely apply.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <p>Last updated 4 September 2026.</p>
+
+        <h2>Agreement</h2>
+
+        <p>
+          Using this website, the app at <a href="/app.html">/app</a>, the
+          command-line client or the desktop build means you accept these terms.
+          If you do not, do not use them. The service is operated by CadNative and
+          maintained by Akshay Nikhare; the <a href="/about/">about page</a> has
+          the detail.
+        </p>
+
+        <h2>What the service is</h2>
+
+        <p>
+          A relay that forwards encrypted messages between devices holding the
+          same session key, and a signalling path that lets those devices connect
+          directly to send files. It is not storage, not a backup, and not a
+          record. Messages exist in memory for the moment it takes to forward
+          them and are never written to disk.
+        </p>
+
+        <h2>Your session key is your responsibility</h2>
+
+        <p>
+          The session key is a bearer credential: anyone who has it can join the
+          session and read what is in it. That is a consequence of a short key
+          with no account, not an oversight, and it means two things are on you.
+        </p>
+
+        <p>
+          <b>Do not share a key with anyone you do not intend to share the
+          clipboard with</b>, and be careful where a share link is posted — a
+          link contains the key. If a session needs more protection, lock it with
+          a PIN.
+        </p>
+
+        <p>
+          <b>A lost key cannot be recovered.</b> There is no reset, because there
+          is no account and nothing on the server that knows the session was
+          yours. This is the same property that makes the service private, and it
+          cannot be relaxed for one person without being relaxed for everyone.
+        </p>
+
+        <h2>Acceptable use</h2>
+
+        <p>You agree not to use the service to:</p>
+
+        <p>
+          Send anything unlawful, or anything you do not have the right to send.
+          Distribute malware, or content designed to compromise the device that
+          receives it. Harass, threaten or impersonate anyone. Infringe copyright
+          or any other right belonging to somebody else.
+        </p>
+
+        <p>
+          You also agree not to attack the service itself: no attempt to overload
+          the relay, no automated flooding of sessions, no scraping or
+          brute-forcing of keys, and no attempt to breach or circumvent its
+          security. Testing the security of the service is welcome through the
+          disclosure route on the <a href="/contact/">contact page</a>, which is
+          the difference between research and an attack.
+        </p>
+
+        <p>
+          Because contents are encrypted before they are sent, misuse cannot be
+          detected by inspection — there is nothing to inspect. Enforcement is
+          therefore limited to blocking traffic patterns and, where required,
+          responding to lawful requests with the little that exists.
+        </p>
+
+        <h2>Availability</h2>
+
+        <p>
+          There is no uptime guarantee. The relay may be restarted, rate-limited,
+          moved or taken down without notice, and idle sessions are dropped.
+          Treat anything you would be upset to lose as something to keep
+          elsewhere as well — this is a way to move text between devices, not a
+          place to leave it.
+        </p>
+
+        <h2>Advertising</h2>
+
+        <p>
+          The site and the app carry advertising served by Google AdSense, which
+          is what pays for the relay. Ads come from Google and its partners; their
+          content is not chosen or endorsed here, and any dealing you have with an
+          advertiser is between you and them. What the ad and analytics tags can
+          and cannot see is set out in the <a href="/privacy/">privacy policy</a>.
+        </p>
+
+        <h2>Software licence</h2>
+
+        <p>
+          The source code is published under the MIT licence and the licence text
+          governs the code itself — you may use, modify and redistribute it on
+          those terms, including running your own relay. These terms of use cover
+          the hosted service at this domain, not your own deployment of the
+          software.
+        </p>
+
+        <h2>No warranty and limits of liability</h2>
+
+        <p>
+          The service is provided "as is" and "as available", without warranties
+          of any kind, express or implied, including fitness for a particular
+          purpose and non-infringement. It is free, it is maintained by one
+          person, and it may have bugs.
+        </p>
+
+        <p>
+          To the maximum extent the law allows, CadNative and the maintainer are
+          not liable for any indirect, incidental or consequential loss, or for
+          lost data, lost profits or lost session contents, arising from use of
+          the service. Nothing here limits liability that cannot lawfully be
+          limited.
+        </p>
+
+        <h2>Changes</h2>
+
+        <p>
+          These terms may change, and the current version is always on this page
+          with the date above. The site is open source, so the full history of
+          what this page said and when is in the
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">repository</a>.
+          Continuing to use the service after a change means accepting it.
+        </p>
+
+        <h2>Questions</h2>
+
+        <p>
+          <a href="mailto:info@realtimeclipboard.com">info@realtimeclipboard.com</a>, or see the
+          <a href="/contact/">contact page</a> for the right route.
+        </p>
+
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Open source — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/">Home</a> · <a href="/download/">Download</a> · <a href="/help/">Help</a> · <a href="/about/">About</a> · <a href="/contact/">Contact</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a></p>
+      <p>Sessions are held in memory and never written to disk. Clipboard contents are
+         encrypted in your browser before they are sent.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
