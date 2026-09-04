@@ -43,6 +43,9 @@ const OUT = resolve(ROOT, process.argv.slice(2).find(a => !a.startsWith("--")) |
  */
 const EAGER_JS_BUDGET = 45 * 1024;
 
+/** Kept in step with SITE_ORIGIN in src/core/config.js, which this cannot import. */
+const SITE_ORIGIN = "https://realtimeclipboard.com";
+
 const rel = f => relative(OUT, f).replace(/\\/g, "/");
 const gz = buf => gzipSync(buf, { level: 9 }).length;
 
@@ -193,6 +196,28 @@ if (!DESKTOP) {
   // broke rather than that there was nothing to do.
   if (!prettied.length) die("the /app rewrite matched nothing — the link format changed");
   console.log(`  pretty URLs: ${prettied.length} files now point at /app`);
+}
+
+/**
+ * The app footer's site links, for the desktop shell.
+ *
+ * They are root-absolute, which is right on the website and a 404 inside
+ * Tauri: that origin is `http://tauri.localhost` and this build ships no
+ * content pages at all (reason 1 above). So they are rewritten to the public
+ * site and forced to open outside the shell — following one in place would
+ * navigate the webview off the app and end the session.
+ */
+if (DESKTOP) {
+  const appHtml = join(OUT, "app.html");
+  const before = readFileSync(appHtml, "utf8");
+  const after = before.replace(
+    /<footer class="appfoot">[\s\S]*?<\/footer>/,
+    block => block.replace(
+      /href="(\/[a-z/-]*)"/g,
+      `href="${SITE_ORIGIN}$1" target="_blank" rel="noopener"`));
+  if (after === before) die("the desktop footer rewrite matched nothing — app.html changed");
+  writeFileSync(appHtml, after);
+  console.log(`  desktop: app footer links now point at ${SITE_ORIGIN}`);
 }
 
 /* --------------------------------------------------- service worker ----- */
