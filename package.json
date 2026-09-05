@@ -1,6 +1,6 @@
 {
   "name": "realtimeclipboard",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Live clipboard sharing. Static frontend of native ES modules — development needs no build, and `npm run build` exists only to assemble the deploy. Nothing here is needed to READ the app.",
   "license": "MIT",
   "repository": {

@@ -1,7 +1,21 @@
 {
   "generated": "2026-09-05",
-  "current": "v0.7.0",
+  "current": "v0.7.1",
   "releases": [
+    {
+      "version": "v0.7.1",
+      "date": "2026-09-05",
+      "breaking": false,
+      "groups": [
+        {
+          "title": "Fixed",
+          "items": [
+            "build,ci: unbreak the Windows desktop build, and stop it gating the extensions (#64)"
+          ],
+          "more": 0
+        }
+      ]
+    },
     {
       "version": "v0.7.0",
       "date": "2026-09-05",
