@@ -14,7 +14,7 @@ be wrong is the most useful thing in the directory.
 | # | Decision | Status |
 |---|---|---|
 | [0001](0001-adsense-only-on-web-surfaces.md) | AdSense runs on the web surfaces only | Accepted |
-| [0002](0002-house-slot-on-the-desktop-app.md) | The desktop app shows a house slot, not a third-party network | Accepted |
+| [0002](0002-house-slot-on-the-desktop-app.md) | The desktop app shows a house slot, not a third-party network | Accepted · amended |
 | [0003](0003-rtc-surface-dimension-in-ga4.md) | GA4 carries an `rtc_surface` dimension on every event | Accepted |
 | [0004](0004-collapse-an-unfilled-ad-slot.md) | An ad slot that does not fill gives its height back | Superseded by 0006 |
 | [0005](0005-one-ad-slot-across-mobile-tabs.md) | One slot, outside the panes, shared by the phone tabs | Accepted |
