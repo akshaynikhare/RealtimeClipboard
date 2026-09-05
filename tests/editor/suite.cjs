@@ -34,7 +34,12 @@ exports.run = async (out = DEFAULT_OUT) => {
   const results = [];
   const check = (name, ok, detail = "") => results.push({ name, ok, detail: String(detail) });
 
-  const ID = "akshaynikhare.realtimeclipboard";
+  // Derived, never spelled. The publisher is a permanent Marketplace identity
+  // and the extension id is `publisher.name`, so pinning the string here made a
+  // second place to change it — and this one is covered by no check that runs
+  // without an editor, which is exactly where it would have been missed.
+  const pkg = require("../../vscode/package.json");
+  const ID = `${pkg.publisher}.${pkg.name}`;
   const ext = vscode.extensions.getExtension(ID);
   check("the extension is present in a real host", Boolean(ext), ID);
 
