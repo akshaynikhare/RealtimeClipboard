@@ -2,7 +2,7 @@
   "name": "realtimeclipboard",
   "displayName": "RealtimeClipboard",
   "description": "End-to-end encrypted clipboard sync between your machines, without leaving the editor.",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "publisher": "cadnative",
   "license": "MIT",
   "icon": "icon.png",
@@ -32,21 +32,81 @@
   ],
   "contributes": {
     "commands": [
-      { "command": "realtimeclipboard.newSession", "title": "New Session", "category": "RealtimeClipboard" },
-      { "command": "realtimeclipboard.joinSession", "title": "Join Session…", "category": "RealtimeClipboard" },
-      { "command": "realtimeclipboard.copyShareLink", "title": "Copy Share Link", "category": "RealtimeClipboard" },
-      { "command": "realtimeclipboard.sendSelection", "title": "Send Selection", "category": "RealtimeClipboard" },
-      { "command": "realtimeclipboard.sendClipboard", "title": "Send Clipboard Now", "category": "RealtimeClipboard" },
-      { "command": "realtimeclipboard.pasteLatest", "title": "Paste Latest Clip", "category": "RealtimeClipboard" },
-      { "command": "realtimeclipboard.insertLatest", "title": "Insert Latest Clip at Cursor", "category": "RealtimeClipboard" },
-      { "command": "realtimeclipboard.history", "title": "History…", "category": "RealtimeClipboard" },
-      { "command": "realtimeclipboard.syncMode", "title": "Set Sync Mode…", "category": "RealtimeClipboard" },
-      { "command": "realtimeclipboard.lockSession", "title": "Lock Session…", "category": "RealtimeClipboard" },
-      { "command": "realtimeclipboard.unlockSession", "title": "Remove Session PIN", "category": "RealtimeClipboard" },
-      { "command": "realtimeclipboard.leaveSession", "title": "Leave Session", "category": "RealtimeClipboard" },
-      { "command": "realtimeclipboard.showQr", "title": "Show QR Code", "category": "RealtimeClipboard" },
-      { "command": "realtimeclipboard.openInBrowser", "title": "Open Session in Browser", "category": "RealtimeClipboard" },
-      { "command": "realtimeclipboard.menu", "title": "Show Menu", "category": "RealtimeClipboard" }
+      {
+        "command": "realtimeclipboard.newSession",
+        "title": "New Session",
+        "category": "RealtimeClipboard"
+      },
+      {
+        "command": "realtimeclipboard.joinSession",
+        "title": "Join Session…",
+        "category": "RealtimeClipboard"
+      },
+      {
+        "command": "realtimeclipboard.copyShareLink",
+        "title": "Copy Share Link",
+        "category": "RealtimeClipboard"
+      },
+      {
+        "command": "realtimeclipboard.sendSelection",
+        "title": "Send Selection",
+        "category": "RealtimeClipboard"
+      },
+      {
+        "command": "realtimeclipboard.sendClipboard",
+        "title": "Send Clipboard Now",
+        "category": "RealtimeClipboard"
+      },
+      {
+        "command": "realtimeclipboard.pasteLatest",
+        "title": "Paste Latest Clip",
+        "category": "RealtimeClipboard"
+      },
+      {
+        "command": "realtimeclipboard.insertLatest",
+        "title": "Insert Latest Clip at Cursor",
+        "category": "RealtimeClipboard"
+      },
+      {
+        "command": "realtimeclipboard.history",
+        "title": "History…",
+        "category": "RealtimeClipboard"
+      },
+      {
+        "command": "realtimeclipboard.syncMode",
+        "title": "Set Sync Mode…",
+        "category": "RealtimeClipboard"
+      },
+      {
+        "command": "realtimeclipboard.lockSession",
+        "title": "Lock Session…",
+        "category": "RealtimeClipboard"
+      },
+      {
+        "command": "realtimeclipboard.unlockSession",
+        "title": "Remove Session PIN",
+        "category": "RealtimeClipboard"
+      },
+      {
+        "command": "realtimeclipboard.leaveSession",
+        "title": "Leave Session",
+        "category": "RealtimeClipboard"
+      },
+      {
+        "command": "realtimeclipboard.showQr",
+        "title": "Show QR Code",
+        "category": "RealtimeClipboard"
+      },
+      {
+        "command": "realtimeclipboard.openInBrowser",
+        "title": "Open Session in Browser",
+        "category": "RealtimeClipboard"
+      },
+      {
+        "command": "realtimeclipboard.menu",
+        "title": "Show Menu",
+        "category": "RealtimeClipboard"
+      }
     ],
     "keybindings": [
       {
@@ -64,15 +124,42 @@
     ],
     "menus": {
       "commandPalette": [
-        { "command": "realtimeclipboard.menu", "when": "false" },
-        { "command": "realtimeclipboard.copyShareLink", "when": "realtimeclipboard.connected" },
-        { "command": "realtimeclipboard.sendSelection", "when": "realtimeclipboard.connected && editorHasSelection" },
-        { "command": "realtimeclipboard.sendClipboard", "when": "realtimeclipboard.connected" },
-        { "command": "realtimeclipboard.leaveSession", "when": "realtimeclipboard.connected" },
-        { "command": "realtimeclipboard.showQr", "when": "realtimeclipboard.connected" },
-        { "command": "realtimeclipboard.openInBrowser", "when": "realtimeclipboard.connected" },
-        { "command": "realtimeclipboard.lockSession", "when": "realtimeclipboard.connected" },
-        { "command": "realtimeclipboard.unlockSession", "when": "realtimeclipboard.locked" }
+        {
+          "command": "realtimeclipboard.menu",
+          "when": "false"
+        },
+        {
+          "command": "realtimeclipboard.copyShareLink",
+          "when": "realtimeclipboard.connected"
+        },
+        {
+          "command": "realtimeclipboard.sendSelection",
+          "when": "realtimeclipboard.connected && editorHasSelection"
+        },
+        {
+          "command": "realtimeclipboard.sendClipboard",
+          "when": "realtimeclipboard.connected"
+        },
+        {
+          "command": "realtimeclipboard.leaveSession",
+          "when": "realtimeclipboard.connected"
+        },
+        {
+          "command": "realtimeclipboard.showQr",
+          "when": "realtimeclipboard.connected"
+        },
+        {
+          "command": "realtimeclipboard.openInBrowser",
+          "when": "realtimeclipboard.connected"
+        },
+        {
+          "command": "realtimeclipboard.lockSession",
+          "when": "realtimeclipboard.connected"
+        },
+        {
+          "command": "realtimeclipboard.unlockSession",
+          "when": "realtimeclipboard.locked"
+        }
       ],
       "editor/context": [
         {
@@ -87,7 +174,11 @@
       "properties": {
         "realtimeclipboard.syncMode": {
           "type": "string",
-          "enum": ["off", "manual", "live"],
+          "enum": [
+            "off",
+            "manual",
+            "live"
+          ],
           "enumDescriptions": [
             "Nothing leaves this machine and nothing arrives.",
             "The session syncs, but your system clipboard is never read or written.",
@@ -98,8 +189,18 @@
         },
         "realtimeclipboard.pollMs": {
           "type": "number",
-          "enum": [0, 500, 1000, 2000],
-          "enumDescriptions": ["Off", "500ms", "1s", "2s"],
+          "enum": [
+            0,
+            500,
+            1000,
+            2000
+          ],
+          "enumDescriptions": [
+            "Off",
+            "500ms",
+            "1s",
+            "2s"
+          ],
           "default": 1000,
           "markdownDescription": "How often to check the system clipboard for something new. `Off` still sends what you share by hand."
         },
