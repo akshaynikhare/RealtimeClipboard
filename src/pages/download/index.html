@@ -323,6 +323,36 @@
           </div>
         </div>
 
+        <h3 id="editor">Inside your editor</h3>
+        <p>
+          A clipboard that follows you between machines without leaving the
+          window you are already in. It keeps syncing while the editor is in the
+          background, which is the one thing the web app cannot do.
+        </p>
+
+        <div class="cmdgrid">
+          <div class="cmdcard">
+            <h4>VS Code</h4>
+            <pre><code>code --install-extension cadnative.realtimeclipboard</code></pre>
+            <p class="hint">
+              Or search <strong>RealtimeClipboard</strong> in the Extensions
+              view. Needs VS Code 1.100 or newer.
+              <a href="https://marketplace.visualstudio.com/items?itemName=cadnative.realtimeclipboard">View on the Marketplace</a>
+            </p>
+          </div>
+
+          <div class="cmdcard">
+            <h4>Cursor, Windsurf, VSCodium</h4>
+            <pre><code>ext install cadnative.realtimeclipboard</code></pre>
+            <p class="hint">
+              None of the VS Code forks may use Microsoft's marketplace, so the
+              same build is published to Open VSX, which is where they all look.
+              Gitpod and code-server too.
+              <a href="https://open-vsx.org/extension/cadnative/realtimeclipboard">View on Open VSX</a>
+            </p>
+          </div>
+        </div>
+
         <h3 id="cli">Servers, SSH and scripts</h3>
         <p>
           A command-line client, for the machines that have no clipboard at all.
@@ -344,8 +374,8 @@ npx realtimeclipboard watch D75LV --once &gt; token.txt
 # from a box you are ssh'd into
 ssh build-01 'cat /var/log/deploy.log' | npx realtimeclipboard send D75LV</code></pre>
             <p class="hint">
-              Needs Node 22 or newer. Until it is on npm, the same client runs
-              from a clone: <code>node cli/realtimeclipboard.mjs D75LV</code>.
+              Needs Node 22 or newer, and installs nothing: <code>npx</code>
+              fetches it on demand.
               <a href="/help/install/cli/">The command-line guide</a> <span aria-hidden="true">→</span>
             </p>
           </div>
