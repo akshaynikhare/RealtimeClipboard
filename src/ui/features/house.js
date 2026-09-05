@@ -5,13 +5,12 @@
  * ads in software applications, and enforcement is account-level, so a tag here
  * would put the website's revenue at risk too. docs/decisions/0001.
  *
- * A third-party network for this surface is still open (docs/decisions/0002),
- * but EthicalAds — the candidate — cannot run here either: its client fetches
- * by JSONP and renders with `innerHTML` on remote HTML, and registers no
- * Trusted Types policy, so under `require-trusted-types-for 'script'` both
- * sinks throw. Admitting it would mean a document-wide `default` policy, which
- * un-polices every innerHTML in the app. Until that is solved this slot is
- * ours, which costs nothing and reaches no network at all.
+ * A third-party network for this surface is still open, and what blocks it is
+ * traffic and network permission rather than anything in this file — a stock ad
+ * client would run in a cross-origin frame, not in the document holding
+ * decrypted clips. docs/decisions/0002, including its amendment.
+ *
+ * Until then the slot is ours, which costs nothing and reaches no network.
  */
 
 import { SITE } from "../../core/config.js";
