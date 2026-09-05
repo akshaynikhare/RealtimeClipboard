@@ -36,9 +36,11 @@ Not on any store. The build is attached to every
    Downloads folder you empty is the wrong home.
 2. `chrome://extensions` → turn on **Developer mode** → **Load unpacked** → pick the folder.
 
-That is the only route that works. Chrome has refused to install a `.crx` from outside the Web
-Store since Chrome 33 on Windows and Chrome 44 on macOS, so a downloadable installer is not
-something this can offer, however convenient it would be.
+**Why there is no one-click installer.** Two reasons, and the second is the one that decides it.
+Chrome has refused to install a `.crx` from outside the Web Store since Chrome 33 on Windows and
+Chrome 44 on macOS — Linux and ChromeOS still allow it, and a managed fleet can force-install one
+by policy. But no release here ships a `.crx` at all, so there is nothing to install that way on any
+platform. The zip is what is published, and *Load unpacked* is what reads it.
 
 Loaded this way there is **no auto-update** — repeat the steps for a new version — and Chrome will
 periodically ask whether you meant to keep a developer-mode extension.
