@@ -1,7 +1,7 @@
 {
   "name": "realtimeclipboard",
-  "displayName": "RealtimeClipboard",
-  "description": "End-to-end encrypted clipboard sync between your machines, without leaving the editor.",
+  "displayName": "RealtimeClipboard — Clipboard Sync Across Devices",
+  "description": "Realtime clipboard sync between your machines. Copy here, paste there — end-to-end encrypted, without leaving the editor.",
   "version": "0.7.1",
   "publisher": "cadnative",
   "license": "MIT",
@@ -17,11 +17,18 @@
     "Other"
   ],
   "keywords": [
-    "clipboard",
-    "clipboard-sync",
-    "end-to-end-encrypted",
-    "remote",
-    "share"
+    "realtime clipboard",
+    "clipboard sync",
+    "shared clipboard",
+    "remote clipboard",
+    "clipboard manager",
+    "clipboard history",
+    "sync clipboard between computers",
+    "cross device clipboard",
+    "universal clipboard",
+    "copy paste",
+    "end-to-end encrypted",
+    "share text"
   ],
   "engines": {
     "vscode": "^1.100.0"
@@ -221,5 +228,11 @@
         }
       }
     }
-  }
+  },
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
+  "qna": "marketplace",
+  "pricing": "Free"
 }

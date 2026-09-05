@@ -1,10 +1,18 @@
-# RealtimeClipboard for VS Code
+# RealtimeClipboard — realtime clipboard sync for VS Code
 
-Copy on one machine, paste on another. Text is encrypted in the editor before it leaves, routed by a
-hash of your key through a relay that stores nothing and can read nothing.
+A **shared clipboard between your machines**. Copy on one, paste on another. Text is encrypted in the
+editor before it leaves, routed by a hash of your key through a relay that stores nothing and can
+read nothing.
+
+It keeps syncing while VS Code is in the background, which is the thing a web page cannot do — so
+this is a clipboard that follows you rather than one you have to go and fetch from.
 
 Works with the [web app](https://realtimeclipboard.com/app), the desktop app and the CLI — they all
-speak the same protocol, so a session can have any mix of them in it.
+speak the same protocol, so one session can have any mix of them in it. Copy in a terminal on a
+server, paste in your editor at home.
+
+Also on [Open VSX](https://open-vsx.org/extension/cadnative/realtimeclipboard), so it installs in
+Cursor, Windsurf, VSCodium, Gitpod and code-server too.
 
 ## Use it
 
@@ -24,6 +32,19 @@ speak the same protocol, so a session can have any mix of them in it.
 
 The status bar shows the key, the connection and how many other devices are in the room. Click it
 for the same menu.
+
+## What it is good for
+
+- **Sync your clipboard between two computers** — a laptop and a desktop, a host and a VM, a Mac and
+  a Windows box. Any pair, any direction.
+- **Move text off a remote machine** without scp or a paste bin: `npx realtimeclipboard send KEY`
+  over SSH, and it arrives in your editor.
+- **A clipboard history for this session** — the last 20 clips, in a QuickPick, held in memory and
+  never written to disk.
+- **Hand something to a phone** with the QR code, without typing a key.
+
+It is not a local clipboard manager. It does one thing local managers do not: cross the gap between
+machines, encrypted, without an account.
 
 ## Sync modes
 
@@ -61,4 +82,4 @@ Needs VS Code 1.100 or newer, where the extension host is on Node 22+ and has th
 ## Source
 
 [github.com/akshaynikhare/RealtimeClipboard](https://github.com/akshaynikhare/RealtimeClipboard) ·
-MIT · rules that govern edits here: [CLAUDE.md](CLAUDE.md)
+MIT licensed · [report an issue](https://github.com/akshaynikhare/RealtimeClipboard/issues)
