@@ -13,6 +13,19 @@
  */
 
 const { writeFileSync } = require("node:fs");
+const { join } = require("node:path");
+const { tmpdir } = require("node:os");
+
+/**
+ * A fixed path, not an environment variable.
+ *
+ * On macOS the only way to reach a window server from a non-interactive shell
+ * is `open -a`, which launches through LaunchServices — and LaunchServices does
+ * NOT pass the caller's environment through. An env var here meant the host
+ * could run and still have nowhere to write, which looks exactly like the host
+ * never running at all.
+ */
+const OUT = process.env.RTC_TEST_OUT || join(tmpdir(), "realtimeclipboard-editor-test.json");
 
 exports.run = async () => {
   const vscode = require("vscode");
@@ -58,7 +71,7 @@ exports.run = async () => {
     typeof WebSocket === "function" && typeof crypto?.subtle === "object",
     `node ${process.versions.node}, WebSocket ${typeof WebSocket}`);
 
-  writeFileSync(process.env.RTC_TEST_OUT, JSON.stringify({
+  writeFileSync(OUT, JSON.stringify({
     vscode: vscode.version, node: process.versions.node, results,
   }, null, 2));
 
