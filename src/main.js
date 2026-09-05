@@ -32,6 +32,7 @@ import * as install from "./ui/features/install.js";
 import * as toast from "./ui/shell/toast.js";
 import * as banners from "./ui/shell/banners.js";
 import * as lockGate from "./ui/shell/lockGate.js";
+import * as keyGate from "./ui/shell/keyGate.js";
 import * as panes from "./ui/shell/panes.js";
 import * as editor from "./ui/panels/editor.js";
 import * as filesPanel from "./ui/panels/filesPanel.js";
@@ -46,9 +47,11 @@ import * as lockDialog from "./ui/features/lockDialog.js";
 import * as whatsNew from "./ui/features/whatsNew.js";
 import * as hints from "./ui/features/hints.js";
 import * as cursors from "./ui/features/cursors.js";
+import * as theme from "./ui/features/theme.js";
 import * as ads from "./ui/features/ads.js";
 import * as analytics from "./ui/features/analytics.js";
 import * as mobileNav from "./ui/shell/mobileNav.js";
+import * as edtoolsDock from "./ui/shell/edtoolsDock.js";
 
 /* ---- session key ---- */
 
@@ -66,6 +69,15 @@ import * as mobileNav from "./ui/shell/mobileNav.js";
 function resolveKey() {
   const url = keys.fromUrl();
   if (keys.isValid(url.key)) return { ...url, intent: "join" };
+
+  // A URL that NAMES a room and is refused does not fall through to the next
+  // source. Falling through opened a fresh session under a key the user never
+  // saw, so two people following the same bad link landed in two different
+  // rooms and neither had any way to know. See ui/shell/keyGate.js.
+  const refused = keys.rejectReason(url.key);
+  if (refused && refused !== "empty") {
+    return { key: url.key, locked: url.locked, intent: "rejected", reason: refused };
+  }
 
   const tab = storage.loadSessionKey();
   if (tab && keys.isValid(tab.key)) return { ...tab, intent: "join" };
@@ -845,6 +857,12 @@ async function boot() {
     console.info("[realtimeclipboard] relay set from the address bar:", RELAY_URL);
   }
 
+  // Straight after state.restore(), which is what read the choice off disk. A
+  // device that overrode its OS sees one frame of the wrong palette for every
+  // init() this waits behind. Under the default — System — it stamps nothing and
+  // the first paint was already right.
+  safeInit("theme", theme.init);
+
   // Core UI first: these own the surfaces that report connection state, so a
   // failure here is worth knowing about loudly rather than swallowing.
   toast.init();
@@ -860,6 +878,7 @@ async function boot() {
   // PIN and be told no. safeInit anyway: a gate that fails to build must not
   // stop the session it is only there to describe.
   safeInit("lock gate", lockGate.init);
+  safeInit("key gate", keyGate.init);
 
   // The record of what this session saw, and it must be subscribed BEFORE the
   // session can emit anything. It used to be initialised by historyPanel.js
@@ -871,12 +890,22 @@ async function boot() {
 
   // Deliberately not awaited: the session is the product and must not queue
   // behind panel rendering, a service-worker registration, or a QR encoder.
-  const { key, intent, locked } = resolveKey();
-  startSession(key, intent, locked).catch(err => {
-    console.error("[realtimeclipboard] session failed to open", err);
-    state.setConnection("offline", "could not start session");
-    emit(EV.TOAST, "Could not start the session — check the console");
-  });
+  const { key, intent, locked, reason } = resolveKey();
+
+  // A refused key opens nothing at all — no derivation, no connection. The rest
+  // of boot still runs: the gate's way out is "session:rotate", wired in wire(),
+  // and a half-built app behind the scrim is what the user gets back the moment
+  // they take it.
+  if (intent === "rejected") {
+    keys.clearUrl();               // it is not a room; do not let a reload retry it
+    emit(EV.KEY_REJECTED, { key, reason });
+  } else {
+    startSession(key, intent, locked).catch(err => {
+      console.error("[realtimeclipboard] session failed to open", err);
+      state.setConnection("offline", "could not start session");
+      emit(EV.TOAST, "Could not start the session — check the console");
+    });
+  }
 
   // ---- everything below is decoration ---------------------------------
   safeInit("clipboard capture", () => capture.start());
@@ -900,6 +929,7 @@ async function boot() {
   // After loadOptional(), because the phone tab bar offers a Clips tab only if
   // the history pane actually mounted.
   safeInit("mobile nav", mobileNav.init);
+  safeInit("editor toolbar dock", edtoolsDock.init);
 
   console.info(
     `[realtimeclipboard] booted · intent=${intent} locked=${!!locked} device=${device.name()}`

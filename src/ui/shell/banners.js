@@ -8,7 +8,7 @@
  */
 
 import { on, emit, EV } from "../../core/bus.js";
-import { TRANSPORT } from "../../core/config.js";
+import { TRANSPORT, RELAY_URL } from "../../core/config.js";
 import * as state from "../../core/state.js";
 import * as capture from "../../clipboard/capture.js";
 import { $, esc, setHTML, autoDismiss, nextFrame } from "../primitives/dom.js";
@@ -28,6 +28,11 @@ let mount;
  */
 const LOCK_DOUBT_MS = 12_000;
 let lockDoubt = null;
+
+/** The relay's host:port as a person would type it to their IT desk. */
+function relayHost() {
+  try { return new URL(RELAY_URL).host; } catch { return RELAY_URL; }
+}
 
 export function init() {
   mount = $("mount-banners");
@@ -212,8 +217,11 @@ export function init() {
       show("transport", {
         tone: "bad",
         title: "Cannot reach the relay",
+        // The host it actually tried, not the one this was built against. A
+        // self-hoster, anyone on ?relay=, and a developer on 127.0.0.1 were all
+        // told to allowlist a domain their app had never contacted.
         body: "Neither WebSockets nor HTTP streaming is getting through. If you are on "
-            + "a managed network, ask for realtimeclipboard.fastapicloud.dev to be allowed on 443.",
+            + `a managed network, ask for ${relayHost()} to be allowed.`,
       });
       return;
     }

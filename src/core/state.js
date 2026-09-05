@@ -6,7 +6,7 @@
  */
 
 import { emit, EV } from "./bus.js";
-import { DEFAULT_SYNC_MODE, SYNC_MODES, KEY, TEXT } from "./config.js";
+import { DEFAULT_SYNC_MODE, DEFAULT_THEME, SYNC_MODES, KEY, TEXT } from "./config.js";
 import * as storage from "./storage.js";
 
 const state = {
@@ -53,6 +53,9 @@ const state = {
     // setting that decides whether a secret touches disk, so it is a switch and
     // it is named plainly in the UI. See storage.js saveLastKey.
     rememberKey: true,
+    // system | light | dark. "system" is not a third colour scheme, it is the
+    // absence of a choice — see config.js THEMES and ui/features/theme.js.
+    theme: DEFAULT_THEME,
   },
 };
 

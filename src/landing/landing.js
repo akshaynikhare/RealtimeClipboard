@@ -15,7 +15,7 @@
  * keys from the wrong alphabet is the kind of bug nobody notices for months.
  */
 
-import { generate, parseFragment, fragment, LENGTHS } from "../core/keys.js";
+import { generate, parseFragment, fragment, isValid, LENGTHS } from "../core/keys.js";
 
 const byId = id => document.getElementById(id);
 const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -87,7 +87,10 @@ start("key", function key() {
   form.addEventListener("submit", e => {
     e.preventDefault();
     const { key: k, locked } = parse(input.value);
-    if (k.length < 4) { input.focus(); return; }   // keys.isValid() floor
+    // The floor lives in keys.isValid(), not in a number here — this had its
+    // own copy of it and went on admitting four-character keys after the
+    // shared one moved to six.
+    if (!isValid(k)) { input.focus(); return; }
     location.href = "./app.html#" + fragment(k, locked);
   });
 

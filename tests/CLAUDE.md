@@ -5,8 +5,8 @@
 
 | Folder | Prerequisite | Suites |
 |---|---|---|
-| `unit/` | nothing | `static-check` `relay-url` `lock` `files` `transfer` `clipsize` `syncmode` `pasteguard` `sharelink` |
-| `dom/` | jsdom | `dialog` `whatsnew` `tiles` `guide` `links` `editor` `capture` `offer` `bundle` (also needs a build) |
+| `unit/` | nothing | `static-check` `relay-url` `lock` `files` `transfer` `clipsize` `syncmode` `pasteguard` `sharelink` `keyfloor` `adpolicy` `vscode-host` |
+| `dom/` | jsdom | `dialog` `theme` `whatsnew` `tiles` `guide` `links` `editor` `capture` `offer` `bundle` (also needs a build) |
 | `live/` | a reachable relay | `e2e` `boot` `fallback` `cli` |
 
 A suite needing two things is filed under the heavier one — `boot` needs jsdom *and* a relay, so it
@@ -30,7 +30,9 @@ and everything under `live/`, and runs in `.husky/pre-push`.
   way tests production's relay against your branch's client.
 - **Skip cleanly when a prerequisite is absent**, never fail. A hook that blocks a push because you
   are on a plane teaches people to pass `--no-verify` by habit. Print the skip loudly.
-- **Never commit a real share key or PIN.** Tests use throwaway keys like `D75LV`.
+- **Never commit a real share key or PIN.** Tests use throwaway keys like `D75LVX9QRS` — ten characters, so they clear
+  `KEY.MIN_LENGTH`. The five-character `D75LV` survives only in `unit/lock.mjs`, where it is a
+  golden hashing vector rather than a key anything validates.
 - `unit/lock.mjs` holds golden derivation vectors. If they fail, the wire format moved and every
   existing share link is dead — that failure is the feature.
 - A new check goes in the suite whose prerequisite it already has. Adding a network call to a

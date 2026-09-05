@@ -21,7 +21,7 @@ try {
 const dom = new JSDOM(
   `<header class="appbar"><div class="tabspace" id="mount-notice"></div></header>` +
   `<div id="mount-banners"></div>`,
-  { url: "https://example.com/app.html#D75LV", pretendToBeVisual: true });
+  { url: "https://example.com/app.html#D75LVX9QRS", pretendToBeVisual: true });
 
 const { window } = dom;
 global.window = window;

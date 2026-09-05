@@ -31,3 +31,40 @@
    of its own, status bar below the fold. Three nested scroll regions and half a
    screen of editor on a phone. See the header of mobile.css for what replaced
    it and why. */
+
+/* ------------------------------------------------------------------ *
+ * The bottom dock — the ad slot and the publisher line
+ *
+ * Stacked they cost two rows of an editor that is the whole point of the app.
+ * Side by side they cost one, and the ad keeps the width it actually wants:
+ * a 728x90 unit does not get wider than 728, so the rest of a 2000px window was
+ * empty background either way.
+ *
+ * Children of #shell rather than <main> — see app.html for why that placement
+ * is load-bearing on a phone. Narrow layouts keep them stacked; the split only
+ * makes sense while there is width to split.
+ * ------------------------------------------------------------------ */
+.botdock { flex:none; }
+
+@media (min-width:901px) {
+  .botdock { display:flex; align-items:stretch; }
+
+  /* The info panel is exactly one default sidebar wide, so its left edge lines
+     up with the splitter above it and the two dividers read as one line.
+
+     `--sidebar-w`, deliberately, NOT the sidebar's live width: dragging the
+     splitter must not drag this. Tracking it would mean the resizer publishing
+     a custom property and the dock following it, and the panel would then be
+     squeezed to the sidebar's minimum — where seven links and a sentence have
+     nowhere to go. Fixed to the opening width means the app looks right when it
+     launches, which is the state almost every session is in, and a resized
+     sidebar simply parts company with it. Same answer when the sidebar is
+     hidden: there is no splitter to align to, and moving would be worse. */
+  .botdock > #mount-ad { flex:1; min-width:0; }
+
+  .botdock > .appfoot {
+    flex:0 0 var(--sidebar-w);
+    min-width:0;
+    border-left:1px solid var(--bd);
+  }
+}

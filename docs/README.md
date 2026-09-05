@@ -15,3 +15,6 @@
 Per-directory rules live next to the code: [../src/CLAUDE.md](../src/CLAUDE.md),
 [../tests/CLAUDE.md](../tests/CLAUDE.md), [../tools/CLAUDE.md](../tools/CLAUDE.md), and one in each
 subdirectory under `src/`.
+
+- [`decisions/`](decisions/) — Architecture Decision Records. Why a choice was made,
+  and what breaks if it is undone.

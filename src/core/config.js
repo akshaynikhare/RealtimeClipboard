@@ -2,7 +2,7 @@
  * Every tunable constant. A magic number anywhere else is a bug.
  */
 
-import { IS_INSTALLED } from "./native.js";
+import { IS_INSTALLED, IS_DESKTOP } from "./native.js";
 
 // Guarded: node tests import this and have no `location`; a bare reference
 // throws at import time and takes the whole graph down.
@@ -212,6 +212,23 @@ export const KEY = {
   LONG_LENGTH: 16,            // "high security" option, PRD §7.3
 
   /**
+   * The floor for a key we will HASH, as opposed to one we produce.
+   *
+   * Validation is deliberately more permissive than generation — a key from an
+   * older build has to keep working, and no build ever emitted fewer than six.
+   * But it used to accept four, which is ~19.6 bits: the whole keyspace is
+   * 810,000 rooms, and the relay will happily route any of them. Someone typing
+   * `#F5H4` into the address bar got a session that a laptop can enumerate,
+   * with nothing on screen saying so.
+   *
+   * Six is the floor rather than ten because six is what earlier builds handed
+   * out, and stranding those links is a worse failure than a weak room the
+   * holder chose. New keys are still KEY.LENGTH.
+   */
+  MIN_LENGTH: 6,
+  MAX_LENGTH: 32,
+
+  /**
    * An installed app links by QR or link and never pays the typing cost — and it
    * is the surface reading every copy all day, so it takes the longer option.
    */
@@ -348,6 +365,21 @@ export const SYNC_MODES = {
 };
 export const DEFAULT_SYNC_MODE = SYNC_MODES.LIVE;
 
+/**
+ * Appearance. `SYSTEM` means "do not decide" — no attribute is stamped and
+ * styles/tokens.css answers `prefers-color-scheme` on its own, which is also
+ * what renders before any of this JavaScript has run.
+ *
+ * The stored strings are a compatibility surface like SYNC_MODES: relabel the
+ * UI, never the values.
+ */
+export const THEMES = {
+  SYSTEM: "system",
+  LIGHT: "light",
+  DARK: "dark",
+};
+export const DEFAULT_THEME = THEMES.SYSTEM;
+
 /** Does this rung let the OS clipboard be read or written? */
 export const bindsClipboard = (mode) => mode === SYNC_MODES.LIVE;
 
@@ -374,6 +406,9 @@ export const SITE = {
   ORIGIN: SITE_ORIGIN,
   HOST: SITE_ORIGIN.replace(/^https?:\/\//, ""),   // what the guide tells you to type
   APP_URL: `${SITE_ORIGIN}/app`,
+  /** The published contact address — src/pages/contact/ and the AdSense
+      publisher identity name it, so a change here is a change there too. */
+  EMAIL: "info@realtimeclipboard.com",
 };
 
 /**
@@ -455,8 +490,19 @@ export const GOOGLE = {
     /** app.html, under the editor — mounted only once the key has left the URL. */
     APP: "6948680552",
   },
+};
+
+/**
+ * The app's ad slot, independent of who fills it.
+ *
+ * Deliberately not under GOOGLE: the slot is reserved and collapsed by
+ * ui/features/ads.js, which dispatches between networks and must not know
+ * about any of them. That separation is what lets tests/unit/static-check.mjs
+ * assert AdSense identifiers appear in one module only.
+ */
+export const AD = {
   /**
-   * What that slot asks for, per layout.
+   * What the slot asks for, per layout.
    *
    * NARROW is requested as a FIXED unit rather than a responsive one, because
    * the slot sits `flex:none` under an editor that is `flex:1`: every pixel it
@@ -466,10 +512,30 @@ export const GOOGLE = {
    * claims — that column is drag-resizable, so it is not requested as a fixed
    * one.
    */
-  ADSENSE_APP_UNIT: {
+  UNIT: {
     NARROW: { W: 320, H: 50 },
     WIDE:   { W: 728, H: 90 },
   },
+  /**
+   * How long the slot holds its reserved height before giving it back.
+   *
+   * An ad that never arrives — blocked, offline, or unfilled — used to leave an
+   * empty box above the status bar for the life of the session. Long enough
+   * that a slow fill is not thrown away, short enough that nobody stares at a
+   * hole.
+   */
+  SETTLE_MS: 4000,
+  /**
+   * How long a unit that reported "filled" gets to actually paint, and the
+   * height below which we conclude it did not.
+   *
+   * "filled" is the auction's answer, not the page's: an account still in
+   * review reports filled and renders nothing, which held the reserved 90px
+   * open for the whole session. The smallest unit requested here is 320x50, so
+   * anything under a couple of dozen pixels rendered nothing.
+   */
+  RENDER_GRACE_MS: 1200,
+  MIN_RENDERED_PX: 24,
 };
 
 /** Nothing loads unless the ID that drives it is present. */
@@ -491,8 +557,18 @@ export const CONSENT_REGIONS = [
  * `page_location` is `location.href` — the unmodified tag would send the key to
  * Google on the first page_view. Every gtag config passes this instead. !!
  */
-export const pageLocation = () =>
-  typeof location === "undefined" ? "" : location.origin + location.pathname + location.search;
+export const pageLocation = () => {
+  if (typeof location === "undefined") return "";
+  /* The desktop webview answers at `tauri.localhost` on Windows and
+     `tauri://localhost` elsewhere — two hostnames for one surface, neither of
+     them ours, both landing in the same property as the real /app. SITE is the
+     public address, and `/app` rather than `/app.html` because that is what the
+     web publishes; the desktop build skips the pretty-URL rewrite, so its
+     on-disk name is not the name a report should show. Which surface a hit came
+     from is `rtc_surface`, not the hostname. */
+  if (IS_DESKTOP) return `${SITE.ORIGIN}/app`;
+  return location.origin + location.pathname + location.search;
+};
 
 export const GOOGLE_SRC = {
   gtag: (id) => `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(id)}`,

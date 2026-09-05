@@ -64,6 +64,10 @@ export const EV = {
   // from LOCK_STATE because `state.locked` is still false: no session was ever
   // opened to be locked.
   LOCK_REQUIRED:   "session:lockrequired",
+  // {key, reason} — a key was named and refused before any connection opened.
+  // Like LOCK_REQUIRED there is no session behind it, and for the same reason:
+  // the app must not look usable when nothing it does would go anywhere.
+  KEY_REJECTED:    "session:keyrejected",
   FOUNDER:         "session:founder",  // {founder} — first into this room? null = not yet known
 
   // files

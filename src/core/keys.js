@@ -43,11 +43,46 @@ export function normalise(raw) {
  * KEY.ALPHABET constrains what we PRODUCE. Validation must accept anything a
  * peer might legitimately hand us: a key from another build is still a valid
  * hash input, and rejecting an in-use key strands the user with no way to join.
- * "D75LV" contains an L, which the generator never emits, and still has to work.
+ * "D75LVX9QR" contains an L, which the generator never emits, and still works.
+ *
+ * Permissive about the ALPHABET, not about the LENGTH — see KEY.MIN_LENGTH.
  */
 export function isValid(raw) {
+  return rejectReason(raw) === null;
+}
+
+/**
+ * WHY a key was refused, or null if it was not. `isValid()` answers the question
+ * the code asks; this answers the one the user asks.
+ *
+ * The distinction matters at boot. A key that is merely absent means "generate
+ * one" — the ordinary first visit. A key that is present and too short is a
+ * request we are declining, and declining it silently is what let `#F5H4` open
+ * a session with 19 bits behind it. See ui/shell/keyGate.js.
+ */
+export function rejectReason(raw) {
   const k = normalise(raw);
-  return k.length >= 4 && k.length <= 32;
+  if (!k.length) return "empty";
+  if (k.length < KEY.MIN_LENGTH) return "short";
+  if (k.length > KEY.MAX_LENGTH) return "long";
+  return null;
+}
+
+/**
+ * One sentence for a surface with no room for a card — the CLI's exit message
+ * and the extension's error. `null` when the key is fine.
+ *
+ * Here rather than at each call site so the two of them cannot drift from each
+ * other or from the floor: both said "is not a valid key" and left the reader
+ * to guess which of length, characters or typo they had hit.
+ */
+export function rejectMessage(raw) {
+  const reason = rejectReason(raw);
+  if (!reason) return null;
+  const n = normalise(raw).length;
+  if (reason === "empty") return "it has no usable characters in it";
+  if (reason === "long") return `it is ${n} characters; the most a key may be is ${KEY.MAX_LENGTH}`;
+  return `it is ${n} character${n === 1 ? "" : "s"}; a key needs at least ${KEY.MIN_LENGTH}`;
 }
 
 /**

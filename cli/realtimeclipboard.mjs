@@ -174,7 +174,8 @@ function die(msg, code = 1) {
  */
 async function derive(rawKey, pin) {
   const key = keys.normalise(rawKey);
-  if (!keys.isValid(key)) die(`"${rawKey}" is not a valid key`, 2);
+  const refused = keys.rejectMessage(key);
+  if (refused) die(`"${rawKey}" cannot be used — ${refused}`, 2);
 
   if (pin) {
     const clean = cryptoBox.normalisePin(pin);

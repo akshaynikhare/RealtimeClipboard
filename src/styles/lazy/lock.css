@@ -139,85 +139,8 @@
   color: var(--dim);
 }
 
-/*
- * The gate: the app greyed out while a locked link has no PIN
- * (ui/shell/lockGate.js).
- *
- * Filed with the dialog rather than in a sheet of its own because it is the
- * same feature and loads on the same trigger — a session that never meets a
- * locked link pays for neither.
- *
- * z-index 58: above everything in the shell, below the modal band at 60, so
- * the PIN dialog opens ON the gate rather than behind it.
- */
-.lockgate {
-  position: fixed;
-  inset: 0;
-  z-index: 58;
-  display: grid;
-  place-items: center;
-  padding: 20px;
-  /* Heavier than the modal backdrop at .55. That one dims an app you are coming
-     back to; this one covers an app that is not doing anything. */
-  background: color-mix(in srgb, var(--bg) 78%, transparent);
-  backdrop-filter: blur(2px);
-}
-
-.lockgate-card {
-  width: min(400px, 100%);
-  padding: 22px 20px 16px;
-  text-align: center;
-  background: var(--side);
-  border: 1px solid var(--bd2);
-  border-radius: 4px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, .5);
-}
-
-.lockgate-ico {
-  width: 26px;
-  height: 26px;
-  margin-bottom: 10px;
-  fill: none;
-  stroke: var(--dim);
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.lockgate-card h2 {
-  margin: 0 0 8px;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--bright);
-}
-
-.lockgate-card p {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--dim);
-}
-
-.lockgate-row {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin: 16px 0 12px;
-  flex-wrap: wrap;
-}
-
-/* What the second button actually does, next to the button that does it. It
-   sounds like a way back into this session and is the opposite of one. */
-.lockgate-note {
-  padding-top: 12px;
-  border-top: 1px solid var(--bd);
-  font-size: 11px;
-  line-height: 1.45;
-}
-
 @media (max-width: 760px) {
   /* Fingers, and an on-screen keyboard eating half the viewport. */
   .lockmodal-dlg { padding: 16px 14px 12px; }
   .lockinput { padding: 10px; font-size: 16px; }   /* 16px stops iOS zooming in */
-  .lockgate-row .btn { flex: 1 1 100%; }
 }

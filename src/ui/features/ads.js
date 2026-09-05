@@ -1,41 +1,50 @@
 /**
- * The ad slot, under the editor.
+ * The ad slot under the editor: reserve it, dispatch to a network, take the
+ * space back if nothing arrives.
  *
  * Why an ad at all: no accounts and no subscription, but the relay is a paid
- * server, and the slot that pays for it is what keeps the app free. The
- * crawlable pages carry the same tags from src/landing/tags.js; the two cannot
- * share a module — core/ is the only directory both may import and it may not
- * touch the DOM — so the IDs and script URLs come from core/config.js.
+ * server, and the slot that pays for it is what keeps the app free.
  *
- * This document ran no ad tag until 2026-08-09, when the no-ads-in-the-app
- * rule was removed. What survives that decision is TIMING: the ad request
- * reports the page URL and AdSense offers no override, so the tag must never
- * load while the share key is still in `location.hash`. Boot strips the
- * fragment (keys.clearUrl) before EV.KEY_CHANGED fires, and a locked link
- * keeps its fragment until the PIN is given — so the slot mounts on that
- * event, never before, and a document whose URL still holds a key shows the
- * placeholder instead of an ad.
+ * This module knows no network. Which one a surface may load is
+ * `core/surface.js` `adNetwork()`, because the answer is a Google programme
+ * policy rather than a preference — ads may not be integrated into a software
+ * application, so the desktop shell and the extension can never carry AdSense.
+ * docs/decisions/0001. The renderers are lazy so that only the surface that
+ * uses one pays for it, and each `import()` takes a LITERAL specifier: a path
+ * in a variable is opaque to the bundler and 404s in the deploy alone.
  *
- * It sits here rather than in the sidebar because the sidebar holds the key,
- * the file previews and the settings. A mis-click beside "fetch this file"
- * transfers data; below the editor is outside the flow of every task.
+ * What survives from the 2026-08-09 reversal is TIMING: the ad request reports
+ * the page URL and AdSense offers no override, so nothing may load while the
+ * share key is still in `location.hash`. That subscription is here, eager, and
+ * must stay here — boot strips the fragment during init, so a renderer that
+ * only subscribed after its own dynamic import would miss the event entirely.
  */
 
-import { GOOGLE, GOOGLE_SRC, LAYOUT, adsEnabled } from "../../core/config.js";
+import { AD, LAYOUT } from "../../core/config.js";
+import { adNetwork } from "../../core/surface.js";
 import { on, EV } from "../../core/bus.js";
-import { $, esc, setHTML, scriptURL } from "../primitives/dom.js";
+import { $, esc, setHTML } from "../primitives/dom.js";
+
+const RENDERERS = {
+  adsense: () => import("./adsense.js"),
+  house:   () => import("./house.js"),
+};
 
 const isNarrow = () => window.matchMedia?.(LAYOUT.NARROW_MQ)?.matches ?? false;
 
-const unit = () =>
-  isNarrow() ? GOOGLE.ADSENSE_APP_UNIT.NARROW : GOOGLE.ADSENSE_APP_UNIT.WIDE;
+const unit = () => (isNarrow() ? AD.UNIT.NARROW : AD.UNIT.WIDE);
 
+let slot = null;
 let box = null;
-let mounted = false;
+let settleTimer = null;
+let done = false;
 
 export function init() {
   const host = $("mount-ad");
   if (!host) return;
+
+  const network = adNetwork();
+  if (network === "none") return;      // no chrome either — see settle() below
 
   const { W, H } = unit();
 
@@ -55,103 +64,51 @@ export function init() {
       </div>
     </aside>`);
 
+  slot = host.querySelector("#adSlot");
   box = host.querySelector("#adBox");
 
-  // Empty IDs mean a fork or local checkout loads no third-party script.
-  if (!adsEnabled() || !GOOGLE.ADSENSE_SLOTS.APP) return;
+  // The reservation is not open-ended. Every failure mode that leaves the box
+  // empty — blocked script, no network, an unfilled response that reports
+  // nothing — looks identical from here, and they all end the same way.
+  settleTimer = setTimeout(() => settle(false), AD.SETTLE_MS);
 
-  consentLink();
+  if (network !== "adsense") return load(network);
 
-  if (!location.hash) return mount();
-  on(EV.KEY_CHANGED, () => { if (!location.hash) mount(); });
+  if (!location.hash) return load(network);
+  on(EV.KEY_CHANGED, () => { if (!location.hash) load(network); });
+}
+
+function load(network) {
+  if (done) return;
+  RENDERERS[network]()
+    .then(m => m.mount({ box, unit, isNarrow, settle }))
+    .catch(() => settle(false));      // a renderer that will not load is an empty slot
 }
 
 /**
- * Reveal "Privacy & cookie settings" in the app footer.
+ * The slot's one exit. `filled` leaves the ad alone; anything else hands the
+ * box to the house promo.
  *
- * Withdrawing consent has to be as easy as giving it, and Google's CMP renders
- * no control of its own once dismissed. landing/tags.js does the same job for
- * the crawlable pages and builds its anchor in JS because it serves twenty
- * documents; this is one document, so the anchor is markup in app.html and
- * only the wiring is here — which is also what keeps the eager bundle inside
- * the build's budget.
+ * It does NOT collapse. The space is reserved either way, so removing it buys
+ * nothing a late refill would not want back — and an empty bordered box reads
+ * as broken while a promo reads as deliberate. docs/decisions/0006.
  *
- * Hidden until the CMP reports in: outside the EEA there is no dialog to
- * reopen. That wait settles the locked-link case for free — the CMP arrives
- * with the ad script, which does not load until the key has left the URL.
+ * A filled unit is never touched. Cutting off a rendered ad is an AdSense
+ * policy violation, which is the same reason ads.css reserves with `min-height`
+ * rather than `height`.
  */
-function consentLink() {
-  const a = $("consentPrefs");
-  if (!a) return;
-
-  a.addEventListener("click", e => {
-    e.preventDefault();
-    window.googlefc?.showRevocationMessage?.();
-  });
-
-  const fc = (window.googlefc = window.googlefc || {});
-  (fc.callbackQueue = fc.callbackQueue || []).push({
-    CONSENT_DATA_READY: () => { a.hidden = false; },
-  });
+export function settle(filled) {
+  if (done) return;
+  done = true;
+  clearTimeout(settleTimer);
+  if (!filled) fallback();
 }
 
-/**
- * adsbygoogle "fits" a responsive unit by stamping `height:auto !important`
- * INLINE on every ancestor of its <ins> — the 100vh shell included, which
- * collapses the app to content height. It happens even for an unfilled ad, and
- * CSS cannot answer it: pin the shell with min-height and the next stamp is an
- * inline `min-height:0 !important` beside it, which outranks every stylesheet.
- * So the shell is watched and wiped instead. Stripping re-fires the observer
- * once with nothing left to strip, so this settles rather than loops.
- */
-function guardShell() {
-  const shell = $("shell");
-  if (!shell || typeof MutationObserver === "undefined") return;
-  const strip = () => {
-    for (const p of ["height", "min-height", "max-height"])
-      if (shell.style.getPropertyValue(p)) shell.style.removeProperty(p);
-  };
-  new MutationObserver(strip).observe(shell, { attributes: true, attributeFilter: ["style"] });
-  strip();
-}
-
-function mount() {
-  if (mounted || !box) return;
-  mounted = true;
-  guardShell();
-
-  const s = document.createElement("script");
-  s.async = true;
-  s.crossOrigin = "anonymous";
-  s.src = scriptURL(GOOGLE_SRC.adsense(GOOGLE.ADSENSE_CLIENT));
-  document.head.append(s);
-
-  const ins = document.createElement("ins");
-  ins.className = "adsbygoogle";
-  ins.setAttribute("data-ad-client", GOOGLE.ADSENSE_CLIENT);
-  ins.setAttribute("data-ad-slot", GOOGLE.ADSENSE_SLOTS.APP);
-
-  if (isNarrow()) {
-    // A fixed unit, so what arrives is the size the box already reserved. Left
-    // responsive, adsbygoogle read the full width of a phone and served a
-    // ~300px creative into a ~90px hole — and since the slot cannot shrink and
-    // the editor can, the textarea was squeezed to nothing with no scrollbar to
-    // reveal it. See GOOGLE.ADSENSE_APP_UNIT in core/config.js.
-    const { W, H } = unit();
-    ins.style.display = "inline-block";
-    ins.style.width = `${W}px`;
-    ins.style.height = `${H}px`;
-  } else {
-    // Responsive here because the sidebar is drag-resizable, so this column has
-    // no fixed width for a fixed unit to fit. A responsive unit measures its
-    // container and writes its own inline height, so only display is set.
-    ins.style.display = "block";
-    ins.setAttribute("data-ad-format", "horizontal");
-    ins.setAttribute("data-full-width-responsive", "true");
-  }
-
-  box.replaceChildren(ins);
-  box.classList.add("adlive");        // drops the dashed placeholder outline
-
-  (window.adsbygoogle = window.adsbygoogle || []).push({});
+/** The house promo, in the box the ad did not use. */
+function fallback() {
+  RENDERERS.house()
+    // settle() has already run, so the house renderer gets a no-op: it reports
+    // "filled" on principle and there is nothing left to decide.
+    .then(m => m.mount({ box, unit, isNarrow, settle: () => {} }))
+    .catch(() => {});
 }

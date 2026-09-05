@@ -6,6 +6,12 @@
  */
 
 :root {
+  /* Tell the browser the page has both, so the things IT paints — scrollbars,
+     form controls, the canvas behind the first frame — follow the same theme as
+     the tokens below. Without it a dark window gets light scrollbars, which is
+     the one part of the chrome no stylesheet here reaches. */
+  color-scheme: light dark;
+
   /* surfaces */
   --editor:#1e1e1e;
   --side:#252526;
@@ -68,8 +74,23 @@
   --tab-h:35px;
 }
 
+/* ------------------------------------------------------------------ *
+ * Light
+ *
+ * Reachable two ways, which is why the palette is written twice and the two
+ * copies sit together: the media query is what renders BEFORE any JavaScript
+ * runs, and the attribute is what ui/features/theme.js stamps when the user has
+ * chosen rather than deferred. CSS has no way to share one declaration block
+ * across a media query and a selector, and the alternative — stamping the
+ * attribute from JS in every case — flashes the dark default on a light machine
+ * for as long as the module takes to load.
+ *
+ * `:not([data-theme="dark"])` is what lets an explicit Dark beat a light OS.
+ * Changing one of these blocks and not the other is the failure mode; keeping
+ * them adjacent and identical is the whole mitigation.
+ * ------------------------------------------------------------------ */
 @media (prefers-color-scheme: light) {
-  :root {
+  :root:not([data-theme="dark"]) {
     --editor:#ffffff;
     --side:#f3f3f3;
     --title:#dddddd;
@@ -94,6 +115,61 @@
     --str:#a31515;
     --num:#098658;
   }
+}
+
+:root[data-theme="light"] {
+  --editor:#ffffff;
+  --side:#f3f3f3;
+  --title:#dddddd;
+  --activity:#2c2c2c;      /* stays dark in Light+, as VS Code does */
+  --tab-off:#ececec;
+  --tab-on:#ffffff;
+  --input:#ffffff;
+
+  --bd:#e7e7e7;
+  --bd2:#cecece;
+
+  --text:#333333;
+  --dim:#616161;
+  --bright:#000000;
+
+  --hover:#e8e8e8;
+  --sel:#add6ff;
+
+  --ok:#0f7b6c;
+  --warn:#8a6d00;
+  --bad:#cd3131;
+  --str:#a31515;
+  --num:#098658;
+}
+
+/* Dark is the :root default above, so an explicit Dark needs to override only
+   what the media query would otherwise have changed — which is the light
+   palette in full. Same list, the original values. */
+:root[data-theme="dark"] {
+  --editor:#1e1e1e;
+  --side:#252526;
+  --title:#3c3c3c;
+  --activity:#333333;
+  --tab-off:#2d2d2d;
+  --tab-on:#1e1e1e;
+  --input:#3c3c3c;
+
+  --bd:#2b2b2b;
+  --bd2:#3c3c3c;
+
+  --text:#cccccc;
+  --dim:#a8a8a8;
+  --bright:#e7e7e7;
+
+  --hover:#2a2d2e;
+  --sel:#264f78;
+
+  --ok:#4ec9b0;
+  --warn:#cca700;
+  --bad:#f14c4c;
+  --str:#ce9178;
+  --num:#b5cea8;
 }
 
 /* ---------------------------------------------------------------- peers

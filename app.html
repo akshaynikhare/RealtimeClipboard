@@ -211,42 +211,6 @@
         </div>
       </div>
 
-      <!-- The standing route to the apps. The header offer is one-shot by
-           design — answered or dismissed, it never returns — so this quiet
-           line is the way back to the download page afterwards. Built by
-           ui/features/install.js, which owns the offer it backs up. -->
-      <div id="mount-getapp"></div>
-
-      <!-- The single ad slot. Below the editor, never beside the file or
-           session controls — see src/ui/features/ads.js for why. -->
-      <div id="mount-ad"></div>
-
-      <!-- The app page's own publisher line. It exists because this document
-           is where the ad unit serves, and an ad running on a page with no
-           statement of who publishes it and no route to the policies is the
-           thing ad networks reject a site for. Static, because it has no state
-           — see styles/appfoot.css. -->
-      <footer class="appfoot">
-        <p>
-          RealtimeClipboard is a free, end-to-end encrypted online clipboard by
-          CadNative. What you type here is encrypted in this browser before it
-          is sent; the relay routes it without being able to read it, and files
-          go straight between your devices. Ads pay for the relay.
-        </p>
-        <nav aria-label="Site">
-          <a href="/">Home</a>
-          <a href="/help/">Help</a>
-          <a href="/download/">Download</a>
-          <a href="/about/">About</a>
-          <a href="/contact/">Contact</a>
-          <a href="/privacy/">Privacy</a>
-          <!-- Unhidden by ui/features/ads.js once Google's CMP reports in.
-               Hidden until then because outside the EEA there is no dialog to
-               reopen, and a link that does nothing is worse than no link. -->
-          <a href="#" id="consentPrefs" hidden>Privacy &amp; cookie settings</a>
-          <a href="/terms/">Terms</a>
-        </nav>
-      </footer>
     </main>
 
     <!-- Drag to widen or narrow the sidebar. -->
@@ -304,6 +268,49 @@
     </aside>
   </div>
 
+  <!-- ============ slot and publisher line ============
+       Children of the shell, NOT of <main>, and that placement is the whole
+       point: below 900px ui/shell/mobileNav.js hides whole panes, so anything
+       inside #mainPane exists on the Text tab and nowhere else. `display:none`
+       on an ancestor takes its subtree with it, so no amount of CSS on .adslot
+       could keep the slot on screen from in there.
+
+       The cost is that both strips now run the full window width on a desktop
+       layout rather than stopping at the splitter. styles/ads.css keeps the
+       56px left padding so they still line up with the editor text. -->
+  <div class="botdock">
+    <!-- The single ad slot. Below the editor, never beside the file or
+         session controls — see src/ui/features/ads.js for why. -->
+    <div id="mount-ad"></div>
+
+    <!-- The app page's own publisher line. It exists because this document
+         is where the ad unit serves, and an ad running on a page with no
+         statement of who publishes it and no route to the policies is the
+         thing ad networks reject a site for. Static, because it has no state
+         — see styles/appfoot.css. -->
+    <footer class="appfoot">
+      <p>
+        RealtimeClipboard is a free, end-to-end encrypted online clipboard by
+        CadNative. What you type here is encrypted in this browser before it
+        is sent; the relay routes it without being able to read it, and files
+        go straight between your devices. Ads pay for the relay.
+      </p>
+      <nav aria-label="Site">
+        <a href="/">Home</a>
+        <a href="/help/">Help</a>
+        <a href="/download/">Download</a>
+        <a href="/about/">About</a>
+        <a href="/contact/">Contact</a>
+        <a href="/privacy/">Privacy</a>
+        <!-- Unhidden by ui/features/ads.js once Google's CMP reports in.
+             Hidden until then because outside the EEA there is no dialog to
+             reopen, and a link that does nothing is worse than no link. -->
+        <a href="#" id="consentPrefs" hidden>Privacy &amp; cookie settings</a>
+        <a href="/terms/">Terms</a>
+      </nav>
+    </footer>
+  </div>
+
   <!-- ============ status bar ============ -->
   <div class="statusbar">
     <div class="sitem" id="sbKey" title="Share key — click to copy the link">
@@ -357,7 +364,16 @@
   <div id="mount-mobilenav"></div>
 </div>
 
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<!-- The live region is the INNER span, not the box. #toast carries the
+     positioning and the fade; the dismiss button is its sibling, outside the
+     announced node — inside it, "Dismiss" would be read out with every message.
+     ui/shell/toast.js owns both. -->
+<div class="toast" id="toast">
+  <span class="toast-msg" id="toastMsg" role="status" aria-live="polite"></span>
+  <button type="button" class="toast-x" id="toastX" aria-label="Dismiss message">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+</div>
 
 <!-- Dialogs and overlays mount here (QR, file-accept prompts, about). -->
 <div id="mount-menus"></div>
