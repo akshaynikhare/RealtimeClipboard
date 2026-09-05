@@ -338,20 +338,21 @@ jobs:
   # surprise. The asset is what makes sideloading and the manual upload possible,
   # and it needs no token, so publish-release can wait on it.
   browser:
-    needs: desktop            # the draft release exists by then
+    needs: verify             # NOT desktop — see publish-release
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with: { node-version: 22, cache: npm }
       - run: npm ci
       - run: npm run package:browser
-      - name: Attach the zip to the draft
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ github.ref_name }}" browser/dist/*.zip --clobber
+      # Handed to publish-release as a workflow artifact rather than uploaded to
+      # the draft here, which is what lets this job run without waiting for the
+      # release to exist — and therefore without waiting for desktop.
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with: { name: browser-zip, path: browser/dist/*.zip, if-no-files-found: error }
 
   # ── the VS Code extension ────────────────────────────────────────────────
   # Two jobs on purpose, and the split is the same lesson the npm job records.
@@ -365,10 +366,10 @@ jobs:
   # NOTHING waits on it. An expired Marketplace PAT must not hide three
   # perfectly good installers behind a draft nobody can reach.
   vscode:
-    needs: desktop            # the draft release exists by then
+    needs: verify             # NOT desktop — see publish-release
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
@@ -378,10 +379,8 @@ jobs:
       # devDependency: it pulls a large tree and is only ever wanted here. Three
       # devDependencies is a stated property of this repo.
       - run: npm run package:vscode
-      - name: Attach the .vsix to the draft
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ github.ref_name }}" vscode/dist/*.vsix --clobber
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with: { name: vsix, path: vscode/dist/*.vsix, if-no-files-found: error }
 
   vscode-publish:
     needs: vscode
@@ -391,16 +390,11 @@ jobs:
     steps:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
         with: { node-version: 22 }
-      # From the release rather than a workflow artifact: it is the same file,
-      # gh is already this workflow's idiom for reaching a draft, and it saves
-      # pinning two more actions to hand one file between two jobs.
-      - name: Fetch the .vsix
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          mkdir -p dist
-          gh release download "${{ github.ref_name }}" --repo "${{ github.repository }}" \
-            --pattern '*.vsix' --dir dist
+      # From the workflow artifact, NOT the release: publishing to a marketplace
+      # has nothing to do with whether a GitHub release exists, and reading it
+      # from there is what used to make this wait on desktop.
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7
+        with: { name: vsix, path: dist }
       # Skipped rather than failed when the token is absent, so a fork — and the
       # first tag cut before the publisher ID exists — still produces a .vsix
       # instead of a red workflow. The `secrets` context is not available in a
@@ -423,13 +417,19 @@ jobs:
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
 
-  # `needs: [desktop, vscode, browser]` and deliberately NOT npm, mcp or
-  # vscode-publish. Everything listed produces a RELEASE ASSET using only
-  # GITHUB_TOKEN, so it can only fail for a reason inside this repository.
-  # Everything left out talks to an external registry with a token that expires,
-  # and coupling those means one expired token hides three perfectly good
-  # installers behind a draft nobody can reach — which is what happened on the
-  # first attempt at v0.3.0.
+  # `needs: [desktop, vscode, browser]` — the three jobs that produce a RELEASE
+  # ASSET. Not npm, mcp or vscode-publish: those talk to external registries
+  # with tokens that expire, and coupling them means one expired token hides
+  # three perfectly good installers behind a draft nobody can reach. That is
+  # what happened on the first attempt at v0.3.0.
+  #
+  # The arrow only points this way. vscode and browser used to be `needs:
+  # desktop`, because they uploaded to the draft and tauri-action is what
+  # creates it — so on v0.7.0 a Windows Rust build failure skipped the VS Code
+  # extension, the browser zip and the whole release, none of which had anything
+  # to do with it. They build in parallel now and hand their output here as
+  # workflow artifacts, and vscode-publish reaches a marketplace without caring
+  # whether a GitHub release exists at all.
   publish-release:
     needs: [desktop, vscode, browser]
     runs-on: ubuntu-latest
@@ -448,6 +448,16 @@ jobs:
       # package manifest and in a mirror's own records, so that a substitution
       # after the fact is detectable by anyone who wrote the number down.
       # Signing is the real answer and is tracked in docs/RELEASING.md.
+      # The two surfaces that no longer upload for themselves. They built in
+      # parallel with desktop; their output joins the release here, which is the
+      # first moment a release is guaranteed to exist.
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7
+        with: { pattern: "{vsix,browser-zip}", merge-multiple: true, path: staged }
+      - name: Attach the extension builds
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.ref_name }}" staged/* --clobber
+
       - name: Checksums
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
