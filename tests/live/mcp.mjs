@@ -133,6 +133,23 @@ await new Promise(r => setTimeout(r, 3000));
 watcher.kill();
 check("send_clip reaches the CLI", heard.includes(OUT), JSON.stringify(heard.trim().slice(0, 80)));
 
+/* ---- the unread queue is bounded ----------------------------------------- */
+/* A peer holding the key can send while nothing is waiting, and an MCP server is
+   long-lived, so an unbounded queue is a memory leak an attacker controls. The
+   cap is the same 20 the history keeps. */
+const FLOOD = 25;
+for (let i = 0; i < FLOOD; i++) await cli(["send", key], `flood-${i}\n`);
+await new Promise(r => setTimeout(r, 4000));
+
+let drained = 0;
+for (let i = 0; i < FLOOD + 2; i++) {
+  const got = await tool("wait_for_clip", { timeout_seconds: 1 });
+  if (/No clip arrived/.test(got)) break;
+  drained++;
+}
+check(`${FLOOD} clips with nobody waiting drain to at most 20 (${drained})`,
+  drained > 0 && drained <= 20, "unbounded, this is a slow leak a peer controls");
+
 server.kill();
 console.log(`\n${"=".repeat(58)}\nMCP: ${pass}/${pass + fail} passed\n${"=".repeat(58)}\n`);
 process.exit(fail ? 1 : 0);

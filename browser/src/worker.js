@@ -14,30 +14,60 @@ import * as clipboard from "./clipboard.js";
 
 const ORIGIN = `ext-${Date.now().toString(36)}`;
 let session = null;
-let latest = null;
+
+/**
+ * The clip and the verdict on it are ONE value, and that is the fix for a real
+ * bypass: they used to be two. The connect path persisted `executable` to
+ * session storage while the popup-join path set only an in-memory `latest`, and
+ * pasteLatest() read the text from either but the verdict from storage alone —
+ * so a `curl … | sh` arriving after a popup join had no verdict, read as safe,
+ * and the hotkey wrote it. A keystroke is not a decision about a shell command
+ * somebody else sent you, so the two never travel apart again.
+ */
+let latest = null;                   // { text, executable } | null
 
 const load = async () => (await chrome.storage.local.get(["key", "locked"]));
 
 async function connect() {
   const { key, locked } = await load();
   if (!key) throw new Error("no session yet — open the popup and start one");
-  if (session?.key === key && room.isOpen?.()) return session;
+  if (session?.key === key && room.isOpen()) return session;
 
   // A locked room needs a PIN that is deliberately never stored, so this surface
   // cannot resume one unattended. The popup asks; the worker does not.
   if (locked) throw new Error("this session has a PIN — open the popup to rejoin");
 
   session = await room.derive(key, null);
-  await room.open({
-    session, name: "Browser extension", timeoutMs: 15_000,
-    onClip: (text) => {
-      latest = guard.defuse(text);
-      chrome.storage.session?.set({ latest, executable: guard.looksExecutable(latest) });
-      chrome.action.setBadgeText({ text: "1" });
-      chrome.action.setBadgeBackgroundColor({ color: "#4ec9b0" });
-    },
-  });
+  await openRoom(session);
   return session;
+}
+
+/** The ONE place a room is opened, so there is one onClip and one verdict. */
+async function openRoom(s) {
+  await room.open({ session: s, name: "Browser extension", timeoutMs: 15_000, onClip: received });
+}
+
+function received(text) {
+  const clip = guard.defuse(text);
+  latest = { text: clip, executable: guard.looksExecutable(clip) };
+  // Mirrored so a restarted worker — MV3 evicts one after ~30s idle — still
+  // knows what it was holding. The pair is written together or not at all.
+  chrome.storage.session?.set({ latest: latest.text, executable: latest.executable });
+  chrome.action.setBadgeText({ text: "1" });
+  chrome.action.setBadgeBackgroundColor({ color: "#4ec9b0" });
+}
+
+/**
+ * Storage first because it survives a worker restart, memory as the fallback —
+ * but always as a PAIR. Reading the text from one source and the verdict from
+ * the other is what produced the bypass this function used to have.
+ */
+async function currentClip() {
+  const st = (await chrome.storage.session?.get(["latest", "executable"])) ?? {};
+  if (typeof st.latest === "string") {
+    return { text: st.latest, executable: Boolean(st.executable) };
+  }
+  return latest;
 }
 
 async function sendClipboard() {
@@ -49,13 +79,12 @@ async function sendClipboard() {
 }
 
 async function pasteLatest() {
-  const { latest: stored, executable } = (await chrome.storage.session?.get(["latest", "executable"])) ?? {};
-  const text = stored ?? latest;
-  if (!text) return "No clips have arrived yet.";
+  const clip = await currentClip();
+  if (!clip?.text) return "No clips have arrived yet.";
   // A clip that reads like a command is never written by a hotkey. A keystroke
   // is not a decision about a shell command someone else sent you.
-  if (executable) return "That clip looks like a shell command — open the popup to confirm it.";
-  await clipboard.write(text);
+  if (clip.executable) return "That clip looks like a shell command — open the popup to confirm it.";
+  await clipboard.write(clip.text);
   chrome.action.setBadgeText({ text: "" });
   return "On your clipboard.";
 }
@@ -81,20 +110,29 @@ chrome.runtime.onMessage.addListener((msg, _s, respond) => {
       } else if (msg.type === "join") {
         const parsed = keys.parseFragment(
           msg.key.includes("#") ? msg.key.slice(msg.key.indexOf("#") + 1) : msg.key);
+        // A locked LINK with no PIN would derive the open room of the same key —
+        // a real room, joinable by anyone holding the link. Refused rather than
+        // silently joined; the popup asks for the PIN.
+        if (parsed.locked && !msg.pin) throw new Error("that link is locked — enter its PIN");
         session = await room.derive(parsed.key, msg.pin || null);
         await chrome.storage.local.set({ key: parsed.key, locked: Boolean(msg.pin) });
-        await room.open({ session, name: "Browser extension", timeoutMs: 15_000,
-          onClip: (t) => { latest = guard.defuse(t); } });
+        await openRoom(session);
         respond({ ok: true, key: parsed.key });
       } else if (msg.type === "send") { respond({ ok: true, message: await sendClipboard() }); }
       else if (msg.type === "paste") { respond({ ok: true, message: await pasteLatest() }); }
       else if (msg.type === "confirm-paste") {
-        await clipboard.write((await chrome.storage.session.get("latest")).latest ?? "");
+        // The only path that writes a flagged clip, and it exists because a
+        // person clicked. Same rule as capture.confirmPending() everywhere else.
+        const clip = await currentClip();
+        if (!clip?.text) { respond({ ok: false, message: "Nothing to write." }); return; }
+        await clipboard.write(clip.text);
+        chrome.action.setBadgeText({ text: "" });
         respond({ ok: true, message: "On your clipboard." });
       } else if (msg.type === "state") {
         const { key, locked } = await load();
-        const s = (await chrome.storage.session?.get(["latest", "executable"])) ?? {};
-        respond({ ok: true, key, locked, link: key ? keys.shareLink(key, locked) : null, ...s });
+        const clip = await currentClip();
+        respond({ ok: true, key, locked, link: key ? keys.shareLink(key, locked) : null,
+                  latest: clip?.text ?? null, executable: Boolean(clip?.executable) });
       } else respond({ ok: false, message: "unknown request" });
     } catch (err) { respond({ ok: false, message: err.message }); }
   })();

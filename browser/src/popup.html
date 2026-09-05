@@ -18,9 +18,17 @@
     <button id="bLink">Copy share link</button>
     <button id="bNew">New session</button>
   </div>
-  <form id="joinForm" class="row">
-    <input id="joinKey" placeholder="key or share link" autocomplete="off">
-    <button type="submit">Join</button>
+  <form id="joinForm">
+    <div class="row">
+      <input id="joinKey" placeholder="key or share link" autocomplete="off">
+      <button type="submit">Join</button>
+    </div>
+    <!-- Shown only for a locked link. A locked link joined without its PIN
+         derives the OPEN room of the same key — a real room anyone holding the
+         link can join — so this is required, not optional. -->
+    <div class="row" id="pinRow" hidden>
+      <input id="joinPin" type="password" placeholder="PIN for this locked link" autocomplete="off">
+    </div>
   </form>
   <p class="fine">Background clipboard sync is not possible in a browser.
     <a href="https://realtimeclipboard.com/download/" target="_blank" rel="noreferrer">Install the app</a>

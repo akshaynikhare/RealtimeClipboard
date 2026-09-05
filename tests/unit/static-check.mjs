@@ -557,12 +557,23 @@ ok(`every surface's version agrees with package.json (${pkgVersion})`,
    + `tauri.conf ${conf.version}, vscode ${vsceVersion}, mcp ${mcpPkgVersion}, `
    + `mcp/server.json ${mcpRegVersion}/${mcpPkgd}, browser ${extVersion}`);
 
-/* The MCP server's dependency on the CLI package is what keeps ONE copy of the
-   crypto. Vendoring src/ into mcp/ would be a second implementation with a
-   version skew nobody would see until two ends disagreed. */
-ok("the MCP server depends on the published CLI package rather than vendoring it",
-   mcpPkg.dependencies?.realtimeclipboard === `^${pkgVersion}`,
-   `dependencies.realtimeclipboard = ${mcpPkg.dependencies?.realtimeclipboard}`);
+/* The published MCP package is the BUNDLE, so it has no dependencies at all —
+   the same property the rest of this repository has. It got here the hard way:
+   importing ../cli/ and ../src/ worked in the repo and resolved to nothing once
+   installed, and depending on the CLI package would have fixed the paths but not
+   the fact that src/clipboard/ was never published, so the guard an agent's
+   safety rests on was in no tarball. tools/build/build-mcp.mjs bundles it and
+   proves the result starts. */
+ok("the MCP package declares no runtime dependencies",
+   !mcpPkg.dependencies || Object.keys(mcpPkg.dependencies).length === 0,
+   JSON.stringify(mcpPkg.dependencies));
+
+/* The source may reach up into the repo — the bundler resolves it. What must
+   never happen is the PUBLISHED file doing so, which is build-mcp.mjs's job to
+   check; this only makes sure the build is the thing that publishes. */
+ok("mcp/package.json ships the bundle, not the source tree",
+   Array.isArray(mcpPkg.files) && !mcpPkg.files.some(f => f.startsWith("../")),
+   JSON.stringify(mcpPkg.files));
 
 /* stdout is the MCP transport. One stray console.log is a parse error at the
    client, which presents as "the server is broken" with nothing saying why. */

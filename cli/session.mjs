@@ -124,6 +124,10 @@ export async function evict(session, originId) {
   } catch { /* leaving anyway */ }
 }
 
+/** Is the room actually usable right now? Callers that reconnect on demand ask
+ *  this before tearing a live connection down and building it again. */
+export const isOpen = () => relay.isOpen();
+
 export function close() {
   relay.setFrameHandler(() => {});
   relay.close();

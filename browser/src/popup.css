@@ -1,6 +1,7 @@
 :root { color-scheme: light dark; --bg: #1e1e1e; --fg: #d4d4d4; --blue: #007acc; --danger: #f48771; }
 body { margin: 0; width: 300px; font: 13px/1.5 system-ui, sans-serif; background: var(--bg); color: var(--fg); }
 main { padding: 12px; display: grid; gap: 8px; }
+form { display: grid; gap: 6px; }
 h1 { margin: 0; font-size: 20px; font-family: ui-monospace, monospace; letter-spacing: .06em; }
 p { margin: 0; }
 .row { display: flex; gap: 6px; }

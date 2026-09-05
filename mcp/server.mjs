@@ -27,8 +27,17 @@ import * as keys from "../src/core/keys.js";
 import * as guard from "../src/clipboard/guard.js";
 import { DEFAULT_RELAY_URL, normaliseRelay, TEXT } from "../src/core/config.js";
 
-const VERSION = JSON.parse(
+/**
+ * Baked in by tools/build/build-mcp.mjs for the published bundle, read from disk
+ * when running from a clone. Never written here — cli/CLAUDE.md records why: the
+ * literal was wrong once already, and a version number's whole job is telling
+ * somebody which code they are running.
+ */
+const VERSION = process.env.__RTC_VERSION__ ?? JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
+
+/** How many clips are kept, in history and in the unread queue alike. */
+const MAX_CLIPS = 20;
 
 const RELAY = normaliseRelay(process.env.REALTIMECLIPBOARD_RELAY ?? "") ?? DEFAULT_RELAY_URL;
 const ORIGIN = `mcp-${Date.now().toString(36)}`;
@@ -51,9 +60,15 @@ async function join(key, pin) {
     onClip: (text) => {
       const entry = describe(text);
       state.clips.unshift(entry);
-      state.clips.length = Math.min(state.clips.length, 20);
-      if (state.waiters.length) state.waiters.shift()(entry);
-      else state.unread.push(entry);
+      state.clips.length = Math.min(state.clips.length, MAX_CLIPS);
+      if (state.waiters.length) return state.waiters.shift()(entry);
+      // Bounded for the same reason `clips` is, and it matters more here: a peer
+      // holding the key can send while nothing is waiting, and an MCP server is
+      // long-lived. Unbounded, that is a slow memory leak an attacker controls.
+      // The OLDEST is dropped — a queue of stale clips is worth less than the
+      // newest one, and the agent asked for "the next clip", not "all of them".
+      state.unread.push(entry);
+      if (state.unread.length > MAX_CLIPS) state.unread.shift();
     },
   });
   room = state;

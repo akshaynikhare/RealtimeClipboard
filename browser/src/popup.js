@@ -44,13 +44,32 @@ $("bLink").onclick = async () => {
   say("Share link copied.");
 };
 
+/** `#!KEY` is the locked form — keys.js LOCK_SIGIL, not a guess at the shape. */
+const looksLocked = (v) => {
+  const frag = v.includes("#") ? v.slice(v.indexOf("#") + 1) : v;
+  return frag.trimStart().startsWith("!");
+};
+
+// Revealed as soon as the link says it is locked, so the PIN is asked for
+// before the join rather than after it has quietly landed in the wrong room.
+$("joinKey").oninput = () => {
+  $("pinRow").hidden = !looksLocked($("joinKey").value.trim());
+};
+
 $("joinForm").onsubmit = async (e) => {
   e.preventDefault();
   const key = $("joinKey").value.trim();
   if (!key) return;
+  const pin = $("joinPin").value;
+  if (looksLocked(key) && !pin) {
+    $("pinRow").hidden = false;
+    $("joinPin").focus();
+    return say("That link is locked — enter its PIN.");
+  }
   say("Joining…");
-  const r = await ask("join", { key });
+  const r = await ask("join", { key, pin });
   say(r.ok ? "Joined." : r.message);
+  $("joinPin").value = "";              // never leave a PIN sitting in the DOM
   render();
 };
 
