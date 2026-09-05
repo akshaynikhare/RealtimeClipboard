@@ -172,3 +172,27 @@ export function shareLink(key, locked = false) {
     : SITE.APP_URL;
   return `${here}#${fragment(key, locked)}`;
 }
+
+/**
+ * The share link, plus the flag that asks the app to open its QR immediately.
+ *
+ * Here rather than in the surface that wanted it, because there is exactly one
+ * rule to get wrong and it is not obvious: the query goes BEFORE the fragment.
+ * Everything after `#` is the key, so `#KEY?qr=1` is not a broken flag — it is a
+ * broken key, and the symptom is a room nobody else can join rather than an
+ * error anybody sees. One implementation, tested in tests/unit/sharelink.mjs.
+ */
+export function qrLink(key, locked = false) {
+  const [base, fragment] = shareLink(key, locked).split("#");
+  const sep = base.includes("?") ? "&" : "?";
+  return `${base}${sep}${SITE.QR_PARAM}=1${fragment ? `#${fragment}` : ""}`;
+}
+
+/**
+ * Did this visit ask for the code? The reader sits beside the writer so the two
+ * cannot drift, and it is strict: `?qr=0` and `?qr=false` are not requests, and
+ * a truthiness test on the string would have treated both as one.
+ */
+export const qrRequested = () =>
+  typeof location !== "undefined"
+  && new URLSearchParams(location.search).get(SITE.QR_PARAM) === "1";

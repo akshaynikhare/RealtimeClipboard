@@ -151,8 +151,9 @@ export function register(vscode, ctx) {
   });
 
   add("showQr", async () => {
-    const url = qrUrl();
-    if (!url) return vscode.window.showInformationMessage("No session yet.");
+    const s = room.current();
+    if (!s) return vscode.window.showInformationMessage("No session yet.");
+    const url = keys.qrLink(s.key, s.locked);
     // The app draws it, not us. That is the whole point of SITE.QR_PARAM: the
     // modal there is accessible, already says what the code discloses, and
     // already knows a locked session's code carries the key and not the PIN.
@@ -217,22 +218,6 @@ const askPin = (vscode, prompt) => vscode.window.showInputBox({
   title: "Session PIN", prompt, password: true,
   validateInput: v => (!v || v.length >= LOCK.MIN_PIN ? null : `at least ${LOCK.MIN_PIN} characters`),
 });
-
-/**
- * The share link plus the flag that tells the app to open its QR straight away.
- * Built from state rather than from a stored URL — keys.shareLink() is the one
- * place that knows how, and it points at SITE.APP_URL because this surface has
- * no `location` a phone could reach.
- */
-function qrUrl() {
-  const link = room.shareLink();
-  if (!link) return null;
-  const [base, fragment] = link.split("#");
-  const sep = base.includes("?") ? "&" : "?";
-  // Before the fragment: everything after # is the key, and a query appended
-  // there would be read as part of it.
-  return `${base}${sep}${SITE.QR_PARAM}=1${fragment ? `#${fragment}` : ""}`;
-}
 
 const latest = () =>
   history.all().find(c => c.direction === "received") ?? history.all()[0] ?? null;

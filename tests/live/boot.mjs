@@ -11,6 +11,7 @@
  *
  *   node tests/live/boot.mjs [ws_base]            open session, must CONNECT
  *   node tests/live/boot.mjs [ws_base] --locked    locked link, must NOT connect
+ *   node tests/live/boot.mjs [ws_base] --qr        ?qr=1 must open the code
  *
  * The --locked run guards the invariant that is easiest to lose and worst to
  * lose silently: a link marked locked must not open a socket until the PIN has
@@ -36,6 +37,11 @@ import { dirname, join, resolve } from "node:path";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const LOCKED = process.argv.includes("--locked");
+/* The QR deep link is checked HERE and not in a unit test because the bug it
+   guards was one of boot ORDER, not of logic: startSession() is deliberately not
+   awaited, so the handler used to test for a key once, find none, and return.
+   Only a real boot can tell whether it now waits. */
+const QR = process.argv.includes("--qr");
 const RELAY = process.argv.find(a => a.startsWith("ws")) || process.env.RELAY_BASE
   || "wss://realtimeclipboard.fastapicloud.dev";
 
@@ -53,7 +59,7 @@ const RELAY = process.argv.find(a => a.startsWith("ws")) || process.env.RELAY_BA
  */
 const dom = new JSDOM(readFileSync(join(REPO, "app.html"), "utf8"), {
   url: `https://realtimeclipboard.com/app.html`
-     + `?relay=${encodeURIComponent(RELAY)}`
+     + `?relay=${encodeURIComponent(RELAY)}${QR ? "&qr=1" : ""}`
      + `#${LOCKED ? "!" : ""}BOOTTEST`,
   pretendToBeVisual: true,
 });
@@ -148,6 +154,9 @@ window.document.dispatchEvent(new window.Event("DOMContentLoaded"));
 await new Promise(r => setTimeout(r, 12000));
 
 const connected = states.includes("connected");
+// The modal mounts on document.body with .qrmodal — see ui/features/qr.js, which
+// deliberately avoids #mount-modals because filesPanel.js rewrites that node.
+const qrShown = Boolean(window.document.querySelector(".qrmodal"));
 const reachedEnd = log.some(([lvl, m]) => lvl === "info" && m.includes("booted"));
 
 // A locked link must never reach the relay unprompted, and must never quietly
@@ -163,6 +172,11 @@ if (LOCKED) {
   console.log("  opened an open room:    " + (openedARoom ? "YES — DOWNGRADED" : "no"));
   console.log("  expected:               idle, waiting for the PIN");
 }
+if (QR) {
+  console.log("  ?qr=1 opened the code:  " + (qrShown ? "YES" : "NO"));
+  console.log("  expected:               YES — and it must survive the session");
+  console.log("                          not being ready when boot() ends");
+}
 
 const problems = log.filter(([lvl]) => lvl === "warn" || lvl === "error");
 if (problems.length) {
@@ -173,5 +187,5 @@ console.log("=".repeat(60));
 
 const ok = LOCKED
   ? (reachedEnd && !connected && !openedARoom)
-  : (reachedEnd && connected);
+  : (reachedEnd && connected && (!QR || qrShown));
 process.exit(ok ? 0 : 1);

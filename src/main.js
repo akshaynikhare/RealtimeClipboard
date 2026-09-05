@@ -7,7 +7,7 @@
  */
 
 import {
-  TEXT, LOCK, textBytes, sharesSession, RELAY_URL, RELAY_IS_CUSTOM, SITE,
+  TEXT, LOCK, textBytes, sharesSession, RELAY_URL, RELAY_IS_CUSTOM,
 } from "./core/config.js";
 import { emit, on, EV } from "./core/bus.js";
 import * as state from "./core/state.js";
@@ -808,16 +808,28 @@ async function wireFiles() {
  * It exists so a surface that cannot draw a QR can hand the job to the app: the
  * VS Code extension opens this URL rather than growing a renderer, and gets the
  * accessible modal, the right caption and the locked/unlocked distinction for
- * free. See SITE.QR_PARAM.
+ * free. See keys.qrLink().
+ *
+ * WAITS for the session rather than testing for it once. startSession() is
+ * deliberately not awaited in boot() — the session must not queue behind panel
+ * rendering — so by the time this runs the key is often not set yet, and for a
+ * LOCKED link it is guaranteed not to be: that path is sitting on a PIN prompt
+ * waiting for a human. Checking once and returning meant the QR never opened in
+ * exactly the case where scanning it is most useful.
  *
  * The parameter survives keys.clearUrl(), which strips the fragment and keeps
- * the search — so this is read after boot rather than snapshotted before it.
+ * the search, so it is read after boot rather than snapshotted before it.
  */
 function openQrIfAsked() {
-  if (typeof location === "undefined") return;
-  if (!new URLSearchParams(location.search).get(SITE.QR_PARAM)) return;
-  if (!state.get().key) return;                 // nothing to draw yet
-  sessionPanel.showQr();
+  if (!keys.qrRequested()) return;
+  if (state.get().key) return sessionPanel.showQr();
+
+  // One shot: a later rotation or re-PIN is a new room, not this request again.
+  const off = on(EV.KEY_CHANGED, ({ key }) => {
+    if (!key) return;
+    off();
+    sessionPanel.showQr();
+  });
 }
 
 async function loadOptional() {
