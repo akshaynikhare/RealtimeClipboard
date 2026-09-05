@@ -354,6 +354,34 @@ jobs:
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with: { name: browser-zip, path: browser/dist/*.zip, if-no-files-found: error }
 
+  # Edge Add-ons is the one Chromium store with no registration fee, which is
+  # why this exists and Chrome does not: the same zip, on a store that gives
+  # one-click install and auto-update, for nothing.
+  #
+  # A separate job from `browser` and nothing waits on it, for the reason the
+  # rest of this file already gives — it holds a key that expires, and Edge API
+  # keys do expire. `browser` keeps producing the release asset either way, so
+  # a lapsed key costs the store listing and not the download.
+  edge-publish:
+    needs: browser
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with: { node-version: 22 }
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7
+        with: { name: browser-zip, path: dist }
+      # The script skips itself when the credentials are absent, so this needs no
+      # `if:` — and unlike one, it says WHY it did nothing in the log.
+      - name: Microsoft Edge Add-ons
+        run: node tools/release/edge-publish.mjs dist/*.zip
+        env:
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+          EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
+
   # ── the VS Code extension ────────────────────────────────────────────────
   # Two jobs on purpose, and the split is the same lesson the npm job records.
   #
@@ -418,7 +446,8 @@ jobs:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
 
   # `needs: [desktop, vscode, browser]` — the three jobs that produce a RELEASE
-  # ASSET. Not npm, mcp or vscode-publish: those talk to external registries
+  # ASSET. Not npm, mcp, vscode-publish or edge-publish: those talk to external
+  # registries
   # with tokens that expire, and coupling them means one expired token hides
   # three perfectly good installers behind a draft nobody can reach. That is
   # what happened on the first attempt at v0.3.0.
