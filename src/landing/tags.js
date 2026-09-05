@@ -19,9 +19,9 @@
  */
 
 import {
-  GOOGLE, GOOGLE_SRC, CONSENT_REGIONS,
-  analyticsEnabled, adsEnabled, pageLocation,
+  GOOGLE, GOOGLE_SRC, CONSENT_REGIONS, pageLocation,
 } from "../core/config.js";
+import { analyticsOn, adNetwork, platform } from "../core/surface.js";
 
 /**
  * `require-trusted-types-for 'script'` makes `script.src` a guarded sink, so an
@@ -63,7 +63,22 @@ function analytics() {
     wait_for_update: 500,
   });
   gtag("js", new Date());
-  gtag("config", GOOGLE.GA4_ID, { page_location: pageLocation() });
+  /* `set` rather than a config param alone: a config param rides only on events
+     sent through that config, and the question "which surface produced this"
+     has to be answerable for the automatically-collected ones too —
+     session_start, first_visit, user_engagement. Sent on the config as well so
+     it is on the page_view that config emits.
+
+     `rtc_surface`, not `platform`: GA4 has a built-in Platform dimension
+     (web/iOS/Android) and a custom one of the same name is ambiguous in every
+     report that shows both. Register it under Admin -> Custom definitions,
+     scope Event, parameter `rtc_surface` — GA4 does not backfill, so a hit
+     collected before the dimension exists is not queryable. */
+  gtag("set", { rtc_surface: platform() });
+  gtag("config", GOOGLE.GA4_ID, {
+    page_location: pageLocation(),
+    rtc_surface: platform(),
+  });
   loadScript(GOOGLE_SRC.gtag(GOOGLE.GA4_ID));
 }
 
@@ -133,5 +148,8 @@ function consentLink() {
   });
 }
 
-if (analyticsEnabled()) analytics();
-if (adsEnabled()) ads();
+if (analyticsOn()) analytics();
+/* These pages are only ever served over http(s), so adNetwork() answers
+   "adsense" here or nothing does — but asking the same question as the app
+   means a self-hoster who forks this gets one answer, not two. */
+if (adNetwork() === "adsense") ads();

@@ -48,6 +48,9 @@ const nowMs = () => (typeof performance !== "undefined" && performance.now
 
 export function init() {
   on(EV.TOAST, message => show(message));
+  // Dismiss drops the current message AND the backlog. Someone closing a toast
+  // is not asking to be shown the next one a beat later.
+  $("toastX")?.addEventListener("click", () => { queue.length = 0; hide(); });
 }
 
 /**
@@ -97,10 +100,11 @@ function pump() {
 
 function paint({ text, ms }) {
   const el = $("toast");
-  if (!el) { current = null; return; }
+  const msg = $("toastMsg");
+  if (!el || !msg) { current = null; return; }
 
   clearTimeout(clearTimer);
-  el.textContent = text;
+  msg.textContent = text;
   el.classList.add("show");
   current = text;
   shownAt = nowMs();
@@ -120,7 +124,7 @@ function hide() {
   // a change. Skipped if the next message has already been painted.
   clearTimeout(clearTimer);
   clearTimer = setTimeout(() => {
-    if (current === null && el) el.textContent = "";
+    if (current === null) { const m = $("toastMsg"); if (m) m.textContent = ""; }
   }, CLEAR_MS);
 
   if (!queue.length) return;

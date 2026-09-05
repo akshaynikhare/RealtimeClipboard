@@ -19,7 +19,7 @@
  */
 
 import {
-  POLL_OPTIONS, SYNC_MODES, RELAY_URL, DEFAULT_RELAY_URL, RELAY_IS_CUSTOM,
+  POLL_OPTIONS, SYNC_MODES, THEMES, RELAY_URL, DEFAULT_RELAY_URL, RELAY_IS_CUSTOM,
 } from "../../core/config.js";
 import { emit, on, EV } from "../../core/bus.js";
 import * as state from "../../core/state.js";
@@ -29,10 +29,12 @@ import { IS_DESKTOP } from "../../core/native.js";
 import * as os from "../../clipboard/os.js";
 import * as capture from "../../clipboard/capture.js";
 import * as menu from "../primitives/statusMenu.js";
+import * as modal from "../primitives/modal.js";
 // Two controls for one setting, so both go through the module that owns
 // persistence and repainting rather than poking state behind each other's back.
 import * as syncMode from "../features/syncMode.js";
-import { $, esc, on as bind } from "../primitives/dom.js";
+import * as theme from "../features/theme.js";
+import { $, esc, on as bind, lazyStyle } from "../primitives/dom.js";
 
 /** Set by the relay when the room may have moved replica; shown in the roster. */
 let splitBrain = null;
@@ -107,6 +109,10 @@ function onMenuEvent(e, close) {
   if (action === "repin")  { close(); return emit("session:repin"); }
   if (action === "whatsnew") { close(); return emit("ui:whatsnew"); }
   if (action === "guide")    { close(); return emit("ui:guide"); }
+  if (action === "theme") {
+    state.saveSetting("theme", e.target.closest("[data-theme-set]").dataset.themeSet);
+    return menu.refresh();               // the note under it names what is showing
+  }
   if (action === "relay")       { close(); return changeRelay(); }
   if (action === "relay-reset") { close(); return changeRelay(true); }
 }
@@ -228,6 +234,8 @@ function gearMenu() {
     + (IS_DESKTOP ? desktopRows() : "")
     + group("Relay")
     + relayRows()
+    + group("Appearance")
+    + themeRows()
     + group("About")
     + `<div class="sacts">
          <button class="btn ghost" type="button" data-act="whatsnew" data-mi="whatsnew">What's new</button>
@@ -274,10 +282,44 @@ function relayRows() {
 }
 
 /**
- * A prompt() deliberately: this cannot take effect in place, RELAY_URL being
- * resolved once at module evaluation with every socket, the room and the
- * failover state built against the old one. Reloading is the honest
- * implementation, and a modal that ends in one need not beat the browser's.
+ * System, Light, Dark — the same segmented control the sync ladder uses.
+ *
+ * System is the default and comes first because it is the answer for almost
+ * everyone: tokens.css reads `prefers-color-scheme` and needs no help. The other
+ * two exist for the case the OS cannot express — chiefly the installed app,
+ * where somebody wants it dark on a light desktop.
+ *
+ * The note says what is actually on screen rather than what was chosen, because
+ * under System those are different sentences and only one of them is useful.
+ */
+function themeRows() {
+  const choice = state.get().settings.theme;
+  const OPTIONS = [
+    [THEMES.SYSTEM, "System"],
+    [THEMES.LIGHT,  "Light"],
+    [THEMES.DARK,   "Dark"],
+  ];
+
+  return `<div class="sacts seg">
+      ${OPTIONS.map(([value, label]) => `
+        <button class="btn ghost${value === choice ? " on" : ""}" type="button"
+                data-act="theme" data-theme-set="${esc(value)}" data-mi="theme-${esc(value)}"
+                aria-pressed="${value === choice}">${esc(label)}</button>`).join("")}
+    </div>
+    <div class="snote">${esc(choice === THEMES.SYSTEM
+      ? `Following this device — ${theme.resolved() === THEMES.LIGHT ? "light" : "dark"} right now.`
+      : "Set here, whatever this device is set to.")}</div>`;
+}
+
+/**
+ * Changing the relay reloads: RELAY_URL is resolved once at module evaluation,
+ * with every socket, the room and the failover state built against the old one.
+ *
+ * This was a `prompt()`, on the reasoning that a dialog ending in a reload need
+ * not beat the browser's own. That stopped being true when there was a desktop
+ * surface — wry implements no `window.prompt`, so the button did nothing at all
+ * in the installed app, silently, and the setting was unreachable there.
+ * Nothing in this app may use a native dialog for that reason.
  */
 function changeRelay(reset = false) {
   if (reset) {
@@ -286,23 +328,51 @@ function changeRelay(reset = false) {
     return;
   }
 
-  const raw = prompt(
-    "Relay address\n\n"
-    + "The server that carries encrypted clips between your devices. Leave blank "
-    + "to use the default.\n\n"
-    + `Default: ${DEFAULT_RELAY_URL.replace(/^wss?:\/\//, "")}`,
-    RELAY_URL.replace(/^wss?:\/\//, ""),
-  );
-  if (raw === null) return;                       // cancelled
+  const current = RELAY_URL.replace(/^wss?:\/\//, "");
+  const fallback = DEFAULT_RELAY_URL.replace(/^wss?:\/\//, "");
 
-  const trimmed = raw.trim();
-  if (!trimmed) { storage.saveRelayUrl(null); location.reload(); return; }
+  lazyStyle("relay.css");
 
-  // Bare hosts are what people paste, so assume the secure scheme rather than
-  // rejecting them. saveRelayUrl returns null if it is not usable at all.
-  const saved = storage.saveRelayUrl(/^[a-z]+:\/\//i.test(trimmed) ? trimmed : `wss://${trimmed}`);
-  if (!saved) { emit(EV.TOAST, "That is not a usable relay address"); return; }
-  location.reload();
+  const { el } = modal.show({
+    className: "relaymodal",
+    labelledBy: "relayTitle",
+    html: `
+      <h2 id="relayTitle">Relay address</h2>
+      <p>The server that carries encrypted clips between your devices. It only
+         ever sees a room hash and ciphertext.</p>
+      <p>Leave it blank to use the default, <b>${esc(fallback)}</b>.</p>
+
+      <label class="relay-lbl" for="relayUrl">Address</label>
+      <input id="relayUrl" class="relay-input" type="text" name="realtimeclipboard-relay"
+             autocomplete="off" autocapitalize="none" autocorrect="off"
+             spellcheck="false" enterkeyhint="go" value="${esc(current)}">
+
+      <div class="relay-row">
+        <button class="btn ghost" type="button" data-modal-dismiss>Cancel</button>
+        <button class="btn" type="button" data-ok>Save and reload</button>
+      </div>`,
+  });
+
+  const input = el.querySelector("#relayUrl");
+  input?.focus();
+  input?.select();
+
+  const commit = () => {
+    const trimmed = (input?.value ?? "").trim();
+    if (!trimmed) { storage.saveRelayUrl(null); return void location.reload(); }
+
+    // Bare hosts are what people paste, so assume the secure scheme rather than
+    // rejecting them. saveRelayUrl returns null if it is not usable at all.
+    const saved = storage.saveRelayUrl(
+      /^[a-z]+:\/\//i.test(trimmed) ? trimmed : `wss://${trimmed}`);
+    if (!saved) return emit(EV.TOAST, "That is not a usable relay address");
+
+    modal.close();
+    location.reload();
+  };
+
+  el.addEventListener("click", e => { if (e.target.closest("[data-ok]")) commit(); });
+  el.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); commit(); } });
 }
 
 /**

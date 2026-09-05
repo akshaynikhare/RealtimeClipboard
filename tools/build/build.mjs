@@ -82,7 +82,10 @@ mkdirSync(OUT, { recursive: true });
 /* ------------------------------------------------------------- copy ----- */
 
 for (const f of [
-  "index.html", "app.html", "manifest.webmanifest", "sw.js",
+  // index.html is the marketing page: unreachable inside the shell, and it
+  // carries the ad tags. Shipping it put the AdSense client ID in the installer.
+  ...(DESKTOP ? [] : ["index.html"]),
+  "app.html", "manifest.webmanifest", "sw.js",
   // Without this, Pages serves index.html with HTTP 200 for unmatched paths and
   // every typo becomes a soft 404. The desktop shell has no router.
   ...(DESKTOP ? [] : ["404.html"]),
@@ -150,17 +153,74 @@ const common = {
 // metafile: the chunk filenames esbuild emits are content hashes, so they change
 // whenever their contents do and are worthless for "what grew". The metafile maps
 // every chunk back to the SOURCE modules inside it, which are stable names.
+/**
+ * Resolve ui/features/adsense.js to its stub for the desktop shell.
+ *
+ * `adNetwork()` already never returns "adsense" there, so this changes no
+ * behaviour — it changes what is ON DISK. Google forbids ads in software
+ * applications, and an identifier that cannot ship cannot be switched on by a
+ * later CSP edit. tools/check/desktop-check.mjs fails the build if one returns.
+ */
+const AD_ORIGINS = [
+  "https://pagead2.googlesyndication.com", "https://partner.googleadservices.com",
+  "https://tpc.googlesyndication.com", "https://adservice.google.com",
+  "https://fundingchoicesmessages.google.com", "https://ep1.adtrafficquality.google",
+  "https://ep2.adtrafficquality.google", "https://googleads.g.doubleclick.net",
+  "https://td.doubleclick.net", "https://stats.g.doubleclick.net",
+];
+
+/**
+ * Blank the AdSense IDs in the desktop copy of config.js.
+ *
+ * The desktop never reads them — `adNetwork()` answers "house" there — but a
+ * publisher ID sitting in an installer is an identifier that shipped where the
+ * programme policy says ads may not go. Blanking it costs nothing and makes
+ * tools/check/desktop-check.mjs able to assert absence rather than disuse.
+ */
+const stripAdIds = {
+  name: "strip-ad-ids",
+  setup(b) {
+    b.onLoad({ filter: /core\/config\.js$/ }, args => ({
+      contents: readFileSync(args.path, "utf8")
+        .replace(/(ADSENSE_CLIENT:\s*)"[^"]*"/, '$1""')
+        .replace(/("(?:LEADERBOARD|RAIL|APP)":?\s*)"[^"]*"/g, '$1""')
+        // The script-URL builder is eager in config.js, so the host reached the
+        // installer even with every ID blanked.
+        .replace(/adsense:\s*\([^)]*\)\s*=>\s*`[^`]*`/, 'adsense: () => ""'),
+      loader: "js",
+    }));
+  },
+};
+
+const stubAdsense = {
+  name: "stub-adsense",
+  setup(b) {
+    b.onResolve({ filter: /adsense\.js$/ }, args =>
+      args.path.endsWith("adsense.stub.js")
+        ? null
+        : { path: join(ROOT, "tools/build/adsense.stub.js") });
+  },
+};
+
 const appBuild = await build({
   ...common, entryPoints: [join(ROOT, "src/main.js")], outdir: join(OUT, "src"), metafile: true,
+  plugins: DESKTOP ? [stubAdsense, stripAdIds] : [],
 });
-await build({
-  ...common,
-  // Every module an HTML page names in a <script src> must be an entry point: the
-  // deploy ships bundles, so one reachable only from markup is invisible to the
-  // bundler and 404s on the single page that needs it.
-  entryPoints: ["redirect", "landing", "faq", "download", "copy", "tags"].map(n => join(ROOT, `src/landing/${n}.js`)),
-  outdir: join(OUT, "src/landing"),
-});
+// Skipped whole for the shell: nothing there navigates to index.html, and
+// tags.js is the crawlable pages' ad loader — bundling it put the AdSense
+// client ID in the installer. Gated around the call rather than inside
+// `entryPoints`, so the list stays a literal array — tests/unit/static-check.mjs
+// reads it with a regex to know which modules a page is allowed to name.
+if (!DESKTOP) {
+  await build({
+    ...common,
+    // Every module an HTML page names in a <script src> must be an entry point: the
+    // deploy ships bundles, so one reachable only from markup is invisible to the
+    // bundler and 404s on the single page that needs it.
+    entryPoints: ["redirect", "landing", "faq", "download", "copy", "tags"].map(n => join(ROOT, `src/landing/${n}.js`)),
+    outdir: join(OUT, "src/landing"),
+  });
+}
 
 for (const p of ["src/styles/main.css", "src/landing/landing.css"]) {
   await build({
@@ -252,6 +312,24 @@ if (DESKTOP) {
   console.log(`  desktop: app footer links now point at ${SITE_ORIGIN}`);
 }
 
+/**
+ * The desktop copy of app.html declares no ad origin.
+ *
+ * Tauri injects its own CSP and browsers intersect the two, so these origins
+ * were already unreachable — but a policy that NAMES a host it must never use
+ * reads as an oversight to whoever edits it next, and the whole point of
+ * docs/decisions/0001 is that this exclusion is deliberate. GA4's hosts stay:
+ * analytics runs on every surface, only ads do not.
+ */
+if (DESKTOP) {
+  const appHtml = join(OUT, "app.html");
+  const before = readFileSync(appHtml, "utf8");
+  const after = AD_ORIGINS.reduce((s, o) => s.split(`${o} `).join("").split(` ${o}`).join(""), before);
+  if (after === before) die("the desktop CSP strip matched nothing — app.html's policy changed");
+  writeFileSync(appHtml, after);
+  console.log(`  desktop: ${AD_ORIGINS.length} ad origins removed from the app CSP`);
+}
+
 /* --------------------------------------------------- service worker ----- */
 
 /**
@@ -281,7 +359,12 @@ const shell = [
   // The pass above made /app the address every link uses, so precaching the path
   // nobody navigates to would leave the app uncached offline. The desktop build
   // skips that pass, where "./app" would instead reject the whole install.
-  "./", "./index.html", DESKTOP ? "./app.html" : "./app", "./manifest.webmanifest",
+  /* The shell has no marketing page and no router: index.html is not in this
+     build, and `cache.addAll()` rejects as a UNIT — one 404 kills the install
+     and takes offline support with it, silently. The web keeps both because a
+     visitor can land on either. */
+  ...(DESKTOP ? ["./app.html"] : ["./", "./index.html", "./app"]),
+  "./manifest.webmanifest",
   "./changelog.json", "./CHANGELOG.md",
   ...walk(join(OUT, "src")).filter(f => /\.(js|css)$/.test(f)).map(f => "./" + rel(f)).sort(),
   // icons only: the share card is crawler-facing and has no business in every
@@ -299,7 +382,16 @@ if (withShell === sw) die("could not rewrite SHELL in sw.js — the declaration 
 const withVersion = withShell.replace(/^const VERSION = ".*";/m, `const VERSION = "${stamp}";`);
 if (withVersion === withShell) die("could not stamp VERSION in sw.js — the declaration format changed");
 
-writeFileSync(swPath, withVersion);
+/* The offline navigation fallback names the document this build actually has.
+   The shell ships app.html and no index.html, so the web's fallback would miss
+   the cache and serve the offline page to someone who is merely restarting. */
+const withFallback = DESKTOP
+  ? withVersion.replace('cache.match("./index.html")', 'cache.match("./app.html")')
+  : withVersion;
+if (DESKTOP && withFallback === withVersion)
+  die("could not repoint the sw offline fallback — sw.js's networkFirst changed");
+
+writeFileSync(swPath, withFallback);
 
 /* ------------------------------------------------------------ report ---- */
 

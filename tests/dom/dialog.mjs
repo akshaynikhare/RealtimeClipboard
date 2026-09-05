@@ -203,25 +203,25 @@ console.log("\nThe gate over an unopened locked session\n");
 const gate = await import("../../src/ui/shell/lockGate.js");
 gate.init();
 
-check("nothing is gated to begin with", !$(".lockgate"));
+check("nothing is gated to begin with", !$(".gate"));
 
 bus.emit(bus.EV.LOCK_REQUIRED, { required: true });
-check("a cancelled PIN prompt greys out the app", !!$(".lockgate"));
+check("a cancelled PIN prompt greys out the app", !!$(".gate"));
 check("...and the app behind it cannot be used or tabbed into",
   $(".vs").inert === true, "the editor accepted text into a session that did not exist");
-check("...it announces itself", $(".lockgate").getAttribute("role") === "alert");
+check("...it announces itself", $(".gate").getAttribute("role") === "alert");
 check("...and focus is on the way back in",
-  document.activeElement === $(".lockgate [data-pin]"));
+  document.activeElement === $(".gate [data-gate=\"0\"]"));
 
 bus.emit(bus.EV.LOCK_REQUIRED, { required: true });
 check("saying so twice does not stack two of them",
-  document.querySelectorAll(".lockgate").length === 1);
+  document.querySelectorAll(".gate").length === 1);
 
 let relocks = 0, rotates = 0;
 bus.on("session:relock", () => { relocks++; });
 bus.on("session:rotate", () => { rotates++; });
 
-$(".lockgate [data-pin]").click();
+$(".gate [data-gate=\"0\"]").click();
 check("Enter PIN asks for the PIN again", relocks === 1);
 
 /* THE REGRESSION: the prompt opens on top of the gate, and closing it must not
@@ -230,16 +230,61 @@ const onGate = dlg.ask({ mode: "join", key: "D75LV" });
 check("the prompt opens over the gate", !!$(".lockmodal-dlg"));
 click("[data-modal-dismiss]");
 check("...and cancelling it resolves rather than hanging", (await onGate) === null);
-check("cancelling it leaves the gate up", !!$(".lockgate"));
+check("cancelling it leaves the gate up", !!$(".gate"));
 check("...and the app still inert behind it",
   $(".vs").inert === true, "the modal's close must not out-vote the gate");
 
-$(".lockgate [data-new]").click();
+$(".gate [data-gate=\"1\"]").click();
 check("Start a new session asks for a new key", rotates === 1);
 
 bus.emit(bus.EV.LOCK_REQUIRED, { required: false });
-check("opening a session takes the gate down", !$(".lockgate"));
+check("opening a session takes the gate down", !$(".gate"));
 check("...and gives the app back", $(".vs").inert === false);
+
+/* ---- the same gate, over a key we refused ----
+   `#F5H4` opened a session for as long as the floor was four. It is the same
+   failure the lock gate exists for — an app that looks fine and reaches nobody
+   — so it is the same gate, and the app behind it has to be just as unusable. */
+
+console.log("\nThe gate over a key we would not hash\n");
+
+const keyGate = await import("../../src/ui/shell/keyGate.js");
+const { KEY, LINKS } = await import("../../src/core/config.js");
+keyGate.init();
+
+bus.emit(bus.EV.KEY_REJECTED, { key: "F5H4", reason: "short" });
+
+check("a refused key raises the gate", !!$(".gate"));
+check("...and the app behind it cannot be used",
+  $(".vs").inert === true, "no session was opened, so nothing typed would go anywhere");
+check("it shows the key back", $(".gate-key")?.textContent.includes("F5H4"));
+check("it names the floor", $(".gate-card p").textContent.includes(String(KEY.MIN_LENGTH)),
+  $(".gate-card p").textContent);
+check("...and states the cost in bits", /\d+ bits/.test($(".gate-card p").textContent));
+
+const issue = $(".gate-note a");
+check("there is a way to report it", !!issue, issue?.href);
+check("...which is the issue chooser, where the do-not-paste-your-key warning is",
+  issue?.getAttribute("href") === LINKS.NEW_ISSUE, issue?.getAttribute("href"));
+check("...opened outside the app", issue?.target === "_blank");
+
+rotates = 0;
+$(".gate [data-gate=\"0\"]").click();
+check("the only way out asks for a new session", rotates === 1);
+
+/* Both gates draw from one module, so a second one must replace rather than
+   stack — two scrims and the app is inert twice with one release. */
+bus.emit(bus.EV.LOCK_REQUIRED, { required: true });
+check("raising the other gate does not stack them",
+  document.querySelectorAll(".gate").length === 1);
+bus.emit(bus.EV.LOCK_REQUIRED, { required: false });
+check("and one drop is enough to give the app back", $(".vs").inert === false);
+
+bus.emit(bus.EV.KEY_REJECTED, { key: "A".repeat(40), reason: "long" });
+check("a too-long key gets its own sentence",
+  /too long/.test($(".gate-card h2").textContent), $(".gate-card h2").textContent);
+check("...naming the ceiling, not the floor",
+  $(".gate-card p").textContent.includes(String(KEY.MAX_LENGTH)));
 
 console.log(`\n${"=".repeat(58)}`);
 console.log(`DIALOG: ${pass}/${pass + fail} passed`);

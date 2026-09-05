@@ -43,7 +43,7 @@
 
 const KILL = false;
 
-const VERSION = "v26";
+const VERSION = "v30";
 const CACHE = `realtimeclipboard-shell-${VERSION}`;
 
 /** Hosts this worker must never touch, whatever the request looks like. */
@@ -80,6 +80,7 @@ const SHELL = [
   "./src/core/history.js",
   "./src/core/keys.js",
   "./src/core/native.js",
+  "./src/core/surface.js",
   "./src/core/paths.js",
   "./src/core/state.js",
   "./src/core/storage.js",
@@ -111,9 +112,12 @@ const SHELL = [
   "./src/styles/layout.css",
   "./src/styles/lazy/cursors.css",
   "./src/styles/lazy/desktop.css",
+  "./src/styles/lazy/gate.css",
   "./src/styles/lazy/install.css",
   "./src/styles/lazy/lock.css",
   "./src/styles/lazy/preview.css",
+  "./src/styles/lazy/relay.css",
+  "./src/styles/lazy/sponsor.css",
   "./src/styles/lazy/whatsnew.css",
   "./src/styles/main.css",
   "./src/styles/mobile.css",
@@ -127,6 +131,8 @@ const SHELL = [
   "./src/transport/sse.js",
   "./src/transport/ws.js",
   "./src/ui/features/ads.js",
+  "./src/ui/features/adsense.js",
+  "./src/ui/features/house.js",
   "./src/ui/features/analytics.js",
   "./src/ui/features/appLinks.js",
   "./src/ui/features/cursors.js",
@@ -139,6 +145,8 @@ const SHELL = [
   "./src/ui/features/preview.js",
   "./src/ui/features/qr.js",
   "./src/ui/features/syncMode.js",
+  "./src/ui/features/theme.js",
+  "./src/ui/features/sponsor.js",
   "./src/ui/features/whatsNew.js",
   "./src/ui/panels/editor.js",
   "./src/ui/panels/filesPanel.js",
@@ -149,7 +157,10 @@ const SHELL = [
   "./src/ui/primitives/modal.js",
   "./src/ui/primitives/statusMenu.js",
   "./src/ui/shell/banners.js",
+  "./src/ui/shell/gate.js",
+  "./src/ui/shell/keyGate.js",
   "./src/ui/shell/lockGate.js",
+  "./src/ui/shell/edtoolsDock.js",
   "./src/ui/shell/mobileNav.js",
   "./src/ui/shell/panes.js",
   "./src/ui/shell/resizer.js",

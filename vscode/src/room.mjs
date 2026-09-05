@@ -29,7 +29,8 @@ export const isOpen = () => session !== null && relay.isOpen();
  */
 export async function derive(rawKey, pin) {
   const key = keys.normalise(rawKey);
-  if (!keys.isValid(key)) throw new Error(`"${rawKey}" is not a valid key`);
+  const refused = keys.rejectMessage(key);
+  if (refused) throw new Error(`"${rawKey}" cannot be used — ${refused}`);
 
   if (pin) {
     const clean = cryptoBox.normalisePin(pin);

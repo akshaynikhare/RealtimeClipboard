@@ -1,0 +1,91 @@
+/*
+ * The relay-address dialog, opened from the session menu.
+ *
+ * Injected by ui/panels/sessionPanel.js rather than @imported from main.css,
+ * the way lock.css and whatsnew.css are: almost nobody changes their relay, and
+ * a sheet nobody opens should cost nothing. Same z-index band as those two, and
+ * no two of them can be open at once.
+ *
+ * It carries its own panel chrome rather than borrowing lock.css. Those styles
+ * are named for the PIN dialog and deleting that feature would silently strip
+ * this one; one sheet per component is the rule the directory keeps.
+ */
+
+.relaymodal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.relaymodal-back {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, .55);
+}
+
+.relaymodal-dlg {
+  position: relative;
+  width: min(420px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  padding: 18px 18px 14px;
+  background: var(--side);
+  border: 1px solid var(--bd2);
+  border-radius: 4px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, .5);
+}
+
+.relaymodal-dlg h2 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--bright);
+}
+
+.relaymodal-dlg p {
+  margin: 0 0 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--dim);
+}
+
+/* The default address, in the mono treatment the status bar gives it, so the
+   thing offered here and the thing shown there read as the same object. */
+.relaymodal-dlg p b {
+  font: 600 11.5px/1 var(--mono);
+  color: var(--str);
+}
+
+.relay-lbl {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.relay-input {
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 7px 9px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--input);
+  border: 1px solid var(--bd2);
+  border-radius: 3px;
+}
+
+.relay-input:focus {
+  outline: 2px solid var(--blue);
+  outline-offset: -1px;
+}
+
+.relay-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

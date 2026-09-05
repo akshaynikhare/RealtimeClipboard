@@ -56,6 +56,21 @@
   border:0;
 }
 
+/* The house promo. It is content, so it grows past the reserved height — but it
+   is not a sold unit, so it keeps a rule around it. Dotted rather than the
+   pre-load dashed, which is the difference between "nothing here yet" and
+   "nothing here".
+
+   The `border` shorthand, not `border-style` alone: house.js takes `adlive` off
+   before adding this, but the two classes are the same specificity and a
+   half-declaration here would lose the width to whichever ran last. */
+.adslot-box.adhouse {
+  display:flex;
+  height:auto;
+  min-height:90px;
+  border:1px dotted var(--bd2);
+}
+
 /* One line, always — the sidebar is drag-resizable, so this pane has no fixed
    width and a wrapping note would change the row's height every time someone
    dragged the splitter. It ellipsises instead; the title attribute carries the
@@ -86,3 +101,51 @@
   .adslot-note { display:none; }
 }
 
+
+/* The house slot — our own promo, desktop only. Reuses .adslot-box, so it
+   inherits the reserved height and the centring. */
+.house {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:center;
+  gap:6px 14px;
+  padding:0 12px;
+  text-align:center;
+}
+
+.house-copy {
+  margin:0;
+  color:var(--dim);
+  font:12px/1.5 var(--ui-font);
+}
+
+.house-copy code {
+  font:11.5px/1 var(--mono);
+  opacity:.85;
+}
+
+/* One class over an <a> and a <button>: the guide leaves the app, the sponsor
+   ask opens a dialog, and they have to read as the same kind of thing. Hence
+   the button reset — padding and background are a button's defaults, not ours. */
+.house-cta {
+  padding:0;
+  background:none;
+  border:0;
+  border-bottom:1px solid var(--bd2);
+  border-radius:0;
+  color:var(--dim);
+  font:11.5px/1 var(--ui-font);
+  text-decoration:none;
+  cursor:pointer;
+}
+.house-cta:hover { color:var(--fg); }
+
+/* The slot and the publisher line are children of #shell, not of <main> — a
+   phone hides whole panes, so anything inside #mainPane exists on the Text tab
+   only (app.html says why). They therefore span the window rather than the
+   editor column, and this keeps them lined up with the editor text past the
+   gutter, which is what the 56px was for. */
+@media (min-width:901px) {
+  .adslot { padding-left:56px; }
+}

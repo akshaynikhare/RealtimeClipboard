@@ -279,6 +279,24 @@ a "new" clipboard value and bounces it back to the sender, forever. See
 
 ### The one that was enforced by two policies — reversed 2026-08-09
 
+**Ads are per surface, and the split is a policy, not a preference.** Google's programme
+policies forbid ads in software applications, so the Tauri shell and the VS Code extension can
+never carry AdSense — enforcement is account-level, so a tag there risks the website's revenue
+too. `src/core/surface.js` `adNetwork()` is the single decision point;
+`docs/decisions/0001-adsense-only-on-web-surfaces.md` has the reasoning and names the three
+checks that hold it. The desktop shows a house slot instead
+(`docs/decisions/0002-house-slot-on-the-desktop-app.md`).
+
+| Surface | Ads | Analytics |
+|---|---|---|
+| Web browser | AdSense | GA4 `web-browser` |
+| Installed PWA | AdSense | GA4 `web-pwa` |
+| Tauri desktop | House slot, no network | GA4 `desktop-*` |
+| VS Code extension | None | None — extension host, no webview |
+| CLI | None | None |
+
+Everything below concerns **the web surfaces only**.
+
 **AdSense now runs in `app.html` too.** Until 2026-08-09 the app was the one
 surface with no ad tag, held closed by its own meta CSP naming no ad origin;
 that rule was removed deliberately, and the price the paragraph below always
@@ -357,6 +375,14 @@ in the generation alphabet — which rejected `D75LV`, the worked example used
 throughout these docs, because `L` is excluded as ambiguous with `1`. The
 alphabet constrains what we *produce*; validation must accept anything a peer
 might hand us, or a future alphabet change strands every existing link.
+
+That permissiveness was then read as applying to *length* as well, and it does
+not: `#F5H4` opened a real session at ~19.6 bits, on a relay that routes a room
+hash without being able to judge what went into it. The floor is now
+`KEY.MIN_LENGTH`, refusal is a gate rather than a silent fall-through to a fresh
+key, and the reasoning is in
+[decisions/0008](decisions/0008-minimum-key-length.md). Permissive about the
+alphabet, strict about the length.
 
 ---
 

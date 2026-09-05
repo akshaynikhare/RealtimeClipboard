@@ -46,6 +46,11 @@ feeding the same funnel as paste and focus.
 - **The tray menu is the interaction; clicks are a bonus.** `DoubleClick` is Windows-only and Linux
   delivers no tray click events at all, so anything reachable only by clicking the icon is
   unreachable for two thirds of the platforms. Every action has a menu item.
+- **The window declares no `theme`, and that omission is load-bearing.** It said `"theme": "Dark"`,
+  which pins the webview's `prefers-color-scheme` as well as the native decorations — so the app
+  stayed dark on a machine set to light, and `styles/tokens.css`'s light palette was unreachable
+  here alone. Omitted means "follow the system", which is the only setting the app has: there is no
+  in-app theme switch, by design.
 - The relay origins in `tauri.conf.json`'s CSP must match `src/core/config.js`.
   `tests/unit/static-check.mjs` asserts that for the web pages; a self-hoster changes both.
 - Build on the oldest supported runner (`ubuntu-22.04`, webkit2gtk 4.1). A newer image silently
@@ -54,3 +59,21 @@ feeding the same funnel as paste and focus.
   `gh workflow run desktop.yml`. It has no push trigger. Run it while working on the Rust and once
   before cutting a tag; nothing else will. `release.yml` signs and publishes, and only on a `v*` tag
   that `main` already contains.
+
+## AdSense must never reach this surface
+
+Google's programme policies forbid ads in software applications, so this is not a preference
+and not a CSP tuning question — and enforcement is account-level, so a tag here would risk the
+website's revenue too. Three things hold the line and all three are checked:
+
+- `tauri.conf.json`'s CSP names no ad origin — `tests/unit/static-check.mjs` asserts it.
+- `tools/build/build.mjs` resolves `ui/features/adsense.js` to `tools/build/adsense.stub.js`
+  for `--desktop`, blanks the IDs in that build's `config.js`, drops the landing tree, and
+  strips the ad origins from this build's copy of `app.html`'s CSP.
+- `tools/check/desktop-check.mjs` fails `npm run build:desktop` on any AdSense token on disk.
+
+The ad slot here is `ui/features/house.js` — this project's own promo, reaching no network.
+`docs/decisions/0001-adsense-only-on-web-surfaces.md` and `0002-house-slot-on-the-desktop-app.md`.
+
+`trusted-types` stays narrow here on purpose. It is why a stock third-party ad client cannot be
+dropped in later: they render remote HTML through `innerHTML` and register no policy.

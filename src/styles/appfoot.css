@@ -36,3 +36,12 @@
 @media (max-height:620px) {
   .appfoot p { display:none; }
 }
+
+/* Docked beside the ad slot (layout.css) it has ~40% of the window rather than
+   all of it, so the sentence wraps to roughly twice as many lines. Tighter
+   leading keeps the pair the same height as the slot beside it, which is the
+   whole point of docking them. */
+@media (min-width:901px) {
+  .botdock > .appfoot { padding:10px 18px; font-size:10px; line-height:1.5; }
+  .botdock > .appfoot nav { margin-top:5px; }
+}

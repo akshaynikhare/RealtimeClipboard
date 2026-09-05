@@ -106,7 +106,7 @@ console.log("\nVS CODE CLIPBOARD HOST\n");
   const seen = [];
   await h.listen("clipboard://text", t => seen.push(t));
 
-  await h.writeQuietly("https://realtimeclipboard.com/app#D75LV");
+  await h.writeQuietly("https://realtimeclipboard.com/app#D75LVX9QRS");
   await tick(160);
   check("copying a share link is not broadcast to the room", seen.length === 0,
     JSON.stringify(seen));

@@ -189,6 +189,36 @@ select:focus-visible,             /* --input  2.62:1 in dark */
 }
 .toast.show { opacity:1; transform:translateY(0); }
 
+/* The box stays click-through — it sits over the editor and a toast must never
+   swallow a click meant for the text under it. Only the button takes pointer
+   events back, and only while the toast is actually up. */
+/* align-items:center, not flex-start: the common toast is one line, where the
+   two read the same, and on the narrow layout — where the box is nearly the
+   full width — a wrapped message looks unbalanced with the cross pinned to the
+   first line. */
+.toast { display:flex; align-items:center; gap:10px; }
+
+/* Takes the free space so the cross lands on the box's right edge rather than
+   trailing the text. min-width:0 is what lets a long message shrink instead of
+   pushing the button out of the box. */
+.toast-msg { flex:1; min-width:0; }
+
+.toast-x {
+  flex:none;
+  margin:-3px -5px -3px 0;
+  padding:3px;
+  display:flex;
+  background:none;
+  border:0;
+  border-radius:2px;
+  color:var(--dim);
+  cursor:pointer;
+  pointer-events:none;
+}
+.toast.show .toast-x { pointer-events:auto; }
+.toast-x:hover { color:var(--text); background:rgba(255,255,255,.10); }
+.toast-x svg { width:13px; height:13px; stroke:currentColor; stroke-width:2; fill:none; }
+
 /* ------------------------------------------------------------------ *
  * Reduced motion
  *

@@ -102,6 +102,7 @@ Event names are `EV.*` constants in `bus.js` — a typo'd string literal is a si
 | Add a stylesheet | `styles/` to bundle it; `styles/lazy/` only if the component is optional **and** `mobile.css` says nothing about it |
 | Add a content page | `src/pages/<name>/index.html` — **root-absolute links only** — plus a `sitemap.xml` entry |
 | Add a colour | `styles/tokens.css` |
+| Change what a surface may load (ads, analytics) | `core/surface.js` — the only decision point; see `docs/decisions/` |
 | Add a per-peer colour | `paletteIndex()` in `ui/features/cursors.js`, classes `.c0`–`.c4` in `tokens.css` — one person, one colour everywhere they appear |
 
 ### The sync ladder, and the stream/commit split
@@ -199,6 +200,10 @@ failure is the feature. If the change is genuinely intended, say so explicitly i
 
 - Salts, iteration counts and domain-separation strings in `src/core/config.js` — the key
   derivation is a wire format. Every share link in existence depends on it.
+- `KEY.MIN_LENGTH` / `KEY.MAX_LENGTH` — the floor is six because six is the shortest key any
+  build ever generated. Raising it strands those links; lowering it re-opens a guessable
+  keyspace, which the relay cannot help with because it only ever sees the hash.
+  `docs/decisions/0008-minimum-key-length.md`.
 - `STORAGE_PREFIX` — changing it orphans everyone's saved history and settings.
 - The relay protocol in `docs/PRD.md` §6 — `backend/` shares no code with the frontend, only this.
 

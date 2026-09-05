@@ -498,6 +498,19 @@ ok('no "//" comment keys in tauri.conf.json', commentKeys.length === 0,
      ? `${commentKeys.join(", ")} — tauri-build denies unknown fields; the reasoning goes in desktop/README.md`
      : "");
 
+/* The app has no theme switch: styles/tokens.css answers prefers-color-scheme
+   and the OS decides. A window `theme` pins that media query as well as the
+   native decorations, so `"theme": "Dark"` left the installed app dark on a
+   machine set to light — with the light palette unreachable on this surface
+   alone, and nothing on the web able to show it. Omitted means "follow the
+   system", which is the only behaviour there is a design for. */
+bad = (conf.app?.windows ?? [])
+  .filter(w => w.theme != null)
+  .map(w => `${w.label ?? "?"}: "${w.theme}"`);
+ok("no desktop window pins a theme", bad.length === 0,
+   bad.join(", ") + " — it overrides prefers-color-scheme, and tokens.css is "
+   + "the only theme switch this app has");
+
 /* bundle.icon named five files that were not in the repo. That is not only a
    bundling problem: build.rs runs tauri-build, which compiles the first .ico
    into the Windows resource, so a missing icon fails `cargo build` as well. */
@@ -567,6 +580,54 @@ bad = jsFiles
   .filter(f => /__TAURI__|__TAURI_INTERNALS__/.test(stripComments(read(f))))
   .map(rel);
 ok("Tauri globals confined to core/native.js", bad.length === 0, bad.join(", "));
+
+/* ---------- no native dialogs ----------
+   wry, the desktop webview, implements no `window.prompt`, so a prompt() is a
+   control that silently does nothing in the installed app — "Change relay" was
+   unreachable there for two releases. confirm() and alert() block the event
+   loop besides. ui/primitives/modal.js is the only dialog.
+   `evt.prompt()` is the beforeinstallprompt event and is not one of these. */
+bad = jsFiles
+  .filter(f => /(?<![.\w])(?:window\.)?(?:prompt|confirm|alert)\s*\(/.test(stripComments(read(f))))
+  .map(rel);
+ok("no native prompt/confirm/alert — ui/primitives/modal.js is the only dialog",
+   bad.length === 0, bad.join(", "));
+
+/* ---------- AdSense may not reach a software surface ----------
+   Not a preference and not CSP tuning. Google's programme policies: "Google ads
+   may not be integrated into a software application of any kind", and the FAQ
+   is explicit that controlling both a page with ads and an app that loads it is
+   actioned. Enforcement is account-level, so a tag in the desktop shell would
+   risk the website's revenue too. docs/decisions/0001.
+
+   Three things hold the line and this checks two of them: the identifiers live
+   in one module, and the desktop CSP names no ad origin. The third is the
+   build, which stubs adsense.js out of the desktop bundle. */
+const ADSENSE_TOKENS = /ADSENSE_|adsbygoogle|googlefc|ca-pub-|data-ad-client/;
+/* config.js DECLARES the IDs — one home for every third-party identifier is
+   the existing rule. The other two are the only modules that may USE them. */
+const ADSENSE_OWNERS = [
+  "src/core/config.js", "src/ui/features/adsense.js", "src/landing/tags.js",
+];
+bad = jsFiles
+  .filter(f => !ADSENSE_OWNERS.includes(rel(f)))
+  .filter(f => ADSENSE_TOKENS.test(stripComments(read(f))))
+  .map(rel);
+ok(`AdSense identifiers confined to ${ADSENSE_OWNERS.length} modules`, bad.length === 0,
+   bad.join(", ") + " — ui/features/ads.js dispatches between networks and must "
+   + "name none of them, or the rule stops being greppable");
+
+const AD_ORIGINS = [
+  "pagead2.googlesyndication.com", "tpc.googlesyndication.com",
+  "googleads.g.doubleclick.net", "partner.googleadservices.com",
+  "adservice.google.com", "fundingchoicesmessages.google.com",
+  "adtrafficquality.google",
+];
+const tauriCsp = conf.app?.security?.csp ?? "";
+bad = AD_ORIGINS.filter(o => tauriCsp.includes(o));
+ok("the desktop CSP names no ad origin", bad.length === 0,
+   bad.join(", ") + " — AdSense forbids ads in software applications, so the "
+   + "desktop shell must not be able to load one even if a module tried");
 
 /* Same rule, second host. A surface that declares itself is only safe while
    exactly one file reads the declaration — two readers is two answers, which is

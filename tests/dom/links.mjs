@@ -134,6 +134,36 @@ const logged = click(fullLog);
 check("...so the shell can open it", logged.handed[0]?.args?.url === LINKS.CHANGELOG,
       logged.handed[0]?.args?.url);
 
+/* ---- Sponsor: a dialog here, and every route out of it has to work ------- */
+const mountLinks = document.createElement("div");
+mountLinks.id = "mount-links";
+document.querySelector(".vs").appendChild(mountLinks);
+
+const appLinks = await import("../../src/ui/features/appLinks.js");
+appLinks.init();
+
+const sponsorLink = document.getElementById("lSponsor");
+const asked = click(sponsorLink);
+check("the header's Sponsor is not a straight hand-off any more", !asked.handed.length,
+      "it opens the dialog that says what the money is for");
+check("...and the anchor keeps its href for middle-click",
+      sponsorLink?.getAttribute("href") === LINKS.SPONSOR);
+
+await new Promise(r => setTimeout(r, 0));      // the dialog is a dynamic import
+
+const spGithub = document.querySelector(`.splist a[href^="https://github.com"]`);
+check("the dialog opened and offers GitHub Sponsors", !!spGithub, spGithub?.href);
+const sponsored = click(spGithub);
+check("...and the shell is asked to open it",
+      sponsored.handed[0]?.args?.url === LINKS.SPONSOR, sponsored.handed[0]?.args?.url);
+
+const ask = document.querySelector(`.splist li:last-child .spcta`);
+check("THE THIRD FIX: the sponsorship ask is not a mailto in the shell",
+      !!ask && !ask.getAttribute("href").startsWith("mailto:"),
+      "open_external allow-lists two https hosts and wry does nothing with a mailto");
+const asking = click(ask);
+check("...so that one opens too", asking.handed.length === 1, asking.handed[0]?.args?.url);
+
 /* ---- what must NOT be intercepted --------------------------------------- */
 const own = document.createElement("a");
 own.href = "./app.html";

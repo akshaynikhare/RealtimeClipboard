@@ -153,6 +153,11 @@ const drop = id => $(id)?.remove();
  *
  * `message` is only used when an offer is alone; with both live the row has no
  * space for either sentence and the buttons carry the meaning.
+ *
+ * This is the app's only *offer* of the apps, and deliberately so. A standing
+ * "Get the desktop & mobile apps" line under the editor backed it up, which made
+ * three pitches for one download on one screen — with the footer's Download nav
+ * already the permanent route back once this row has been answered.
  */
 const OFFERS = {
   desktop: {
@@ -220,24 +225,6 @@ function renderOffers() {
   el.querySelector(".topnotice-x").addEventListener("click", () => retire(keys, true));
 
   host.appendChild(el);
-}
-
-/**
- * The standing link under the editor. The offer row above is one-shot — taken
- * or dismissed, it never returns — which left no route back to the download
- * page from inside the app. An anchor, not a button: it leaves the app, so
- * middle-click and "open in new tab" have to work.
- */
-function mountGetApp() {
-  const host = $("mount-getapp");
-  if (!host || IS_DESKTOP) return;
-  setHTML(host, `
-    <a class="getapp" href="${esc(atRoot("download/"))}"
-       target="_blank" rel="noopener noreferrer"
-       title="Desktop app, mobile install and CLI">
-      <svg viewBox="0 0 24 24" aria-hidden="true">${ICON.install}</svg>
-      <span>Get the desktop &amp; mobile apps</span>
-    </a>`);
 }
 
 /** Already running as an installed app? Then there is nothing to offer. */
@@ -347,7 +334,6 @@ export function init() {
   restoreRoom();
   linkStylesheet();
   linkManifest();
-  mountGetApp();
 
   if (started) return;        // a second call must not double-register listeners
   started = true;

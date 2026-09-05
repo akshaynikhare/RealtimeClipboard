@@ -216,12 +216,49 @@ select { min-height:38px; font-size:16px; padding:7px 8px; }
   padding:12px 14px;
 }
 
-.edtools { padding:4px 6px 2px; }
-/* Spread rather than clustered top-right: at this size the whole row is within
-   reach and the buttons stop being a 5-target pile-up. */
-.tabacts { flex:1; justify-content:space-around; gap:2px; }
+/* A rule under the row, so the boundary between the controls and the text you
+   are about to type is drawn rather than implied. Spread across the full width
+   the three icons read as decoration floating above an empty pane, and the
+   caret below them had nothing to sit against. */
+.edtools {
+  padding:5px 8px 4px;
+  border-bottom:1px solid var(--bd);
+}
+
+/* Clustered top-right, not spread. They were spread here on the reasoning that
+   the whole row is within thumb reach at this size and that separating them
+   avoided a pile-up of small targets — true, but it cost the row its shape: the
+   icons spanned the pane and stopped reading as a toolbar at all. Kept apart by
+   a real gap and given a border each instead, which buys the same tap accuracy
+   without spending the width. */
+.tabacts { flex:none; justify-content:flex-end; gap:6px; }
+
+/* The border is what makes them read as controls rather than glyphs, and it is
+   the edge the eye uses to place the top of the text area. */
+.tabacts .ibtn {
+  width:32px;
+  height:28px;
+  border:1px solid var(--bd2);
+  border-radius:3px;
+}
+.tabacts .ibtn.danger { width:auto; padding:0 9px; }
 
 .hints { inset:auto 14px 12px 14px; }
+
+/* The publisher line's PROSE goes on a phone; the links do not. The sentence is
+   four wrapped rows of an editor that has few to spare, and it is on /about/ and
+   /privacy/ in full. The links stay because they are the route to the policies
+   from the document an ad serves in — dropping those is what a review notices.
+   appfoot.css already does this by height; this is the width half. */
+/* Docked into the app bar by ui/shell/edtoolsDock.js. The row it came from
+   keeps only the peer-typing indicator, which is usually hidden — so it gives
+   up its padding and its rule and collapses to nothing. */
+.edtools-empty { padding:0; border-bottom:0; }
+.tabacts-docked { flex:none; }
+
+.appfoot { padding:6px 12px 8px; }
+.appfoot p { display:none; }
+.appfoot nav { margin-top:0; justify-content:center; gap:0 12px; }
 
 /* ------------------------------------------------------------------ *
  * Files
@@ -268,6 +305,21 @@ select { min-height:38px; font-size:16px; padding:7px 8px; }
 #mount-banners:not(:empty) { padding:0 10px 6px; }
 .banner { font-size:13px; }
 
+/* Two lines of body, not four. The full text runs a third of the editor at this
+   width, and hiding it outright cost the one thing worth keeping — several
+   banners put the fix in the body, not the title ("ask for … to be allowed on
+   443"). Clamping keeps the opening sentence and drops the tail.
+
+   Clamped, not truncated in JS: the whole string stays in the DOM, so the
+   role="alert"/"status" live region still announces all of it. */
+.banner-txt span {
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+
 /* install.css wraps the PWA prompt at this breakpoint so the action gets a row
    of its own. `flex:1 1 auto` gives the message a flex-basis of its own content
    width, though — three lines of it — so the icon could not share a line with
@@ -299,7 +351,8 @@ select { min-height:38px; font-size:16px; padding:7px 8px; }
    fixed 320×50 there, not by clipping one here, and the floor under the editor
    above is what stops a surprise costing the textarea again. */
 .adslot-box,
-.adslot-box.adlive { height:auto; min-height:50px; text-align:center; }
+.adslot-box.adlive,
+.adslot-box.adhouse { height:auto; min-height:50px; text-align:center; }
 
 /* ------------------------------------------------------------------ *
  * Status bar
@@ -442,6 +495,10 @@ select { min-height:38px; font-size:16px; padding:7px 8px; }
   .mnavbtn svg { width:16px; height:16px; }
   .mnavbtn .mdot { top:6px; right:6px; }
   .adslot { display:none; }
+  /* Both, together. ~360px of height cannot carry either, and they are a pair:
+     the publisher line exists for the document the ad serves in, so a viewport
+     that shows no ad has nothing for it to disclose. */
+  .appfoot { display:none; }
   .keyhead { display:none; }
   .paneh { height:36px; }
   .row { min-height:42px; }

@@ -27,6 +27,11 @@ node_modules/
 # only the scratch space it works in.
 /desktop/src-tauri/target/
 
+# Written by `tauri dev`/`tauri build` from tauri.conf.json and the capability
+# files — schemas describing the commands, regenerated on every run. Derived,
+# never edited, and noise in a diff.
+/desktop/src-tauri/gen/
+
 # Generated package-manager manifests — output of tools/manifest.mjs.
 /dist/
 

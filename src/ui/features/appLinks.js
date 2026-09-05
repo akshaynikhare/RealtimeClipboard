@@ -10,7 +10,8 @@
  * the landing page and the manifest, with nothing keeping them equal.
  *
  * Anchors, not buttons: they leave the app, so middle-click, "copy link address"
- * and "open in new tab" all have to work.
+ * and "open in new tab" all have to work. Sponsor now intercepts the plain click
+ * for a dialog and keeps the href for the rest — see its `dialog` field.
  */
 
 import { LINKS } from "../../core/config.js";
@@ -35,8 +36,17 @@ const ITEMS = [
     cls: "sponsor",
     href: LINKS.SPONSOR,
     label: "Sponsor",
-    title: "Sponsor this project on GitHub",
-    aria: "Sponsor this project on GitHub",
+    title: "How to support RealtimeClipboard",
+    aria: "How to support RealtimeClipboard",
+    /* A plain click opens the dialog, which says what the money is for before
+       showing anyone a tier list. The href stays real so middle-click, "copy
+       link address" and a keyboard "open in new tab" still reach GitHub — the
+       reason this was an anchor in the first place.
+
+       Lazily imported, with a LITERAL specifier: this header is eager, the
+       dialog is a stylesheet and a screenful of copy that most sessions never
+       open, and a path in a variable is invisible to the bundler. */
+    dialog: () => import("./sponsor.js").then(m => m.open()),
     icon: `<path d="M12 20.2s-7.3-4.6-7.3-9.4A3.9 3.9 0 0112 8.4a3.9 3.9 0 017.3 2.4c0 4.8-7.3 9.4-7.3 9.4z"/>`,
   },
 ];
@@ -58,4 +68,14 @@ export function init() {
           <span class="lbl">${esc(i.label)}</span>
         </a>`).join("")}
     </nav>`);
+
+  for (const item of ITEMS) {
+    if (!item.dialog) continue;
+    $(item.id)?.addEventListener("click", e => {
+      // Modifier and middle clicks are asking for the href, not the dialog.
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      item.dialog();
+    });
+  }
 }
