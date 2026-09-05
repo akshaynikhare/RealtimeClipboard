@@ -708,11 +708,11 @@ ok("no bare generate() — key length comes from keys.nextLength()",
    promise, and these are the ones the project has decided not to keep. Naming
    them in prose is fine ("there is no Flathub package"); printing them as
    something to run is not. */
-/* The extension's two are here until it is actually on a marketplace, for the
-   same reason and with the same fix: publish it, then delete the entry. Both
-   forms, because the palette wants one and the shell wants the other. */
-const DEAD = ["scoop install", "scoop bucket add", "yay -S ", "flatpak install ", "snap install ",
-              "code --install-extension", "ext install realtimeclipboard"];
+/* The extension's two came off this list when cadnative.realtimeclipboard went
+   live on both the Marketplace and Open VSX — which is the process working:
+   they were added the day the page could have promised something that did not
+   exist, and removed the day it did. */
+const DEAD = ["scoop install", "scoop bucket add", "yay -S ", "flatpak install ", "snap install "];
 bad = [];
 for (const f of pages) {
   for (const cmd of DEAD) if (read(f).includes(cmd)) bad.push(`${rel(f)}: "${cmd}"`);
