@@ -99,13 +99,20 @@ try {
   console.log("  (no upstream to compare against — continuing)");
 }
 
-// Checked here rather than an hour into the run: the pull request is the only
-// way onto main, so without gh this release cannot finish whatever else passes.
+/* Checked here rather than an hour into the run: the pull request is the only
+   way onto main, so without gh this release cannot finish whatever else passes.
+
+   `--active` is load-bearing. Bare `gh auth status` reports on EVERY configured
+   account and exits non-zero if any one of them is unhealthy — so a second
+   account with a stale token in the keyring, which affects nothing, refused the
+   release with a message telling you to install a CLI you already have. What
+   this needs to know is whether the account gh will actually act as can act. */
 try {
-  execFileSync("gh", ["auth", "status"], { cwd: REPO, stdio: "ignore" });
+  execFileSync("gh", ["auth", "status", "--active"], { cwd: REPO, stdio: "ignore" });
 } catch {
   die("The release lands through a pull request, which needs the GitHub CLI.\n"
-    + "  Install https://cli.github.com, then:  gh auth login");
+    + "  Install https://cli.github.com, then:  gh auth login\n"
+    + "  Already signed in? Check the ACTIVE account:  gh auth status --active");
 }
 
 /* ------------------------------------------------------------- work out the version */
