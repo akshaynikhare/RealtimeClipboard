@@ -177,11 +177,22 @@ const AD_ORIGINS = [
  * programme policy says ads may not go. Blanking it costs nothing and makes
  * tools/check/desktop-check.mjs able to assert absence rather than disuse.
  */
+/* Set by the plugin below and asserted after the build. A filter that stops
+   matching does not fail — it silently does nothing, which is the worst failure
+   mode available to something whose job is removing ad identifiers from a
+   binary. */
+let strippedAdIds = false;
+
 const stripAdIds = {
   name: "strip-ad-ids",
   setup(b) {
-    b.onLoad({ filter: /core\/config\.js$/ }, args => ({
-      contents: readFileSync(args.path, "utf8")
+    /* [\\/] rather than /, because esbuild hands a plugin a NATIVE path. This
+       filter had a literal forward slash, so it matched nothing on Windows and
+       every AdSense identifier in config.js went into the Windows installer
+       while macOS and Linux built clean. Google forbids ads in software
+       applications: that is a policy breach shipped by a path separator. */
+    b.onLoad({ filter: /core[\\/]config\.js$/ }, (args) => ({
+      contents: (strippedAdIds = true, readFileSync(args.path, "utf8"))
         .replace(/(ADSENSE_CLIENT:\s*)"[^"]*"/, '$1""')
         .replace(/("(?:LEADERBOARD|RAIL|APP)":?\s*)"[^"]*"/g, '$1""')
         // The script-URL builder is eager in config.js, so the host reached the
@@ -206,6 +217,15 @@ const appBuild = await build({
   ...common, entryPoints: [join(ROOT, "src/main.js")], outdir: join(OUT, "src"), metafile: true,
   plugins: DESKTOP ? [stubAdsense, stripAdIds] : [],
 });
+
+/* The check that would have caught the Windows leak everywhere. site-check
+   greps the OUTPUT and stays the backstop; this asserts the MECHANISM ran, so a
+   filter that stops matching is loud on every platform rather than only where
+   the strings happen to survive into a chunk. */
+if (DESKTOP && !strippedAdIds) {
+  die("the strip-ad-ids plugin never ran — its filter did not match "
+    + "src/core/config.js, so every ad identifier is still in the bundle");
+}
 // Skipped whole for the shell: nothing there navigates to index.html, and
 // tags.js is the crawlable pages' ad loader — bundling it put the AdSense
 // client ID in the installer. Gated around the call rather than inside
