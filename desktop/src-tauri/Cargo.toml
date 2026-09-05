@@ -1,6 +1,6 @@
 [package]
 name = "realtimeclipboard"
-version = "0.6.0"
+version = "0.7.0"
 description = "An end-to-end encrypted clipboard shared between your devices"
 authors = ["CadNative"]
 license = "MIT"

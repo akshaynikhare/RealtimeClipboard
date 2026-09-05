@@ -1,7 +1,7 @@
 {
   "name": "realtimeclipboard-mcp",
-  "version": "0.6.0",
-  "description": "An end-to-end encrypted clipboard as an MCP tool surface \u2014 move text between an agent and your other machines.",
+  "version": "0.7.0",
+  "description": "An end-to-end encrypted clipboard as an MCP tool surface — move text between an agent and your other machines.",
   "license": "MIT",
   "repository": {
     "type": "git",

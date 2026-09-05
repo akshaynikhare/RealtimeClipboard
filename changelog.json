@@ -1,7 +1,68 @@
 {
-  "generated": "2026-08-08",
-  "current": "v0.6.0",
+  "generated": "2026-09-05",
+  "current": "v0.7.0",
   "releases": [
+    {
+      "version": "v0.7.0",
+      "date": "2026-09-05",
+      "breaking": true,
+      "groups": [
+        {
+          "title": "Breaking",
+          "items": [
+            "app: per-surface ads and analytics, a key floor, and a theme (#55)"
+          ],
+          "more": 0
+        },
+        {
+          "title": "Added",
+          "items": [
+            "mcp,browser: an agent surface and a browser surface, on one shared session (#57)",
+            "vscode: show the session QR, drawn by the app (#58)",
+            "vscode: add the VS Code extension surface (#54)",
+            "files: preview images and PDFs before downloading (#36)",
+            "site: add /live-clipboard, the live and realtime keyword page (#34)"
+          ],
+          "more": 0
+        },
+        {
+          "title": "Fixed",
+          "items": [
+            "release: probe the active gh account, not every configured one (#62)",
+            "vscode: set the Marketplace publisher to cadnative (#61)",
+            "seo: add about, contact and terms, drop the empty blog (#53)",
+            "seo: lead the landing title with the realtime phrase (#52)",
+            "seo: brand entity signals, favicon fallback, and launch-copy corrections (#46)",
+            "desktop links, the share-link origin, and the phone ad unit (#45)",
+            "clipboard: flush owed clips from the tick, keep grace reads (#42)",
+            "clipboard: a refused flush requeues, and the poll waits for it (#41)",
+            "ads: keep the shell full-height under AdSense (#40)",
+            "clipboard: route pastes by target, and keep the clip banners honest (#35)"
+          ],
+          "more": 0
+        },
+        {
+          "title": "Documentation",
+          "items": [
+            "decisions: amend 0002 — isolation solves the Trusted Types block (#56)",
+            "drop the launch kit and SEO playbook, compress code comments (#47)",
+            "launch: settle the four pre-flight gates and drop the demo video (#44)",
+            "launch: turn item 17 into a runbook, with the pre-flight measured (#33)"
+          ],
+          "more": 0
+        },
+        {
+          "title": "Other changes",
+          "items": [
+            "Fix 21 race conditions across the app, relay, desktop shell and CLI (#43)",
+            "Serve AdSense in the app, plus clipboard and history fixes (#39)",
+            "Clipboard routing fixes, a taller history list, and AdSense in the app (#37)",
+            "Correct three launch statements that the ad rollout and v0.5.0 invalidated (#32)"
+          ],
+          "more": 0
+        }
+      ]
+    },
     {
       "version": "v0.6.0",
       "date": "2026-08-08",

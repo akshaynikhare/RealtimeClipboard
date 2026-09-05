@@ -6,13 +6,15 @@
     "url": "https://github.com/akshaynikhare/RealtimeClipboard",
     "source": "github"
   },
-  "version": "0.6.0",
+  "version": "0.7.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "realtimeclipboard-mcp",
-      "version": "0.6.0",
-      "transport": { "type": "stdio" },
+      "version": "0.7.0",
+      "transport": {
+        "type": "stdio"
+      },
       "environmentVariables": [
         {
           "name": "REALTIMECLIPBOARD_RELAY",
