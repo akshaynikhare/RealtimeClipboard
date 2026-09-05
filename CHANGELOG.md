@@ -7,6 +7,12 @@ commit.
 Format follows [Keep a Changelog](https://keepachangelog.com); versions follow
 [Semantic Versioning](https://semver.org).
 
+## v0.7.1 — 2026-09-05
+
+### Fixed
+
+- build,ci: unbreak the Windows desktop build, and stop it gating the extensions (#64)
+
 ## v0.7.0 — 2026-09-05
 
 ### Breaking

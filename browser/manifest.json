@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "RealtimeClipboard",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Send what you copied to your other machines, end-to-end encrypted. The relay stores nothing and can read nothing.",
   "homepage_url": "https://realtimeclipboard.com",
   "icons": {
