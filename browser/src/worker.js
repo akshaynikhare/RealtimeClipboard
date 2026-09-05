@@ -58,16 +58,21 @@ function received(text) {
 }
 
 /**
- * Storage first because it survives a worker restart, memory as the fallback —
- * but always as a PAIR. Reading the text from one source and the verdict from
- * the other is what produced the bypass this function used to have.
+ * Memory first, storage only when this worker has none — and always as a PAIR.
+ *
+ * Both halves of that are bugs this function has already had. Reading the text
+ * from one source and the verdict from the other was the guard bypass. Reading
+ * STORAGE first was staleness: received() does not await the mirror write, so a
+ * clip arriving while the previous one is still in storage would be handed back
+ * as the older one. While this worker is alive its own memory is the newest
+ * thing there is; storage exists for the restart after MV3 evicts it.
  */
 async function currentClip() {
+  if (latest) return latest;
   const st = (await chrome.storage.session?.get(["latest", "executable"])) ?? {};
-  if (typeof st.latest === "string") {
-    return { text: st.latest, executable: Boolean(st.executable) };
-  }
-  return latest;
+  return typeof st.latest === "string"
+    ? { text: st.latest, executable: Boolean(st.executable) }
+    : null;
 }
 
 async function sendClipboard() {

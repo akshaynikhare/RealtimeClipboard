@@ -70,6 +70,17 @@ check("a flagged clip held only in memory is still refused by the hotkey",
 check("...and a harmless one is still written", decide(fromMemoryOnly(SAFE)) === "written");
 check("...and no clip at all is neither", decide(null) === "nothing");
 
+/* ------------------------------------------------------ freshness order --- */
+/* received() does not await the mirror write, so reading storage first hands
+   back the PREVIOUS clip while the newest one is still in flight. */
+check("memory is preferred while this worker is alive",
+  /if \(latest\) return latest;/.test(SRC),
+  "storage is for the restart after MV3 evicts the worker, not for now");
+check("...and storage is still consulted when memory is empty",
+  /chrome\.storage\.session\?\.get\(\["latest", "executable"\]\)/.test(SRC));
+check("...and it is still read as a pair",
+  /text: st\.latest, executable: Boolean\(st\.executable\)/.test(SRC));
+
 /* --------------------------------------------------------- locked links --- */
 const LOCKED = keys.shareLink("D75LVX9QRS", true);
 const OPEN = keys.shareLink("D75LVX9QRS", false);

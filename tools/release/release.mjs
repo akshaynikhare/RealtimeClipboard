@@ -200,9 +200,12 @@ const bumpJson = (file, mutate) => {
 };
 
 bumpJson(VSCODE_PKG, j => { j.version = version; });
-// The MCP server pins the CLI package it takes the crypto from, so the
-// dependency moves with the release or the two disagree at install time.
-bumpJson(MCP_PKG, j => { j.version = version; j.dependencies.realtimeclipboard = `^${version}`; });
+// No dependency to move with it: the MCP server is published as a bundle, so
+// its package has none. It carried `realtimeclipboard: ^x` for exactly one
+// commit, and this line went on assigning into a `dependencies` that no longer
+// existed — which threw here, before anything was written, and would have
+// failed the release rather than the build.
+bumpJson(MCP_PKG, j => { j.version = version; });
 // server.json says it twice: the entry's own version, and which npm version a
 // client should fetch. A registry entry pointing at an unpublished version is a
 // server nobody can install.

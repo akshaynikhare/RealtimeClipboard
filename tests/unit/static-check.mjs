@@ -557,6 +557,18 @@ ok(`every surface's version agrees with package.json (${pkgVersion})`,
    + `tauri.conf ${conf.version}, vscode ${vsceVersion}, mcp ${mcpPkgVersion}, `
    + `mcp/server.json ${mcpRegVersion}/${mcpPkgd}, browser ${extVersion}`);
 
+/* Every manifest whose version this file compares must also be one that
+   `npm run release` moves — otherwise the next release is prepared with one copy
+   left behind and static-check fails the release commit itself, after the human
+   step. The inverse also bites: release.mjs kept assigning into an mcp
+   `dependencies` map after it was removed, which threw before a single file was
+   written. Cheap to check that the two lists agree. */
+const releaseSrc = read(join(ROOT, "tools/release/release.mjs"));
+bad = ["vscode/package.json", "mcp/package.json", "mcp/server.json", "browser/manifest.json"]
+  .filter(f => !releaseSrc.includes(f));
+ok(`release.mjs bumps every versioned manifest (${4 - bad.length}/4)`,
+   bad.length === 0, bad.join(", "));
+
 /* The published MCP package is the BUNDLE, so it has no dependencies at all —
    the same property the rest of this repository has. It got here the hard way:
    importing ../cli/ and ../src/ worked in the repo and resolved to nothing once
