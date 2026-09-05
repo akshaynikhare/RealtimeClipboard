@@ -13,8 +13,23 @@
  */
 
 const { writeFileSync } = require("node:fs");
+const { join } = require("node:path");
+const { tmpdir } = require("node:os");
 
-exports.run = async () => {
+/**
+ * The launcher passes the report path in, rather than setting it in the
+ * environment: on macOS the only way to reach a window server from a
+ * non-interactive shell is `open -a`, which goes through LaunchServices, and
+ * LaunchServices does NOT carry the caller's environment. It does carry the
+ * command line, so host.mjs generates a one-line entry point holding a path
+ * unique to that run and points --extensionTestsPath at it.
+ *
+ * The default is for pointing --extensionTestsPath straight at this file by
+ * hand. Two runs sharing it would fight over one report; the launcher does not.
+ */
+const DEFAULT_OUT = join(tmpdir(), "realtimeclipboard-editor-test.json");
+
+exports.run = async (out = DEFAULT_OUT) => {
   const vscode = require("vscode");
   const results = [];
   const check = (name, ok, detail = "") => results.push({ name, ok, detail: String(detail) });
@@ -58,7 +73,7 @@ exports.run = async () => {
     typeof WebSocket === "function" && typeof crypto?.subtle === "object",
     `node ${process.versions.node}, WebSocket ${typeof WebSocket}`);
 
-  writeFileSync(process.env.RTC_TEST_OUT, JSON.stringify({
+  writeFileSync(out, JSON.stringify({
     vscode: vscode.version, node: process.versions.node, results,
   }, null, 2));
 
