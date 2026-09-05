@@ -3,7 +3,7 @@
   "displayName": "RealtimeClipboard",
   "description": "End-to-end encrypted clipboard sync between your machines, without leaving the editor.",
   "version": "0.6.0",
-  "publisher": "akshaynikhare",
+  "publisher": "cadnative",
   "license": "MIT",
   "icon": "icon.png",
   "repository": {
