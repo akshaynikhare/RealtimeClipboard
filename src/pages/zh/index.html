@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+  Chinese is the second browser language in the analytics at ~12%, and that is
+  an undercount: Google Analytics is unreachable from the mainland, so the
+  measured figure is only the part of the audience that reaches us anyway. A
+  page title in Chinese already appears in the top-pages report, which means
+  people are reading this site through a translation proxy today.
+
+  Google is blocked there. The reachable engine is Bing, via cn.bing.com, and
+  tools/seo/indexnow.mjs already submits to it. Baidu would need ICP
+  registration and is deliberately out of scope — see the plan, not this page.
+
+  Terminology fixed here and reused by every other translation: 在线剪贴板
+  (online clipboard), 剪贴板同步 (clipboard sync), 密钥 (the share key), 中继
+  服务器 (relay), 端到端加密 (end-to-end encrypted). Do not vary these per page;
+  a term that changes between pages reads as machine output.
+-->
+<title>在线剪贴板 — 跨设备同步复制的文字，无需登录</title>
+<meta name="description" content="免费的在线剪贴板，在两台设备上输入同一个密钥，一边复制另一边就能粘贴。无需账号，无需安装，端到端加密。">
+<link rel="canonical" href="https://realtimeclipboard.com/zh/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="在线剪贴板 — 跨设备同步复制的文字，无需登录">
+<meta property="og:description" content="在两台设备上输入同一个密钥，一边复制另一边就能粘贴。无需账号，端到端加密。">
+<meta property="og:url" content="https://realtimeclipboard.com/zh/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/zh/#article",
+      "headline": "在线剪贴板：跨设备同步复制的文字",
+      "description": "在线剪贴板如何工作，与剪贴板管理器和 pastebin 有什么区别，以及不用账号要付出什么代价。",
+      "inLanguage": "zh-Hans",
+      "datePublished": "2026-09-06",
+      "dateModified": "2026-09-06",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/zh/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "RealtimeClipboard",
+          "item": "https://realtimeclipboard.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "在线剪贴板"
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/faq.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">打开应用</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="面包屑导航">
+        <a href="/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">在线剪贴板</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>在线剪贴板：跨设备同步你复制的文字</h1>
+
+        <p class="lede">
+          <b>要同步剪贴板，你需要的不是账号，而是一个两台设备都知道的密钥。</b>
+          在两台设备上打开这个页面，输入同一个短密钥，在一边复制的内容就会出现在
+          另一边的系统剪贴板里。不需要邮箱、密码、安装包，也不需要浏览器扩展。
+        </p>
+      </header>
+
+      <div class="article">
+
+        <p>
+          <a class="btn" href="/app.html">打开剪贴板</a>
+        </p>
+
+        <h2>它是怎么工作的</h2>
+
+        <ol class="steps">
+          <li>在第一台设备上打开剪贴板，它会生成一个短密钥。</li>
+          <li>在第二台设备上输入这个密钥，或者扫描它显示的二维码。</li>
+          <li>在任意一台设备上复制内容。</li>
+          <li>切换到另一台设备直接粘贴，内容已经在系统剪贴板里了。</li>
+        </ol>
+
+        <p>
+          密钥本身从不离开你的浏览器。到达中继服务器的是
+          <code>SHA-256(密钥)</code> —— 一个仅仅用作房间地址的哈希值 —— 以及已经
+          用 AES-GCM 加密过的文字，加密用的密钥由你输入的那个密钥派生而来。中继
+          服务器只在两个连接之间转发密文，不向磁盘写入任何东西。文件则完全绕开它，
+          通过 WebRTC 在两个浏览器之间直接传输。
+        </p>
+
+        <h2>在线剪贴板、剪贴板管理器和 pastebin 的区别</h2>
+
+        <p>
+          这三个东西经常被混为一谈，但它们解决的是不同的问题。<b>剪贴板管理器</b>
+          （比如 Ditto、CopyQ、Maccy）记录你在<em>一台</em>机器上复制过的历史，方便
+          你翻回去找。<b>pastebin</b> 把文字放在一个公开的网址上，谁拿到链接谁就能看。
+          <b>在线剪贴板</b>做的是第三件事：把你在一台设备上复制的内容，送到另一台
+          设备的系统剪贴板里，中间不产生公开链接，会话结束后什么也不留下。
+        </p>
+
+        <p>
+          所以如果你想找的是本机的复制历史，这个工具不是你要的东西；如果你想跨过
+          两台机器之间的那道缝隙，它正是为此而做的。
+        </p>
+
+        <h2>跨网络也能用</h2>
+
+        <p>
+          大多数同类工具要求两台设备在同一个 Wi-Fi 下，因为它们靠局域网广播来发现
+          彼此，而广播出不了子网。这个工具不做设备发现 —— 两端各自连到同一个由密钥
+          决定的房间，所以家里的电脑和公司的电脑、手机和服务器之间都能用，两台设备
+          不需要挨在一起。
+        </p>
+
+        <h2>不用账号要付出什么</h2>
+
+        <p>
+          每个不需要登录的服务都在某处做了取舍，把取舍藏起来的页面不值得信任。
+        </p>
+
+        <div class="honest">
+          <h3>把代价说清楚</h3>
+          <dl class="caveats">
+            <div>
+              <dt>密钥是唯一的凭证</dt>
+              <dd>没有第二重验证，背后也没有身份。任何人只要知道这个密钥，就能在会话开着的时候读到里面的内容。</dd>
+            </div>
+            <div>
+              <dt>什么都不保存</dt>
+              <dd>没有账号就没有服务端历史。关掉会话内容就没了 —— 这是设计本身，不是待解决的缺陷。</dd>
+            </div>
+            <div>
+              <dt>无法找回</dt>
+              <dd>忘了密钥没有地方可问。重新生成一个就行，这不花什么代价。</dd>
+            </div>
+            <div>
+              <dt>自动读取剪贴板需要 Chromium 内核浏览器</dt>
+              <dd>Firefox 和 Safari 可以发送和接收粘贴的内容，但不能自己读取剪贴板。任何浏览器都无法在标签页处于后台时读取剪贴板，这是浏览器的安全规则，不是缺失的功能。</dd>
+            </div>
+          </dl>
+        </div>
+
+        <p>
+          如果一个会话需要更难被闯入，可以给密钥加一个 PIN 码。这会改变房间本身，
+          而不是在原有房间上加一层权限检查，所以拿到密钥但没有 PIN 码的人打不开
+          它，也不会悄悄退回到同一密钥对应的未加锁房间。
+        </p>
+
+        <h2>这样安全吗</h2>
+
+        <p>
+          就它的用途而言 —— 在你自己的设备之间搬运文字 —— 没有账号反而更安全，因为
+          没有账号可以被攻破，也没有存下来的历史可以泄露。加密在你的浏览器里完成，
+          所以网络上的旁观者（你的 Wi-Fi、你的运营商）读不到你的剪贴板。
+        </p>
+
+        <p>
+          服务器确实能看到的那个房间地址，经过了同样 250,000 次迭代的密钥拉伸，
+          所以每猜一次都要付出这份计算代价，无法反推回你的密钥。
+          <a href="/docs/THREAT-MODEL.md">威胁模型文档</a>里有具体的算法。
+        </p>
+
+        <p>
+          真正的风险就是上面写明的那个：短密钥短到有决心的人可以猜出来，所以它不
+          适合用来传一年后仍然重要的秘密。敏感内容请用 PIN 码锁住会话，未加锁的
+          会话请当作放在桌上的便条来对待。
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">源代码在 GitHub 上</a>，
+          采用 MIT 许可证；如果你不愿意信任别人的服务器，也可以
+          <a href="/help/install/relay/">自己架设中继服务器</a>。
+        </p>
+
+        <p>
+          <a class="btn" href="/app.html">打开剪贴板</a>
+        </p>
+      </div>
+
+      <div class="faq" id="faq">
+        <div class="faqhead">
+          <h2>常见问题</h2>
+          <button type="button" class="faqall" id="faqAll"
+                  aria-expanded="false" aria-controls="faq" hidden>
+            <span class="faqall-i" aria-hidden="true"></span>
+            <span class="faqall-t">全部展开</span>
+          </button>
+        </div>
+
+        <details class="qa">
+          <summary><h3>什么是在线剪贴板？</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            在线剪贴板是一种通过互联网把你在一台设备上复制的内容送到另一台设备的
+            服务。它和剪贴板管理器不同 —— 管理器保存的是单台机器上的复制历史；也和
+            pastebin 不同 —— pastebin 会生成一个公开网址。在线剪贴板要做的只有一件
+            事：让另一台设备可以直接粘贴。
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>需要注册账号吗？</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            不需要。两台设备输入同一个短密钥就会进入同一个房间，全程不涉及邮箱、
+            密码或个人资料。服务器也分辨不出用户之间的区别，因为它从来没有拿到过
+            能用来分辨的东西。
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>两台设备必须在同一个 Wi-Fi 下吗？</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            不必。它不依赖局域网发现，两端各自连接到由密钥决定的同一个房间，所以
+            跨网络、跨城市都能用。这一点和 Snapdrop、LocalSend 这类靠同一网络广播
+            来发现设备的工具不同。
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>免费吗，有什么代价？</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            免费，没有付费档位，也没有试用期。诚实地说，代价在功能范围而不在钱：
+            文件传输单个上限 5 MB，自动读取剪贴板需要 Chromium 内核的浏览器。项目
+            以 MIT 许可证开源，你完全可以自己部署一套。
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>关掉页面之后我的文字去哪了？</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            没了。中继服务器只在转发期间持有消息，不写磁盘；没有账号也就没有挂在
+            你名下的服务端历史。留在本地的内容存在你自己的浏览器存储里，清掉浏览器
+            数据就一并消失。
+            </p>
+          </div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>开源项目 — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/">English</a> · <a href="/zh/">中文</a> · <a href="/pt/">Português</a> · <a href="/es/">Español</a> · <a href="/ru/">Русский</a></p>
+      <p><a href="/">首页</a> · <a href="/download/">下载</a> · <a href="/help/">帮助</a> · <a href="/about/">关于</a> · <a href="/privacy/">隐私政策</a> · <a href="/terms/">使用条款</a></p>
+      <p>会话只保存在内存中，从不写入磁盘。剪贴板内容在发送前已在你的浏览器里完成加密。</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

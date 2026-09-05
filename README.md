@@ -26,16 +26,16 @@ proven.
 
 ## What it does
 
-- **Sync clipboard text between devices** — Windows, macOS, Android, ChromeOS and Linux
-- **Works across different networks**, not just the same Wi-Fi, and not just the same LAN
-- **No account, no sign-up, no email** — a short key is the whole identity of a session
+- Syncs clipboard text between Windows, macOS, Android, ChromeOS and Linux
+- Works across different networks, not just the same Wi-Fi and not just the same LAN
+- No account, no sign-up, no email. A short key is the whole identity of a session
   (ten characters on the web, sixteen in the installed apps, and either works on both)
-- **End-to-end encrypted** in the browser with AES-GCM; one `PBKDF2` derivation produces both the key and the room address
-- **Peer-to-peer file transfer** over a WebRTC data channel, 5 MB per file
-- **Copy and paste images** — a screenshot copied on one machine previews on the other
-- **Installable progressive web app** — own window, own icon, works offline
-- **Nothing written to disk**, on your machine or the server
-- **Self-hostable relay** — it is one small FastAPI service
+- End-to-end encrypted in the browser with AES-GCM; one `PBKDF2` derivation produces both the key and the room address
+- Peer-to-peer file transfer over a WebRTC data channel, 5 MB per file
+- Copy and paste images: a screenshot copied on one machine previews on the other
+- Installable progressive web app, with its own window and icon, and it works offline
+- Nothing written to disk, on your machine or the server
+- Self-hostable relay, one small FastAPI service
 
 ## Why
 
@@ -138,7 +138,7 @@ desktop/                Tauri shell around this very src/ — no second implemen
 assets/                 icons/ (precached whole) + social/ (the OG card, never)
 tests/                  unit/ needs nothing · dom/ needs jsdom · live/ needs a relay
 tools/                  build/ · check/ · release/ · seo/
-docs/                   PRD, architecture, clipboard design, P2P design, SEO
+docs/                   PRD, architecture, clipboard design, P2P design, threat model
 ```
 
 A directory **at the root** is served at its own path — `assets/icons/icon.svg` is

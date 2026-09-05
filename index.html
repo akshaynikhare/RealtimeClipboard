@@ -19,8 +19,8 @@
   belongs to VirtualBox and RDP, and would have brought the wrong audience even
   if it had ranked.
 -->
-<title>Realtime Online Clipboard — Sync Text Between Devices, No Login | RealtimeClipboard</title>
-<meta name="description" content="Free online clipboard that syncs text in real time between Windows, macOS, Android and ChromeOS. Type one short key on each device — no account, no install, end-to-end encrypted, files sent peer-to-peer.">
+<title>Realtime Online Clipboard — Sync Text Between Devices</title>
+<meta name="description" content="Free online clipboard that syncs text in real time between Windows, macOS and Android. One short key on each device. No account, end-to-end encrypted.">
 <link rel="canonical" href="https://realtimeclipboard.com/">
 <meta name="theme-color" content="#007acc">
 <link rel="manifest" href="./manifest.webmanifest">
@@ -30,6 +30,16 @@
      never has to rasterise one to make the search-result icon. -->
 <link rel="icon" href="./assets/icons/icon-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="./assets/icons/icon-192.png">
+
+<!-- hreflang has to be reciprocal or it is ignored outright: every variant
+     names every other one, including this original. x-default points here
+     because English is what a reader of none of these languages should get. -->
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="RealtimeClipboard">
@@ -843,6 +853,10 @@ The honest caveat is that the key is a bearer credential: anyone who learns
            someone about to press the button — but a crawler still reaches both,
            and through them every article, from the first page it fetches. -->
       <p><a href="./download/">Download</a> · <a href="./help/">Help</a> · <a href="./about/">About</a> · <a href="./contact/">Contact</a> · <a href="./privacy/">Privacy</a> · <a href="./terms/">Terms</a></p>
+      <!-- Links, not a redirect. Sending someone to a translation because of
+           their Accept-Language guesses wrong for every bilingual reader, and
+           Google asks that the choice stay the reader's. -->
+      <p><a href="./zh/">中文</a> · <a href="./pt/">Português</a> · <a href="./es/">Español</a> · <a href="./ru/">Русский</a></p>
       <p>Sessions are held in memory and never written to disk. Clipboard contents are
          encrypted in your browser before they are sent.</p>
     </div>

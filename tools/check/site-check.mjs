@@ -61,6 +61,8 @@ const REQUIRED = [
   "download/index.html", "download/download.css", "src/landing/download.js",
   "snapdrop-alternative/index.html", "what-is-an-online-clipboard/index.html",
   "online-clipboard-no-login/index.html", "clipboard-sync-different-networks/index.html",
+  "live-clipboard/index.html",
+  "zh/index.html", "pt/index.html", "es/index.html", "ru/index.html",
   "privacy/index.html", "about/index.html", "contact/index.html",
   "terms/index.html",
   // Referenced by no page, so a build that stopped copying them looks healthy.

@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+  Spanish is small in the analytics (~2%) but engages at 68.8% against 43.7%
+  for English, and the head term "portapapeles en línea" has nothing like the
+  entrenched competition the English one has.
+
+  No region subtag: hreflang="es" covers Spain and Latin America together. The
+  wording avoids vocabulary that splits between them — "computadora"/"ordenador"
+  is sidestepped with "dispositivo" and "equipo" throughout, which is the same
+  choice the neutral-Spanish technical press makes.
+
+  Terminology: portapapeles (clipboard), clave (the share key), servidor de
+  retransmisión (relay), cifrado de extremo a extremo.
+-->
+<title>Portapapeles en Línea — Sincroniza Texto Entre Dispositivos</title>
+<meta name="description" content="Portapapeles en línea gratuito. La misma clave corta en dos dispositivos: copia en uno y pega en el otro. Sin cuenta, cifrado de extremo a extremo.">
+<link rel="canonical" href="https://realtimeclipboard.com/es/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="es_ES">
+<meta property="og:title" content="Portapapeles en Línea — Sincroniza Texto Entre Dispositivos">
+<meta property="og:description" content="Escribe la misma clave corta en dos dispositivos: copia en uno y pega en el otro. Sin cuenta, cifrado de extremo a extremo.">
+<meta property="og:url" content="https://realtimeclipboard.com/es/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/es/#article",
+      "headline": "Portapapeles en línea: sincroniza texto entre dispositivos",
+      "description": "Cómo funciona un portapapeles en línea, en qué se diferencia de un gestor y de un pastebin, y qué cuesta no tener cuenta.",
+      "inLanguage": "es",
+      "datePublished": "2026-09-06",
+      "dateModified": "2026-09-06",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/es/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "RealtimeClipboard",
+          "item": "https://realtimeclipboard.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Portapapeles en línea"
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/faq.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir la aplicación</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Ruta de navegación">
+        <a href="/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Portapapeles en línea</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>Un portapapeles en línea para todos tus dispositivos</h1>
+
+        <p class="lede">
+          <b>Para sincronizar un portapapeles no hace falta una cuenta, hace
+          falta un secreto que ambos dispositivos conozcan.</b> Abre esta página
+          en dos dispositivos, escribe la misma clave corta en los dos, y lo que
+          copies en uno queda en el portapapeles del otro. Sin correo, sin
+          contraseña, sin instalación y sin extensión.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <p>
+          <a class="btn" href="/app.html">Abrir el portapapeles</a>
+        </p>
+
+        <h2>Cómo funciona</h2>
+
+        <ol class="steps">
+          <li>Abre el portapapeles en el primer dispositivo. Genera una clave corta.</li>
+          <li>Escribe esa clave en el segundo dispositivo, o escanea el código QR que muestra.</li>
+          <li>Copia cualquier cosa en cualquiera de los dos.</li>
+          <li>Cambia al otro y pega: ya está en el portapapeles del sistema.</li>
+        </ol>
+
+        <p>
+          La clave nunca sale de tu navegador. Lo que llega al servidor de
+          retransmisión es <code>SHA-256(clave)</code> — un hash que se usa solo
+          como dirección de sala — junto con tu texto ya cifrado con AES-GCM bajo
+          una clave derivada de la que escribiste. El servidor reenvía texto
+          cifrado entre dos conexiones y no escribe nada en disco. Los archivos ni
+          siquiera pasan por él: viajan directamente entre los dos navegadores por
+          WebRTC.
+        </p>
+
+        <h2>Portapapeles en línea, gestor de portapapeles y pastebin</h2>
+
+        <p>
+          Se confunden a menudo y resuelven problemas distintos. Un <b>gestor</b>
+          (Ditto, CopyQ, Maccy) guarda el historial de lo que has copiado en
+          <em>una</em> máquina para que puedas volver atrás. Un <b>pastebin</b>
+          pone el texto en una dirección pública que abre cualquiera que tenga el
+          enlace. Un <b>portapapeles en línea</b> hace la tercera cosa: lleva lo
+          que copiaste en un dispositivo hasta el portapapeles de otro, sin crear
+          un enlace público y sin dejar nada cuando termina la sesión.
+        </p>
+
+        <p>
+          Si lo que buscas es el historial local de tu propio equipo, esta no es
+          la herramienta. Si lo que quieres es cruzar la distancia entre dos
+          dispositivos, es exactamente para eso.
+        </p>
+
+        <h2>Funciona entre redes distintas</h2>
+
+        <p>
+          La mayoría de herramientas parecidas exigen que ambos dispositivos estén
+          en el mismo Wi-Fi, porque se descubren mediante difusión en la red local
+          y una difusión no sale de la subred. Aquí no hay descubrimiento: cada
+          extremo se conecta a la misma sala que determina la clave. Así que el
+          equipo de casa y el del trabajo, o el móvil y un servidor, funcionan
+          entre sí sin necesidad de estar cerca.
+        </p>
+
+        <h2>Qué cuesta no tener cuenta</h2>
+
+        <p>
+          Todo servicio sin registro renuncia a algo, y una página que oculta esa
+          renuncia no merece confianza.
+        </p>
+
+        <div class="honest">
+          <h3>El intercambio, dicho claramente</h3>
+          <dl class="caveats">
+            <div>
+              <dt>La clave es la única credencial</dt>
+              <dd>No hay segundo factor ni identidad detrás. Quien conozca la clave puede leer esa sesión mientras esté abierta.</dd>
+            </div>
+            <div>
+              <dt>No se guarda nada</dt>
+              <dd>Sin cuenta no hay historial en el servidor. Cierras la sesión y desaparece: eso es el diseño, no una limitación que haya que sortear.</dd>
+            </div>
+            <div>
+              <dt>No hay recuperación</dt>
+              <dd>Si olvidas la clave no hay a quién preguntar. Genera otra; no cuesta nada.</dd>
+            </div>
+            <div>
+              <dt>La captura automática necesita un navegador Chromium</dt>
+              <dd>Firefox y Safari pueden enviar y recibir texto pegado, pero no leen el portapapeles por su cuenta. Ningún navegador lee el portapapeles con la pestaña en segundo plano: es una regla de seguridad del navegador, no una función que falte.</dd>
+            </div>
+          </dl>
+        </div>
+
+        <p>
+          Si una sesión necesita ser más difícil de abrir, la clave puede
+          bloquearse con un PIN. Eso cambia la sala misma en lugar de añadir una
+          comprobación encima, así que quien tenga la clave pero no el PIN no
+          entra, y no cae en silencio en la sala sin bloquear de esa misma clave.
+        </p>
+
+        <h2>¿Es seguro?</h2>
+
+        <p>
+          Para su propósito — mover texto entre dispositivos tuyos — no tener
+          cuenta lo hace más seguro y no menos: no hay cuenta que vulnerar ni
+          historial almacenado que filtrar. El cifrado ocurre en tu navegador, así
+          que quien observe la red (tu Wi-Fi, tu proveedor) no puede leer tu
+          portapapeles.
+        </p>
+
+        <p>
+          La dirección de sala que el operador sí ve pasa por el mismo estiramiento
+          de clave de 250.000 iteraciones, así que no puede revertirse hasta tu
+          clave sin pagar ese coste en cada intento. El
+          <a href="/docs/THREAT-MODEL.md">modelo de amenazas</a> da los números.
+        </p>
+
+        <p>
+          El riesgo real es el ya mencionado: una clave corta es lo bastante corta
+          como para que alguien decidido la adivine, así que es la herramienta
+          equivocada para un secreto que siga importando dentro de un año. Bloquea
+          con PIN lo que sea sensible y trata una sesión sin bloquear como una
+          nota dejada sobre la mesa. El
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">código está en GitHub</a>
+          bajo licencia MIT, y puedes
+          <a href="/help/install/relay/">montar tu propio servidor</a> si prefieres
+          no confiar en el de nadie.
+        </p>
+
+        <p>
+          <a class="btn" href="/app.html">Abrir el portapapeles</a>
+        </p>
+      </div>
+
+      <div class="faq" id="faq">
+        <div class="faqhead">
+          <h2>Preguntas frecuentes</h2>
+          <button type="button" class="faqall" id="faqAll"
+                  aria-expanded="false" aria-controls="faq" hidden>
+            <span class="faqall-i" aria-hidden="true"></span>
+            <span class="faqall-t">Expandir todo</span>
+          </button>
+        </div>
+
+        <details class="qa">
+          <summary><h3>¿Qué es un portapapeles en línea?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Es un servicio que lleva por internet lo que copiaste en un
+            dispositivo hasta otro. Se diferencia de un gestor de portapapeles,
+            que guarda el historial de copias de una sola máquina, y de un
+            pastebin, que crea una dirección pública. El portapapeles en línea
+            hace una sola cosa: dejar el otro dispositivo listo para pegar.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>¿Necesito crear una cuenta?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            No. Los dos dispositivos escriben la misma clave corta y entran en la
+            misma sala. No interviene ningún correo, contraseña ni perfil, y el
+            servicio no distingue a un usuario de otro porque nunca recibió nada
+            que se lo permitiera.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>¿Tienen que estar en la misma red Wi-Fi?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            No. No hay descubrimiento en la red local: cada extremo se conecta a
+            la misma sala que determina la clave, así que funciona entre redes y
+            entre ciudades. Ahí está la diferencia con Snapdrop o LocalSend, que
+            dependen de la difusión dentro de una misma red.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>¿Es gratis de verdad? ¿Dónde está la trampa?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Gratis, sin plan de pago y sin periodo de prueba. La trampa honesta
+            está en el alcance y no en el dinero: los archivos tienen un límite de
+            5 MB por envío y la captura automática del portapapeles necesita un
+            navegador basado en Chromium. Es código abierto con licencia MIT, así
+            que nada te impide alojarlo tú.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>¿Qué pasa con mi texto cuando cierro la pestaña?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Desaparece. El servidor guarda el mensaje solo el tiempo necesario
+            para reenviarlo y no escribe en disco; sin cuenta no hay historial en
+            el servidor ligado a ti. Lo que quede en local vive en el
+            almacenamiento de tu navegador y se borra con él.
+            </p>
+          </div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código abierto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/">English</a> · <a href="/zh/">中文</a> · <a href="/pt/">Português</a> · <a href="/es/">Español</a> · <a href="/ru/">Русский</a></p>
+      <p><a href="/">Inicio</a> · <a href="/download/">Descargas</a> · <a href="/help/">Ayuda</a> · <a href="/about/">Acerca de</a> · <a href="/privacy/">Privacidad</a> · <a href="/terms/">Términos</a></p>
+      <p>Las sesiones se mantienen en memoria y nunca se escriben en disco. El contenido
+         del portapapeles se cifra en tu navegador antes de enviarse.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

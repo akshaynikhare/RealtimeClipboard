@@ -53,6 +53,14 @@
 #   Claude-SearchBot / PerplexityBot   the same role at Anthropic and Perplexity.
 #   *-User           fetches made because a person asked, not crawls.
 #   bingbot          serves Bing, and Bing's index is what Copilot grounds on.
+#                    Also the only one of these reachable from mainland China,
+#                    via cn.bing.com.
+#   DuckAssistBot    DuckDuckGo's AI answers, which cite back. DuckDuckGo is a
+#                    real referrer in the analytics, so this one is not
+#                    hypothetical.
+#   Applebot         Siri and Spotlight. Applebot-Extended is deliberately
+#                    absent for the same reason as Google-Extended below: it is
+#                    a training opt-out token, not a citation crawler.
 #
 # !! A named group is read INSTEAD of the wildcard group, not in addition to
 # it. Anything added below `User-agent: *` has to be repeated here or it will
@@ -70,6 +78,8 @@ User-agent: Claude-User
 User-agent: PerplexityBot
 User-agent: Perplexity-User
 User-agent: bingbot
+User-agent: DuckAssistBot
+User-agent: Applebot
 Allow: /
 
 User-agent: *

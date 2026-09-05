@@ -15,31 +15,31 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://realtimeclipboard.com/</loc>
-    <lastmod>2026-08-06</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://realtimeclipboard.com/help/</loc>
-    <lastmod>2026-08-06</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://realtimeclipboard.com/help/clipboard-sync-not-working/</loc>
-    <lastmod>2026-08-06</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://realtimeclipboard.com/download/</loc>
-    <lastmod>2026-08-07</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://realtimeclipboard.com/help/install/</loc>
-    <lastmod>2026-08-07</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -95,31 +95,64 @@
        is reachable from the app. /help/ and the footer are what link them. -->
   <url>
     <loc>https://realtimeclipboard.com/snapdrop-alternative/</loc>
-    <lastmod>2026-08-07</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://realtimeclipboard.com/clipboard-sync-different-networks/</loc>
-    <lastmod>2026-08-07</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://realtimeclipboard.com/online-clipboard-no-login/</loc>
-    <lastmod>2026-08-07</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://realtimeclipboard.com/what-is-an-online-clipboard/</loc>
-    <lastmod>2026-08-07</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://realtimeclipboard.com/live-clipboard/</loc>
-    <lastmod>2026-08-08</lastmod>
+    <lastmod>2026-09-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Translations. The four languages the analytics actually show, in the
+       order they appear there: Chinese ~12% of users, Portuguese ~5%, Russian
+       ~3%, Spanish ~2%. Hindi is deliberately absent — India is the largest
+       country in the report and its users browse in English.
+
+       hreflang is declared in each page's <head>, NOT here. Both places are
+       valid and Google reads either, but declaring it twice is a documented
+       way to end up with the two copies disagreeing. One home for it. -->
+  <url>
+    <loc>https://realtimeclipboard.com/zh/</loc>
+    <lastmod>2026-09-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://realtimeclipboard.com/pt/</loc>
+    <lastmod>2026-09-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://realtimeclipboard.com/es/</loc>
+    <lastmod>2026-09-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://realtimeclipboard.com/ru/</loc>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -129,25 +162,25 @@
        unattended. -->
   <url>
     <loc>https://realtimeclipboard.com/about/</loc>
-    <lastmod>2026-09-04</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://realtimeclipboard.com/contact/</loc>
-    <lastmod>2026-09-04</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://realtimeclipboard.com/privacy/</loc>
-    <lastmod>2026-08-08</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
     <loc>https://realtimeclipboard.com/terms/</loc>
-    <lastmod>2026-09-04</lastmod>
+    <lastmod>2026-09-06</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>

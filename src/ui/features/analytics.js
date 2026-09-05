@@ -18,6 +18,7 @@
 
 import { GOOGLE, GOOGLE_SRC, CONSENT_REGIONS, pageLocation } from "../../core/config.js";
 import { analyticsOn, platform } from "../../core/surface.js";
+import { on, EV } from "../../core/bus.js";
 import { scriptURL } from "../primitives/dom.js";
 
 export function init() {
@@ -61,4 +62,17 @@ export function init() {
   el.async = true;
   el.src = scriptURL(GOOGLE_SRC.gtag(GOOGLE.GA4_ID));
   document.head.append(el);
+
+  /* The one event worth counting: a second device arrived, which is the whole
+     product working. A lone visitor is not a conversion and page_view cannot
+     tell the two apart. Sent bare — the peer's name is user-controlled text and
+     Google has no need of it, and there is nothing else here that is not the
+     key or the clipboard. Once per page, or a flapping connection reports a
+     conversion per reconnect. Mark it as a key event under Admin -> Events. */
+  let paired = false;
+  on(EV.PEER_JOINED, () => {
+    if (paired) return;
+    paired = true;
+    gtag("event", "session_paired");
+  });
 }
