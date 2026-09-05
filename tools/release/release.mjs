@@ -35,6 +35,9 @@ const PKG = join(REPO, "package.json");
 const CARGO_TOML = join(REPO, "desktop/src-tauri/Cargo.toml");
 const CARGO_LOCK = join(REPO, "desktop/src-tauri/Cargo.lock");
 const VSCODE_PKG = join(REPO, "vscode/package.json");
+const MCP_PKG = join(REPO, "mcp/package.json");
+const MCP_SERVER = join(REPO, "mcp/server.json");
+const BROWSER_MANIFEST = join(REPO, "browser/manifest.json");
 
 const args = process.argv.slice(2);
 const DRY = args.includes("--dry");
@@ -190,9 +193,24 @@ replaceOnce(CARGO_LOCK, /(name = "realtimeclipboard"\r?\nversion = )"[^"]+"/, `$
    point at package.json — the Marketplace reads a literal. Missing it fails
    static-check §23 on the release commit itself, which is the good failure, but
    only after the human step. */
-const vscodePkg = JSON.parse(readFileSync(VSCODE_PKG, "utf8"));
-vscodePkg.version = version;
-writeFileSync(VSCODE_PKG, JSON.stringify(vscodePkg, null, 2) + "\n");
+const bumpJson = (file, mutate) => {
+  const json = JSON.parse(readFileSync(file, "utf8"));
+  mutate(json);
+  writeFileSync(file, JSON.stringify(json, null, 2) + "\n");
+};
+
+bumpJson(VSCODE_PKG, j => { j.version = version; });
+// No dependency to move with it: the MCP server is published as a bundle, so
+// its package has none. It carried `realtimeclipboard: ^x` for exactly one
+// commit, and this line went on assigning into a `dependencies` that no longer
+// existed — which threw here, before anything was written, and would have
+// failed the release rather than the build.
+bumpJson(MCP_PKG, j => { j.version = version; });
+// server.json says it twice: the entry's own version, and which npm version a
+// client should fetch. A registry entry pointing at an unpublished version is a
+// server nobody can install.
+bumpJson(MCP_SERVER, j => { j.version = version; j.packages[0].version = version; });
+bumpJson(BROWSER_MANIFEST, j => { j.version = version; });
 
 /* ---------------------------------------------- land it through a pull request
 
@@ -204,7 +222,8 @@ git("switch", "-c", releaseBranch);
 
 git("add", "CHANGELOG.md", "changelog.json", "package.json",
     "desktop/src-tauri/Cargo.toml", "desktop/src-tauri/Cargo.lock",
-    "vscode/package.json");
+    "vscode/package.json", "mcp/package.json", "mcp/server.json",
+    "browser/manifest.json");
 
 // --no-verify, and it is not a shortcut: the hook's gate is `npm run verify`,
 // which ran a few seconds ago against this same tree, and nothing has changed

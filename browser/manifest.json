@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "RealtimeClipboard",
+  "version": "0.6.0",
+  "description": "Send what you copied to your other machines, end-to-end encrypted. The relay stores nothing and can read nothing.",
+  "homepage_url": "https://realtimeclipboard.com",
+  "icons": { "128": "icon.png" },
+  "permissions": ["storage", "clipboardRead", "clipboardWrite", "offscreen"],
+  "host_permissions": ["wss://realtimeclipboard.fastapicloud.dev/*"],
+  "background": { "service_worker": "src/worker.js", "type": "module" },
+  "action": { "default_popup": "src/popup.html", "default_title": "RealtimeClipboard" },
+  "commands": {
+    "send-clipboard": {
+      "suggested_key": { "default": "Ctrl+Shift+U", "mac": "Command+Shift+U" },
+      "description": "Send what is on your clipboard to the session"
+    },
+    "paste-latest": {
+      "suggested_key": { "default": "Ctrl+Shift+Y", "mac": "Command+Shift+Y" },
+      "description": "Put the latest received clip on your clipboard"
+    }
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; connect-src wss://realtimeclipboard.fastapicloud.dev https://realtimeclipboard.fastapicloud.dev"
+  }
+}

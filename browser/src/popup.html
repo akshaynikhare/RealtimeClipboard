@@ -1,0 +1,37 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>RealtimeClipboard</title>
+<link rel="stylesheet" href="popup.css">
+<main>
+  <h1 id="key">…</h1>
+  <p id="status">Starting…</p>
+  <div id="risk" hidden>
+    <p>A clip arrived that reads like a shell command.</p>
+    <pre id="riskText"></pre>
+    <button id="bConfirm" class="danger">Put it on my clipboard</button>
+  </div>
+  <div class="row">
+    <button id="bSend">Send my clipboard</button>
+    <button id="bPaste">Get latest clip</button>
+  </div>
+  <div class="row">
+    <button id="bLink">Copy share link</button>
+    <button id="bNew">New session</button>
+  </div>
+  <form id="joinForm">
+    <div class="row">
+      <input id="joinKey" placeholder="key or share link" autocomplete="off">
+      <button type="submit">Join</button>
+    </div>
+    <!-- Shown only for a locked link. A locked link joined without its PIN
+         derives the OPEN room of the same key — a real room anyone holding the
+         link can join — so this is required, not optional. -->
+    <div class="row" id="pinRow" hidden>
+      <input id="joinPin" type="password" placeholder="PIN for this locked link" autocomplete="off">
+    </div>
+  </form>
+  <p class="fine">Background clipboard sync is not possible in a browser.
+    <a href="https://realtimeclipboard.com/download/" target="_blank" rel="noreferrer">Install the app</a>
+    for that.</p>
+</main>
+<script type="module" src="popup.js"></script>

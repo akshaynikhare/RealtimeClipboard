@@ -28,11 +28,9 @@ import { hostname } from "node:os";
 import { readFileSync } from "node:fs";
 
 import * as keys from "../src/core/keys.js";
-import * as cryptoBox from "../src/core/crypto.js";
 import * as relay from "../src/transport/relay.js";
-import * as proto from "../src/transport/protocol.js";
-import { on, EV } from "../src/core/bus.js";
-import { DEFAULT_RELAY_URL, normaliseRelay, TEXT, LOCK } from "../src/core/config.js";
+import * as room from "./session.mjs";
+import { DEFAULT_RELAY_URL, normaliseRelay, TEXT } from "../src/core/config.js";
 import { INVISIBLE_SOURCE } from "../src/core/text.js";
 
 /**
@@ -168,88 +166,43 @@ function die(msg, code = 1) {
 /* --------------------------------------------------------------- session -- */
 
 /**
- * Everything needed to talk in a room, derived exactly as the browser derives
- * it — same salt, same iteration count, same HKDF info strings, because it is
- * the same function.
+ * Derived exactly as the browser derives it, because it is the same function —
+ * see cli/session.mjs. This wrapper exists only to turn a throw into an exit
+ * code, which is the part a pipe cares about.
  */
 async function derive(rawKey, pin) {
-  const key = keys.normalise(rawKey);
-  const refused = keys.rejectMessage(key);
-  if (refused) die(`"${rawKey}" cannot be used — ${refused}`, 2);
-
-  if (pin) {
-    const clean = cryptoBox.normalisePin(pin);
-    if (!clean) die("that PIN is too short", 2);
-    const d = await cryptoBox.deriveLocked(key, clean);
-    return { key, roomHash: d.roomHash, aesKey: d.aesKey, auth: d.authToken, locked: true };
-  }
-  const open = await cryptoBox.deriveOpen(key);
-  return { key, roomHash: open.roomHash, aesKey: open.aesKey, auth: null, locked: false };
+  try { return await room.derive(rawKey, pin); }
+  catch (err) { die(err.message, 2); }
 }
 
 /**
- * Connect and resolve once the relay has welcomed us.
- *
- * relay.js announces state on the bus rather than returning a promise, because
- * in the browser the connection outlives any one call. Here there is a script
- * waiting, so the bus event is adapted back into a promise — and a timeout,
- * since a pipe that hangs forever is worse than one that fails.
+ * Connect and resolve once the relay has welcomed us. The adapter is shared; what
+ * stays here is the CLI's own reporting — a `--quiet`-aware note on a transport
+ * error, and a line on stderr for a clip this key cannot read.
  */
-function connect(session, opts, onClip) {
+function connect(sess, opts, onClip) {
   const url = opts.relay ?? env.REALTIMECLIPBOARD_RELAY ?? undefined;
   if (opts.relay && !normaliseRelay(opts.relay)) die(`"${opts.relay}" is not a usable relay address`, 2);
 
-  return new Promise((resolve, reject) => {
-    // Connecting has its own bound, separate from --timeout below: "the relay
-    // never answered" and "nothing was ever sent to this room" are different
-    // failures, and a script that gets one when it expected the other has been
-    // told a lie about its own network.
-    const timer = setTimeout(
-      () => reject(new Error("the relay did not answer")),
-      Math.max(opts.timeout || 0, 20_000),
-    );
-
-    on(EV.CONN_STATE, ({ state, detail }) => {
-      if (state === "connected") { clearTimeout(timer); resolve(); }
-      if (state === "error" && detail) note(`  ${detail}`, opts);
-    });
-
-    relay.setFrameHandler(async msg => {
-      if (msg.t !== proto.T.CLIP || !msg.payload) return;
-      try {
-        const text = await cryptoBox.decrypt(session.aesKey, msg.payload, msg.iv);
-        // The lock beacon is a control frame wearing a clip's clothes: it is
-        // what lets a joiner tell "wrong PIN" from "first one here". Receivers
-        // drop it rather than render it, and a pipe must not see it either.
-        // Compared against the constant, not a guess at its shape: it starts
-        // with NUL, and "looks like a control character" would also
-        // swallow a legitimate clip that happened to.
-        if (text === LOCK.BEACON) return;
-        onClip(text, msg);
-      } catch {
-        // Undecryptable means a different secret, not a corrupt relay: someone
-        // in the room with another PIN, or a stale frame from a rotated key.
-        note("  (a clip arrived that this key cannot read)", opts);
-      }
-    });
-
-    relay.connect({
-      roomHash: session.roomHash,
-      intent: "join",
-      name: `cli@${hostname()}`,
-      auth: session.auth,
-      ...(url ? { url: normaliseRelay(url) } : {}),
-    });
+  return room.open({
+    session: sess,
+    name: `cli@${hostname()}`,
+    url: url ? normaliseRelay(url) : undefined,
+    timeoutMs: opts.timeout || 0,
+    onClip,
+    onState: (state, detail) => { if (state === "error" && detail) note(`  ${detail}`, opts); },
+    onUndecryptable: () => note("  (a clip arrived that this key cannot read)", opts),
   });
 }
 
-async function sendText(session, text, opts) {
+async function sendText(sess, text, opts) {
   if (!text) die("nothing on stdin to send", 2);
   if (text.length > TEXT.MAX_CHARS) {
     die(`that is ${text.length} characters; the limit is ${TEXT.MAX_CHARS}`, 2);
   }
-  const { payload, iv } = await cryptoBox.encrypt(session.aesKey, text);
-  relay.send(proto.clip({ payload, iv, originId: `cli-${Date.now().toString(36)}` }));
+  try {
+    await room.send(sess, text, `cli-${Date.now().toString(36)}`);
+  } catch (err) { die(err.message, 2); }
   // The frame is handed to a socket, not delivered. Give it a moment to flush
   // before the process exits out from under it.
   await new Promise(r => setTimeout(r, 250));

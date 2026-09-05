@@ -66,8 +66,13 @@ const newKey = async () => (await run(["new"])).out.trim();
 
 const bad = await run(["send", "!!!"], { input: "x" });
 check("an invalid key exits 2", bad.code === 2, `code ${bad.code}`);
+// Asserted on shape, not wording. This pinned the literal "not a valid key" and
+// went red when keys.rejectMessage() started explaining WHY a key was refused —
+// a better message failing a test that was checking the old string. What a pipe
+// actually depends on is that the reason names the key, reaches stderr, and
+// leaves stdout clean for clip content.
 check("and says so on stderr, not stdout",
-  bad.err.includes("not a valid key") && bad.out === "");
+  bad.err.includes("!!!") && /key|character/i.test(bad.err) && bad.out === "");
 
 const unknown = await run(["--nope"]);
 check("an unknown option exits 2", unknown.code === 2, `code ${unknown.code}`);

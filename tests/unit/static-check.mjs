@@ -442,7 +442,9 @@ const PROSE = [
   ...["README.md", "CONTRIBUTING.md", "CLAUDE.md", "package.json", "sw.js",
       "cli/realtimeclipboard.mjs", "backend/README.md", "backend/CLAUDE.md",
       "desktop/README.md", "desktop/CLAUDE.md", "desktop/src-tauri/tauri.conf.json",
-      "vscode/README.md", "vscode/CLAUDE.md", "vscode/package.json"]
+      "vscode/README.md", "vscode/CLAUDE.md", "vscode/package.json",
+      "mcp/README.md", "mcp/CLAUDE.md", "mcp/package.json", "mcp/server.json",
+      "browser/README.md", "browser/CLAUDE.md", "browser/manifest.json"]
     .map(f => join(ROOT, f)),
 ].filter(f => /\.(md|ya?ml|json|m?js)$/.test(f) && existsSync(f));
 
@@ -465,7 +467,7 @@ ok(`paths named in docs, config and comments resolve (${PROSE.length} files)`,
    directory with neither is a directory whose rules are back to being folklore. */
 const DOCUMENTED = [
   ...readdirSync(join(ROOT, "src")).map(d => `src/${d}`).filter(d => statSync(join(ROOT, d)).isDirectory()),
-  "src", "tests", "tools", "cli", "backend", "desktop", "docs", "assets", "vscode",
+  "src", "tests", "tools", "cli", "backend", "desktop", "docs", "assets", "vscode", "mcp", "browser",
 ];
 bad = DOCUMENTED.flatMap(d => ["CLAUDE.md", "README.md"]
   .filter(f => !existsSync(join(ROOT, d, f)))
@@ -536,11 +538,61 @@ const confOk = conf.version === "../../package.json" || conf.version === pkgVers
    can — the Marketplace reads a literal — so it is a fifth copy that must not
    drift, and tools/release/release.mjs rewrites it with the others. */
 const vsceVersion = JSON.parse(read(join(ROOT, "vscode/package.json"))).version;
-ok(`desktop, extension and package.json versions agree (${pkgVersion})`,
+/* The MCP server carries it twice more: its own manifest, and the registry
+   entry that tells a client which npm version to fetch. A registry entry
+   pointing at a version that was never published is a server nobody can
+   install, and nothing else would notice. */
+const mcpPkg = JSON.parse(read(join(ROOT, "mcp/package.json")));
+const mcpServer = JSON.parse(read(join(ROOT, "mcp/server.json")));
+const mcpPkgVersion = mcpPkg.version;
+const mcpRegVersion = mcpServer.version;
+const mcpPkgd = mcpServer.packages?.[0]?.version;
+const extVersion = JSON.parse(read(join(ROOT, "browser/manifest.json"))).version;
+ok(`every surface's version agrees with package.json (${pkgVersion})`,
    confOk && cargoVersion === pkgVersion && lockVersion === pkgVersion
-     && vsceVersion === pkgVersion,
+     && vsceVersion === pkgVersion && mcpPkgVersion === pkgVersion
+     && mcpRegVersion === pkgVersion && mcpPkgd === pkgVersion
+     && extVersion === pkgVersion,
    `package.json ${pkgVersion}, Cargo.toml ${cargoVersion}, Cargo.lock ${lockVersion}, `
-   + `tauri.conf ${conf.version}, vscode ${vsceVersion}`);
+   + `tauri.conf ${conf.version}, vscode ${vsceVersion}, mcp ${mcpPkgVersion}, `
+   + `mcp/server.json ${mcpRegVersion}/${mcpPkgd}, browser ${extVersion}`);
+
+/* Every manifest whose version this file compares must also be one that
+   `npm run release` moves — otherwise the next release is prepared with one copy
+   left behind and static-check fails the release commit itself, after the human
+   step. The inverse also bites: release.mjs kept assigning into an mcp
+   `dependencies` map after it was removed, which threw before a single file was
+   written. Cheap to check that the two lists agree. */
+const releaseSrc = read(join(ROOT, "tools/release/release.mjs"));
+bad = ["vscode/package.json", "mcp/package.json", "mcp/server.json", "browser/manifest.json"]
+  .filter(f => !releaseSrc.includes(f));
+ok(`release.mjs bumps every versioned manifest (${4 - bad.length}/4)`,
+   bad.length === 0, bad.join(", "));
+
+/* The published MCP package is the BUNDLE, so it has no dependencies at all —
+   the same property the rest of this repository has. It got here the hard way:
+   importing ../cli/ and ../src/ worked in the repo and resolved to nothing once
+   installed, and depending on the CLI package would have fixed the paths but not
+   the fact that src/clipboard/ was never published, so the guard an agent's
+   safety rests on was in no tarball. tools/build/build-mcp.mjs bundles it and
+   proves the result starts. */
+ok("the MCP package declares no runtime dependencies",
+   !mcpPkg.dependencies || Object.keys(mcpPkg.dependencies).length === 0,
+   JSON.stringify(mcpPkg.dependencies));
+
+/* The source may reach up into the repo — the bundler resolves it. What must
+   never happen is the PUBLISHED file doing so, which is build-mcp.mjs's job to
+   check; this only makes sure the build is the thing that publishes. */
+ok("mcp/package.json ships the bundle, not the source tree",
+   Array.isArray(mcpPkg.files) && !mcpPkg.files.some(f => f.startsWith("../")),
+   JSON.stringify(mcpPkg.files));
+
+/* stdout is the MCP transport. One stray console.log is a parse error at the
+   client, which presents as "the server is broken" with nothing saying why. */
+const mcpSrc = stripComments(read(join(ROOT, "mcp/server.mjs")));
+ok("nothing in mcp/ writes to stdout except the transport",
+   !/console\.(log|info|warn|error)/.test(mcpSrc),
+   "diagnostics go to process.stderr");
 
 /* ---------- 23b-23f. the desktop shell's native half is actually reachable ----
    Every one of these shipped wrong, silently, and each has the same shape: the
