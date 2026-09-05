@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+  Russian is ~3% of users and engages at 59.3% against 43.7% for English.
+  Yandex matters more than Google for this audience, and tools/seo/indexnow.mjs
+  already reaches it — one IndexNow submission covers Bing, Yandex, Seznam and
+  Naver. Verifying the site in Yandex Webmaster is the follow-up this page
+  makes worth doing.
+
+  Terminology: буфер обмена (clipboard), ключ (the share key), ретранслятор
+  (relay), сквозное шифрование (end-to-end encryption), сессия (session).
+-->
+<title>Онлайн-буфер обмена — синхронизация между устройствами</title>
+<meta name="description" content="Бесплатный онлайн-буфер обмена. Один короткий ключ на двух устройствах: копируете на одном, вставляете на другом. Без аккаунта, сквозное шифрование.">
+<link rel="canonical" href="https://realtimeclipboard.com/ru/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="Онлайн-буфер обмена — синхронизация текста между устройствами">
+<meta property="og:description" content="Введите один короткий ключ на двух устройствах: копируете на одном, вставляете на другом. Без аккаунта, со сквозным шифрованием.">
+<meta property="og:url" content="https://realtimeclipboard.com/ru/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/ru/#article",
+      "headline": "Онлайн-буфер обмена: синхронизация текста между устройствами",
+      "description": "Как работает онлайн-буфер обмена, чем он отличается от менеджера буфера и от pastebin, и чего стоит отказ от аккаунта.",
+      "inLanguage": "ru",
+      "datePublished": "2026-09-06",
+      "dateModified": "2026-09-06",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/ru/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "RealtimeClipboard",
+          "item": "https://realtimeclipboard.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Онлайн-буфер обмена"
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/faq.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Открыть приложение</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Навигационная цепочка">
+        <a href="/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Онлайн-буфер обмена</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>Онлайн-буфер обмена для всех ваших устройств</h1>
+
+        <p class="lede">
+          <b>Чтобы синхронизировать буфер обмена, нужен не аккаунт, а общий
+          секрет, известный обоим устройствам.</b> Откройте эту страницу на двух
+          устройствах, введите на обоих один и тот же короткий ключ — и то, что вы
+          скопировали на одном, окажется в буфере обмена другого. Без почты, без
+          пароля, без установки и без расширения.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <p>
+          <a class="btn" href="/app.html">Открыть буфер обмена</a>
+        </p>
+
+        <h2>Как это работает</h2>
+
+        <ol class="steps">
+          <li>Откройте буфер обмена на первом устройстве. Он выдаст короткий ключ.</li>
+          <li>Введите этот ключ на втором устройстве или отсканируйте показанный QR-код.</li>
+          <li>Скопируйте что-нибудь на любом из них.</li>
+          <li>Перейдите на другое устройство и вставьте — текст уже в системном буфере.</li>
+        </ol>
+
+        <p>
+          Сам ключ никогда не покидает браузер. До ретранслятора доходит
+          <code>SHA-256(ключ)</code> — хеш, который служит только адресом комнаты, —
+          и ваш текст, уже зашифрованный AES-GCM на ключе, выведенном из
+          введённого вами. Ретранслятор пересылает шифротекст между двумя
+          соединениями и ничего не пишет на диск. Файлы его вовсе минуют: они идут
+          напрямую между браузерами через WebRTC.
+        </p>
+
+        <h2>Чем это отличается от менеджера буфера и от pastebin</h2>
+
+        <p>
+          Эти три вещи часто путают, а решают они разные задачи. <b>Менеджер
+          буфера обмена</b> (Ditto, CopyQ, Maccy) хранит историю того, что вы
+          копировали на <em>одной</em> машине, чтобы можно было вернуться назад.
+          <b>Pastebin</b> кладёт текст по публичному адресу, который откроет любой
+          со ссылкой. <b>Онлайн-буфер обмена</b> делает третье: доставляет
+          скопированное на одном устройстве в системный буфер другого, не создавая
+          публичной ссылки и не оставляя ничего после конца сессии.
+        </p>
+
+        <p>
+          Если вам нужна локальная история копирования — это не тот инструмент.
+          Если нужно преодолеть разрыв между двумя машинами — он ровно для этого.
+        </p>
+
+        <h2>Работает между разными сетями</h2>
+
+        <p>
+          Большинство похожих инструментов требуют, чтобы оба устройства были в
+          одной сети Wi-Fi: они находят друг друга широковещательным запросом, а
+          широковещание не выходит за пределы подсети. Здесь обнаружения нет —
+          каждая сторона подключается к одной и той же комнате, которую задаёт
+          ключ. Поэтому домашний компьютер и рабочий, телефон и сервер работают
+          вместе, не находясь рядом.
+        </p>
+
+        <h2>Чего стоит отказ от аккаунта</h2>
+
+        <p>
+          Любой сервис без регистрации чем-то жертвует, и страница, которая эту
+          жертву скрывает, доверия не заслуживает.
+        </p>
+
+        <div class="honest">
+          <h3>Размен, названный прямо</h3>
+          <dl class="caveats">
+            <div>
+              <dt>Ключ — единственный пропуск</dt>
+              <dd>Второго фактора нет, личности за ним тоже. Любой, кто узнает ключ, прочитает эту сессию, пока она открыта.</dd>
+            </div>
+            <div>
+              <dt>Ничего не хранится</dt>
+              <dd>Нет аккаунта — нет истории на сервере. Закрыли сессию, и её нет: это замысел, а не недоработка.</dd>
+            </div>
+            <div>
+              <dt>Восстановления нет</dt>
+              <dd>Забыли ключ — спросить не у кого. Создайте новый, это ничего не стоит.</dd>
+            </div>
+            <div>
+              <dt>Автоматическое чтение требует браузера на Chromium</dt>
+              <dd>Firefox и Safari могут отправлять и принимать вставленный текст, но сами буфер не читают. Ни один браузер не читает буфер обмена, пока вкладка в фоне: это правило безопасности браузера, а не отсутствующая функция.</dd>
+            </div>
+          </dl>
+        </div>
+
+        <p>
+          Если в сессию должно быть труднее войти, ключ можно закрыть PIN-кодом.
+          Это меняет саму комнату, а не добавляет проверку поверх неё: тот, у кого
+          есть ключ, но нет PIN-кода, не войдёт — и не окажется молча в незакрытой
+          комнате того же ключа.
+        </p>
+
+        <h2>Насколько это безопасно</h2>
+
+        <p>
+          Для своей задачи — переносить текст между вашими же устройствами —
+          отсутствие аккаунта делает сервис безопаснее, а не наоборот: нет аккаунта,
+          который можно взломать, и нет сохранённой истории, которая может утечь.
+          Шифрование происходит в вашем браузере, поэтому наблюдающий за сетью —
+          ваш Wi-Fi, ваш провайдер — буфер обмена не прочитает.
+        </p>
+
+        <p>
+          Адрес комнаты, который оператор действительно видит, получен тем же
+          растяжением ключа в 250 000 итераций, так что развернуть его обратно в
+          ваш ключ, не заплатив эту цену за каждую попытку, нельзя.
+          <a href="/docs/THREAT-MODEL.md">Модель угроз</a> приводит расчёты.
+        </p>
+
+        <p>
+          Настоящий риск назван выше: короткий ключ достаточно короток, чтобы его
+          подобрал упорный человек, поэтому он не годится для секрета, который
+          будет важен и через год. Закрывайте PIN-кодом всё чувствительное, а к
+          незакрытой сессии относитесь как к записке, оставленной на столе.
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">Исходный код на GitHub</a>
+          под лицензией MIT, и вы можете
+          <a href="/help/install/relay/">поднять собственный ретранслятор</a>, если
+          не хотите доверять чужому.
+        </p>
+
+        <p>
+          <a class="btn" href="/app.html">Открыть буфер обмена</a>
+        </p>
+      </div>
+
+      <div class="faq" id="faq">
+        <div class="faqhead">
+          <h2>Частые вопросы</h2>
+          <button type="button" class="faqall" id="faqAll"
+                  aria-expanded="false" aria-controls="faq" hidden>
+            <span class="faqall-i" aria-hidden="true"></span>
+            <span class="faqall-t">Развернуть всё</span>
+          </button>
+        </div>
+
+        <details class="qa">
+          <summary><h3>Что такое онлайн-буфер обмена?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Это сервис, который переносит скопированное на одном устройстве к
+            другому через интернет. От менеджера буфера он отличается тем, что не
+            хранит историю копирования на одной машине, а от pastebin — тем, что не
+            создаёт публичного адреса. Онлайн-буфер делает одно: готовит другое
+            устройство к вставке.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Нужно ли регистрироваться?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Нет. Оба устройства вводят один короткий ключ и попадают в одну
+            комнату. Ни почта, ни пароль, ни профиль нигде не участвуют, и сервис
+            не отличает одного пользователя от другого, потому что не получал
+            ничего, что позволило бы это сделать.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Устройства должны быть в одной сети Wi-Fi?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Нет. Обнаружения в локальной сети здесь нет: каждая сторона
+            подключается к комнате, которую задаёт ключ, поэтому всё работает между
+            сетями и между городами. Именно этим сервис отличается от Snapdrop и
+            LocalSend, которым нужна общая сеть.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Это правда бесплатно? В чём подвох?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Бесплатно, без платного тарифа и без пробного периода. Честный подвох
+            не в деньгах, а в объёме: файлы ограничены 5 МБ за передачу, а
+            автоматическое чтение буфера требует браузера на Chromium. Проект
+            открыт под лицензией MIT, так что ничто не мешает развернуть его
+            самостоятельно.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Что происходит с текстом после закрытия вкладки?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Он исчезает. Ретранслятор держит сообщение ровно столько, сколько нужно
+            для пересылки, и не пишет на диск; без аккаунта нет и серверной
+            истории, привязанной к вам. То, что осталось локально, живёт в хранилище
+            вашего браузера и удаляется вместе с ним.
+            </p>
+          </div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Открытый исходный код — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/">English</a> · <a href="/zh/">中文</a> · <a href="/pt/">Português</a> · <a href="/es/">Español</a> · <a href="/ru/">Русский</a></p>
+      <p><a href="/">Главная</a> · <a href="/download/">Загрузки</a> · <a href="/help/">Помощь</a> · <a href="/about/">О проекте</a> · <a href="/privacy/">Конфиденциальность</a> · <a href="/terms/">Условия</a></p>
+      <p>Сессии хранятся в памяти и никогда не пишутся на диск. Содержимое буфера обмена
+         шифруется в вашем браузере до отправки.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

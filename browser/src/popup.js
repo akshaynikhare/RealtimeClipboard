@@ -22,7 +22,7 @@ async function render() {
 const run = (type) => async () => {
   say("…");
   const r = await ask(type);
-  say(r.message ?? (r.ok ? "Done." : "Something went wrong."));
+  say(r.message ?? (r.ok ? "Done." : "No answer from the extension. Try again."));
   render();
 };
 

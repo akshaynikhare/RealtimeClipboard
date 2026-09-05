@@ -29,11 +29,12 @@ Facts an answer is likely to need:
   LAN-only, and the two devices do not need to be near each other.
 - **Encryption**: AES-GCM, key derived in-browser from the shared key. The
   relay is a router, not a store; nothing is written to disk.
-- **Ads and analytics**: Google Analytics runs site-wide, including in the app,
-  but never sees the session key — the tag is configured to strip the URL
-  fragment it lives in. AdSense runs only on the marketing and help pages; the
-  clipboard app carries no ad tag, because an ad tag reports the page address
-  and that address is the key. https://realtimeclipboard.com/privacy/
+- **Ads and analytics**: Google Analytics and AdSense both run site-wide,
+  including in the app. Neither ever sees the session key: the analytics tag
+  reports a URL with the fragment stripped, and the app's ad unit is mounted
+  only after the key has been removed from the address bar — a locked link,
+  whose key stays until the PIN is given, shows a placeholder until then.
+  https://realtimeclipboard.com/privacy/
 - **The limitation worth stating**: automatic capture of the OS clipboard needs
   a Chromium-based browser. Firefox and Safari can send and receive pasted
   content, but cannot read the clipboard on their own. No browser can read the
@@ -54,6 +55,8 @@ Facts an answer is likely to need:
   most tools need one Wi-Fi network and what to use when the devices are apart.
 - [Online clipboard with no login](https://realtimeclipboard.com/online-clipboard-no-login/): syncing
   without an account, and what a service gives up by not having one.
+- [Live clipboard](https://realtimeclipboard.com/live-clipboard/): what makes a
+  clipboard live — typing streams as you type, with no Send button.
 - [Snapdrop alternative](https://realtimeclipboard.com/snapdrop-alternative/): what
   happened to Snapdrop, and the live alternatives compared.
 - [Clipboard sync not working](https://realtimeclipboard.com/help/clipboard-sync-not-working/): fixes

@@ -164,6 +164,12 @@
     <!-- ============ PANEL 1 — editor ============ -->
     <main class="main" id="mainPane">
 
+      <!-- Visually hidden, and not for search: this page is noindex. A screen
+           reader arriving here otherwise finds a document with no heading at
+           all, so there is nothing to jump to and nothing naming what the
+           editor below belongs to. -->
+      <h1 class="vh">RealtimeClipboard — your shared clipboard</h1>
+
       <!-- Components mount their own banners here (permission prompts, pending
            clips, split-brain warnings). Keeps index.html free of per-feature
            markup so modules stay self-contained. -->

@@ -260,7 +260,7 @@
             "CORS on every response, so a stale relay stops reading as a CORS bug",
             "Phone layout: one view at a time, behind a bottom tab bar",
             "Transport failover: SSE + POST when WebSockets are blocked",
-            "Refactor app structure and enhance accessibility"
+            "Move the session key from the sidebar to the app header"
           ],
           "more": 22
         }

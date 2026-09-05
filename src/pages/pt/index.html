@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+  Portuguese is the most engaged cohort in the analytics by a wide margin —
+  78.6% engagement against 43.7% for English — on ~5% of users, effectively all
+  of them in Brazil. Small and hot, which is the profile worth translating for.
+
+  Terminology, fixed across every Portuguese page: área de transferência
+  (clipboard), chave (the share key), retransmissor (relay), criptografia de
+  ponta a ponta. "Clipboard" is left in English nowhere; Brazilian technical
+  writing uses the translated term.
+-->
+<title>Área de Transferência Online Entre Dispositivos</title>
+<meta name="description" content="Área de transferência online e gratuita. A mesma chave curta em dois dispositivos: copie em um, cole no outro. Sem conta, criptografia de ponta a ponta.">
+<link rel="canonical" href="https://realtimeclipboard.com/pt/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="Área de Transferência Online — Sincronize Texto Entre Dispositivos">
+<meta property="og:description" content="Digite a mesma chave curta em dois dispositivos: copie em um, cole no outro. Sem conta, criptografado de ponta a ponta.">
+<meta property="og:url" content="https://realtimeclipboard.com/pt/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/pt/#article",
+      "headline": "Área de transferência online: sincronize texto entre dispositivos",
+      "description": "Como funciona uma área de transferência online, em que difere de um gerenciador e de um pastebin, e o que custa não ter conta.",
+      "inLanguage": "pt-BR",
+      "datePublished": "2026-09-06",
+      "dateModified": "2026-09-06",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/pt/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "RealtimeClipboard",
+          "item": "https://realtimeclipboard.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Área de transferência online"
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/faq.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir o aplicativo</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Trilha de navegação">
+        <a href="/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Área de transferência online</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>Área de transferência online entre os seus dispositivos</h1>
+
+        <p class="lede">
+          <b>Para sincronizar uma área de transferência você não precisa de uma
+          conta, precisa de um segredo que os dois aparelhos conheçam.</b> Abra
+          esta página em dois dispositivos, digite a mesma chave curta nos dois,
+          e o que você copiar em um aparece na área de transferência do outro.
+          Sem e-mail, sem senha, sem instalação e sem extensão.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <p>
+          <a class="btn" href="/app.html">Abrir a área de transferência</a>
+        </p>
+
+        <h2>Como funciona</h2>
+
+        <ol class="steps">
+          <li>Abra a área de transferência no primeiro aparelho. Ele gera uma chave curta.</li>
+          <li>Digite essa chave no segundo aparelho, ou leia o QR code que aparece.</li>
+          <li>Copie qualquer coisa em qualquer um dos dois.</li>
+          <li>Vá para o outro e cole: já está na área de transferência do sistema.</li>
+        </ol>
+
+        <p>
+          A chave nunca sai do seu navegador. O que chega ao retransmissor é
+          <code>SHA-256(chave)</code> — um hash usado apenas como endereço da
+          sala — junto com o seu texto já criptografado com AES-GCM sob uma chave
+          derivada da que você digitou. O retransmissor encaminha texto cifrado
+          entre duas conexões e não grava nada em disco. Arquivos nem passam por
+          ele: vão direto de um navegador ao outro por WebRTC.
+        </p>
+
+        <h2>Diferença entre área de transferência online, gerenciador e pastebin</h2>
+
+        <p>
+          Os três costumam ser confundidos e resolvem problemas diferentes. Um
+          <b>gerenciador</b> (Ditto, CopyQ, Maccy) guarda o histórico do que você
+          copiou em <em>uma</em> máquina, para você voltar nele depois. Um
+          <b>pastebin</b> põe o texto em um endereço público que qualquer um com o
+          link abre. Uma <b>área de transferência online</b> faz a terceira coisa:
+          leva o que você copiou em um aparelho até a área de transferência de
+          outro, sem criar link público e sem deixar nada depois que a sessão
+          termina.
+        </p>
+
+        <p>
+          Se o que você procura é o histórico local da sua própria máquina, esta
+          não é a ferramenta. Se o que você quer é atravessar a distância entre
+          dois aparelhos, é exatamente para isso que ela existe.
+        </p>
+
+        <h2>Funciona em redes diferentes</h2>
+
+        <p>
+          A maioria das ferramentas parecidas exige que os dois aparelhos estejam
+          no mesmo Wi-Fi, porque descobrem um ao outro por broadcast na rede
+          local — e broadcast não sai da sub-rede. Aqui não há descoberta: os dois
+          lados se conectam à mesma sala definida pela chave. Então o computador
+          de casa e o do trabalho, ou o celular e um servidor, funcionam entre si
+          sem precisar estar perto.
+        </p>
+
+        <h2>O que custa não ter conta</h2>
+
+        <p>
+          Todo serviço sem cadastro troca alguma coisa, e uma página que esconde
+          essa troca não merece confiança.
+        </p>
+
+        <div class="honest">
+          <h3>A troca, dita com todas as letras</h3>
+          <dl class="caveats">
+            <div>
+              <dt>A chave é a única credencial</dt>
+              <dd>Não há segundo fator nem identidade por trás dela. Quem descobrir a chave lê aquela sessão enquanto ela estiver aberta.</dd>
+            </div>
+            <div>
+              <dt>Nada é guardado</dt>
+              <dd>Sem conta não há histórico no servidor. Fechou a sessão, acabou — isso é o projeto, não uma limitação a contornar.</dd>
+            </div>
+            <div>
+              <dt>Não há recuperação</dt>
+              <dd>Esqueceu a chave, não há a quem pedir. Gere outra; não custa nada.</dd>
+            </div>
+            <div>
+              <dt>A captura automática exige um navegador Chromium</dt>
+              <dd>Firefox e Safari enviam e recebem texto colado, mas não leem a área de transferência sozinhos. Nenhum navegador lê a área de transferência com a aba em segundo plano: é regra de segurança do navegador, não recurso faltando.</dd>
+            </div>
+          </dl>
+        </div>
+
+        <p>
+          Se uma sessão precisa ser mais difícil de invadir, a chave pode ser
+          travada com um PIN. Isso muda a própria sala, em vez de acrescentar uma
+          verificação por cima dela, então quem tem a chave mas não tem o PIN não
+          entra — e não cai silenciosamente na sala destravada da mesma chave.
+        </p>
+
+        <h2>Isso é seguro?</h2>
+
+        <p>
+          Para o uso a que se destina — levar texto entre aparelhos seus — não ter
+          conta deixa a coisa mais segura, e não menos: não há conta para ser
+          invadida nem histórico guardado para vazar. A criptografia acontece no
+          seu navegador, então quem observa a rede (seu Wi-Fi, seu provedor) não
+          lê a sua área de transferência.
+        </p>
+
+        <p>
+          O endereço de sala que o operador de fato enxerga passa pelo mesmo
+          alongamento de chave de 250.000 iterações, então não dá para reverter
+          até a sua chave sem pagar esse custo a cada tentativa. O
+          <a href="/docs/THREAT-MODEL.md">modelo de ameaças</a> traz a conta.
+        </p>
+
+        <p>
+          O risco real é o que já foi dito: uma chave curta é curta o bastante
+          para alguém determinado adivinhar, então ela é a ferramenta errada para
+          um segredo que ainda importe daqui a um ano. Trave com PIN o que for
+          sensível e trate uma sessão destravada como um bilhete deixado sobre a
+          mesa. O
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">código está no GitHub</a>
+          sob licença MIT, e você pode
+          <a href="/help/install/relay/">rodar o seu próprio retransmissor</a> se
+          preferir não confiar no de ninguém.
+        </p>
+
+        <p>
+          <a class="btn" href="/app.html">Abrir a área de transferência</a>
+        </p>
+      </div>
+
+      <div class="faq" id="faq">
+        <div class="faqhead">
+          <h2>Perguntas frequentes</h2>
+          <button type="button" class="faqall" id="faqAll"
+                  aria-expanded="false" aria-controls="faq" hidden>
+            <span class="faqall-i" aria-hidden="true"></span>
+            <span class="faqall-t">Expandir tudo</span>
+          </button>
+        </div>
+
+        <details class="qa">
+          <summary><h3>O que é uma área de transferência online?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            É um serviço que leva pela internet o que você copiou em um
+            dispositivo até outro. Difere de um gerenciador, que guarda o
+            histórico de cópias de uma única máquina, e de um pastebin, que cria
+            um endereço público. A área de transferência online faz só uma coisa:
+            deixar o outro aparelho pronto para colar.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Preciso criar uma conta?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Não. Os dois aparelhos digitam a mesma chave curta e entram na mesma
+            sala. Não há e-mail, senha nem perfil em nenhum momento, e o serviço
+            não distingue um usuário de outro porque nunca recebeu nada que
+            permitisse isso.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Os dois aparelhos precisam estar no mesmo Wi-Fi?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Não. Não existe descoberta na rede local: cada lado se conecta à mesma
+            sala definida pela chave, então funciona entre redes e entre cidades.
+            É justamente aí que difere de Snapdrop e LocalSend, que dependem de
+            broadcast na mesma rede.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>É gratuito mesmo? Qual é a pegadinha?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Gratuito, sem plano pago e sem período de teste. A pegadinha honesta
+            é de escopo, não de dinheiro: arquivos têm limite de 5 MB por envio e
+            a captura automática da área de transferência exige um navegador
+            Chromium. É código aberto sob licença MIT, então nada impede você de
+            hospedar por conta própria.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>O que acontece com o meu texto depois que eu fecho a aba?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Some. O retransmissor guarda a mensagem apenas o tempo de encaminhá-la
+            e não grava em disco; sem conta, não há histórico no servidor ligado a
+            você. O que fica localmente vive no armazenamento do seu navegador e
+            é apagado junto com ele.
+            </p>
+          </div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código aberto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/">English</a> · <a href="/zh/">中文</a> · <a href="/pt/">Português</a> · <a href="/es/">Español</a> · <a href="/ru/">Русский</a></p>
+      <p><a href="/">Início</a> · <a href="/download/">Download</a> · <a href="/help/">Ajuda</a> · <a href="/about/">Sobre</a> · <a href="/privacy/">Privacidade</a> · <a href="/terms/">Termos</a></p>
+      <p>As sessões ficam em memória e nunca são gravadas em disco. O conteúdo da área
+         de transferência é criptografado no seu navegador antes de ser enviado.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
