@@ -267,20 +267,27 @@ has to be re-deployed when the binaries land.
 ### What the jobs do, and what stops
 
 ```
-verify ──┬── desktop  (windows / macos / ubuntu-22.04) ──┬── publish-release ── manifests
-         │        └── vscode ── vscode-publish        ───┘
+verify ──┬── desktop (windows / macos / ubuntu-22.04) ─┬── publish-release ── manifests
+         │        ├── vscode ── vscode-publish        ─┤
+         │        └── browser                         ─┘
          ├── npm
+         ├── mcp
          └── relay-image
 ```
 
-`publish-release` waits on `desktop` and `vscode`, and on neither of the two jobs
-that talk to an external registry. That split is the whole design: `vscode`
-builds the `.vsix` and attaches it to the draft using only `GITHUB_TOKEN`, so it
-cannot fail for a reason outside this repository — which is what earns it a line
-in `SHA256SUMS` and a sideloadable asset. `vscode-publish` and `npm` hold tokens
-that expire, and **nothing waits on either**, because an expired Marketplace PAT
-must not hide three perfectly good installers behind a draft nobody can reach.
-That is not hypothetical; it is what happened on the first attempt at v0.3.0.
+`publish-release` waits on the jobs that produce a **release asset** using only
+`GITHUB_TOKEN` — `desktop`, `vscode`, `browser` — and on none of the jobs that
+talk to an external registry. That split is the whole design. An asset job can
+only fail for a reason inside this repository, which is what earns each one a
+line in `SHA256SUMS`. `npm`, `mcp` and `vscode-publish` hold tokens that expire,
+and **nothing waits on any of them**, because one expired token must not hide
+three perfectly good installers behind a draft nobody can reach. That is not
+hypothetical; it is what happened on the first attempt at v0.3.0.
+
+`browser` builds the store zip and attaches it. It does **not** submit: a Chrome
+Web Store upload needs OAuth credentials and enters a review queue, so
+automating it would replace a deliberate act with a surprise. The asset is what
+makes sideloading and the manual upload possible.
 
 `publish-release` is the job that makes the release public, and it needs **all
 three** desktop legs. A partial build therefore leaves a draft nobody can
@@ -447,6 +454,35 @@ when the running version differs from the last one this browser saw. Two rules:
   after that.
 
 A missing or malformed `changelog.json` produces silence, not an error.
+
+### The MCP server and the browser extension
+
+**`realtimeclipboard-mcp` publishes with the same `NPM_TOKEN`** as the CLI — one
+token, two packages, no extra setup. What it needs instead is a check on first
+release: the published package is the *bundle*, so confirm it installs and
+starts before anyone wires it into an agent.
+
+```bash
+npm pack mcp/dist/pkg && npm i -g ./realtimeclipboard-mcp-*.tgz
+echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' | realtimeclipboard-mcp
+```
+
+`tools/build/build-mcp.mjs` already does that spawn-and-speak check as a build
+assert, which is how a duplicate shebang — a syntax error that appeared only
+once installed — was caught. Re-run it by hand anyway the first time.
+
+Then submit `mcp/server.json` to <https://registry.modelcontextprotocol.io> with
+the `mcp-publisher` CLI. Its `version` and its `packages[0].version` are both
+checked against `package.json`; a registry entry naming an unpublished version
+is a server nobody can install.
+
+**The browser extension is a manual upload.** The zip is on the release. Chrome
+Web Store: a one-time $5 registration, 2FA on the Google account, then a review
+queue measured in days. Firefox and Edge take the same zip.
+
+**Do not claim background clipboard sync on any store listing.** The extension
+cannot do it, no browser extension can, and it is the one claim a reviewer can
+check in a minute.
 
 ### The extension's one-time steps
 

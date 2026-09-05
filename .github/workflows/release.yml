@@ -294,6 +294,65 @@ jobs:
   # /download/ reads the releases API, and /releases/latest skips drafts — so
   # until this runs, the buttons keep pointing at the generic releases page.
   #
+  # ── the MCP server ───────────────────────────────────────────────────────
+  # Its own npm package, and a second channel like `npm` above: an external
+  # registry with a token that expires, so NOTHING waits on it.
+  #
+  # The published package is the BUNDLE — build-mcp.mjs stages a package root
+  # with no dependencies, because the source imports ../cli/ and ../src/, which
+  # resolve to nothing once installed. That script also spawns the result and
+  # speaks MCP at it, so a bundle that cannot start fails here rather than on
+  # somebody's machine.
+  mcp:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with: { node-version: 22, cache: npm, registry-url: "https://registry.npmjs.org" }
+      - run: npm ci
+      - run: npm run build:mcp
+      # Same skip-not-fail and same idempotence as the `npm` job, and for the
+      # same two reasons: a fork has no token, and a re-run after one platform
+      # failed must not go red on the channel that already succeeded.
+      - name: Publish
+        if: env.NODE_AUTH_TOKEN != ''
+        working-directory: mcp/dist/pkg
+        run: |
+          V=$(node -p "require('./package.json').version")
+          if npm view "realtimeclipboard-mcp@$V" version >/dev/null 2>&1; then
+            echo "realtimeclipboard-mcp@$V is already published — nothing to do."
+          else
+            npm publish --provenance --access public
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # ── the browser extension ────────────────────────────────────────────────
+  # Builds the store zip and attaches it to the draft. It does NOT submit: a
+  # Chrome Web Store upload needs OAuth credentials and every submission enters
+  # a review queue, so automating it would replace a deliberate act with a
+  # surprise. The asset is what makes sideloading and the manual upload possible,
+  # and it needs no token, so publish-release can wait on it.
+  browser:
+    needs: desktop            # the draft release exists by then
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run package:browser
+      - name: Attach the zip to the draft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.ref_name }}" browser/dist/*.zip --clobber
+
   # ── the VS Code extension ────────────────────────────────────────────────
   # Two jobs on purpose, and the split is the same lesson the npm job records.
   #
@@ -364,12 +423,15 @@ jobs:
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
 
-  # `needs: [desktop, vscode]` and deliberately NOT npm. They are separate channels, and
-  # coupling them means an expired npm token hides three perfectly good
+  # `needs: [desktop, vscode, browser]` and deliberately NOT npm, mcp or
+  # vscode-publish. Everything listed produces a RELEASE ASSET using only
+  # GITHUB_TOKEN, so it can only fail for a reason inside this repository.
+  # Everything left out talks to an external registry with a token that expires,
+  # and coupling those means one expired token hides three perfectly good
   # installers behind a draft nobody can reach — which is what happened on the
   # first attempt at v0.3.0.
   publish-release:
-    needs: [desktop, vscode]
+    needs: [desktop, vscode, browser]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
