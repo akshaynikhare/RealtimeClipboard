@@ -267,9 +267,10 @@ has to be re-deployed when the binaries land.
 ### What the jobs do, and what stops
 
 ```
-verify ──┬── desktop (windows / macos / ubuntu-22.04) ─┬── publish-release ── manifests
-         │        ├── vscode ── vscode-publish        ─┤
-         │        └── browser                         ─┘
+verify ──┬── desktop (windows / macos / ubuntu-22.04) ──┬── publish-release ── manifests
+         ├── vscode ──┬─────────────────────────────────┤
+         │            └── vscode-publish                │
+         ├── browser ─────────────────────────────────  ┘
          ├── npm
          ├── mcp
          └── relay-image
@@ -284,10 +285,21 @@ and **nothing waits on any of them**, because one expired token must not hide
 three perfectly good installers behind a draft nobody can reach. That is not
 hypothetical; it is what happened on the first attempt at v0.3.0.
 
-`browser` builds the store zip and attaches it. It does **not** submit: a Chrome
-Web Store upload needs OAuth credentials and enters a review queue, so
-automating it would replace a deliberate act with a surprise. The asset is what
-makes sideloading and the manual upload possible.
+`browser` builds the store zip and hands it to `publish-release` as a workflow
+artifact. It does **not** submit: a Chrome Web Store upload needs OAuth
+credentials and enters a review queue, so automating it would replace a
+deliberate act with a surprise. The asset is what makes sideloading and the
+manual upload possible.
+
+**Everything fans out from `verify`, and that is a correction.** `vscode` and
+`browser` were once `needs: desktop`, because they uploaded straight to the
+draft release and `tauri-action` is what creates it. The cost showed up on
+v0.7.0: the Windows desktop build failed, and the VS Code extension, the browser
+zip and the entire GitHub release were skipped — none of which had anything to
+do with a Rust toolchain on Windows. They build in parallel now and hand their
+output to `publish-release` as artifacts. `vscode-publish` in particular reaches
+the Marketplace without caring whether a GitHub release exists, because
+publishing an extension never needed one.
 
 `publish-release` is the job that makes the release public, and it needs **all
 three** desktop legs. A partial build therefore leaves a draft nobody can
