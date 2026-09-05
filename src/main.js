@@ -7,7 +7,7 @@
  */
 
 import {
-  TEXT, LOCK, textBytes, sharesSession, RELAY_URL, RELAY_IS_CUSTOM,
+  TEXT, LOCK, textBytes, sharesSession, RELAY_URL, RELAY_IS_CUSTOM, SITE,
 } from "./core/config.js";
 import { emit, on, EV } from "./core/bus.js";
 import * as state from "./core/state.js";
@@ -802,6 +802,24 @@ async function wireFiles() {
  * Optional features, loaded dynamically so a missing or failing one degrades to
  * "that panel is absent" rather than a blank page.
  */
+/**
+ * `?qr=1` — show the share code as soon as there is a session to show.
+ *
+ * It exists so a surface that cannot draw a QR can hand the job to the app: the
+ * VS Code extension opens this URL rather than growing a renderer, and gets the
+ * accessible modal, the right caption and the locked/unlocked distinction for
+ * free. See SITE.QR_PARAM.
+ *
+ * The parameter survives keys.clearUrl(), which strips the fragment and keeps
+ * the search — so this is read after boot rather than snapshotted before it.
+ */
+function openQrIfAsked() {
+  if (typeof location === "undefined") return;
+  if (!new URLSearchParams(location.search).get(SITE.QR_PARAM)) return;
+  if (!state.get().key) return;                 // nothing to draw yet
+  sessionPanel.showQr();
+}
+
 async function loadOptional() {
   // Thunks with LITERAL specifiers. `import(variable)` is opaque to a bundler:
   // it leaves the specifier alone and the deploy asks for a file the bundle does
@@ -925,6 +943,12 @@ async function boot() {
 
   await loadOptional();
   safeInit("panes", panes.init);
+
+  // After loadOptional(), because qr.js is one of the modules it fetches — and
+  // after the session is up, because the code is built from state, not from the
+  // fragment we have already cleared. Nothing is awaited on this: a QR is
+  // decoration and must not be able to hold up the connection.
+  safeInit("qr deep link", openQrIfAsked);
 
   // After loadOptional(), because the phone tab bar offers a Clips tab only if
   // the history pane actually mounted.

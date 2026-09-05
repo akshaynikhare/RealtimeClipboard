@@ -409,6 +409,19 @@ export const SITE = {
   /** The published contact address — src/pages/contact/ and the AdSense
       publisher identity name it, so a change here is a change there too. */
   EMAIL: "info@realtimeclipboard.com",
+
+  /**
+   * `?qr=1` opens the share code as soon as the session is up.
+   *
+   * A QUERY parameter and not part of the fragment, deliberately: the fragment
+   * is the key, its grammar is a compatibility surface every existing share
+   * link depends on, and "show a QR" is a request about this visit rather than
+   * a property of the session. It rides beside ?relay= for the same reason.
+   *
+   * It exists so a surface with no way to draw one — the VS Code extension, the
+   * CLI — can hand the job to the app instead of growing its own renderer.
+   */
+  QR_PARAM: "qr",
 };
 
 /**

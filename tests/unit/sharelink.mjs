@@ -100,6 +100,31 @@ for (const [name, flag] of [["desktop", "--as-desktop"], ["web", "--as-web"]]) {
   ok(`the ${name} surface agrees`, good, "checked in its own process");
 }
 
+/* ------------------------------------------------------- the ?qr= deep link */
+/* A surface that cannot draw a QR hands the job to the app (SITE.QR_PARAM).
+   The one thing that can go wrong is putting the query on the wrong side of the
+   `#`: everything after it is the key, so `#KEY?qr=1` makes the key unusable and
+   the failure is a room nobody else can join rather than an error. */
+console.log("\nThe ?qr= deep link\n");
+
+const qrUrl = (link) => {
+  const [base, fragment] = link.split("#");
+  const sep = base.includes("?") ? "&" : "?";
+  return `${base}${sep}${SITE.QR_PARAM}=1${fragment ? `#${fragment}` : ""}`;
+};
+
+for (const locked of [false, true]) {
+  const url = new URL(qrUrl(keys.shareLink(KEY, locked)));
+  const label = locked ? "locked" : "unlocked";
+  ok(`${label}: the flag is a query, not part of the key`,
+     url.searchParams.get(SITE.QR_PARAM) === "1", url.href);
+  const parsed = keys.parseFragment(url.hash.slice(1));
+  ok(`${label}: the key survives it intact`, parsed.key === KEY, url.hash);
+  ok(`${label}: and so does the lock sigil`, parsed.locked === locked, url.hash);
+}
+ok("a relay override does not lose the flag",
+   new URL(qrUrl(`${SITE.APP_URL}?relay=ws://x#${KEY}`)).searchParams.get(SITE.QR_PARAM) === "1");
+
 console.log("\n" + "=".repeat(58));
 console.log(`SHARELINK: ${pass}/${pass + fail} passed`);
 console.log("=".repeat(58) + "\n");
