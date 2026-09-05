@@ -23,8 +23,9 @@ export function register(vscode, ctx) {
     await start(vscode, ctx, key, null);
     const link = room.shareLink();
     const pick = await vscode.window.showInformationMessage(
-      `Session ${key} is live.`, "Copy share link");
+      `Session ${key} is live.`, "Copy share link", "Show QR");
     if (pick === "Copy share link" && link) await host.writeQuietly(link);
+    if (pick === "Show QR") await vscode.commands.executeCommand(`${PREFIX}showQr`);
   });
 
   add("joinSession", async () => {
@@ -149,6 +150,17 @@ export function register(vscode, ctx) {
     log("left the session");
   });
 
+  add("showQr", async () => {
+    const s = room.current();
+    if (!s) return vscode.window.showInformationMessage("No session yet.");
+    const url = keys.qrLink(s.key, s.locked);
+    // The app draws it, not us. That is the whole point of SITE.QR_PARAM: the
+    // modal there is accessible, already says what the code discloses, and
+    // already knows a locked session's code carries the key and not the PIN.
+    // A second renderer here would be a second thing to get those wrong in.
+    await vscode.env.openExternal(vscode.Uri.parse(url));
+  });
+
   add("openInBrowser", async () => {
     const link = room.shareLink();
     if (!link) return vscode.window.showInformationMessage("No session yet.");
@@ -158,7 +170,7 @@ export function register(vscode, ctx) {
   add("menu", async () => {
     const connected = Boolean(room.current());
     const items = connected
-      ? ["Copy share link", "Send selection", "History…", "Sync mode…",
+      ? ["Copy share link", "Show QR", "Send selection", "History…", "Sync mode…",
          state.get().locked ? "Remove PIN" : "Lock with a PIN…", "Open in browser", "Leave session"]
       : ["New session", "Join session…"];
     const pick = await vscode.window.showQuickPick(items, {
@@ -166,7 +178,7 @@ export function register(vscode, ctx) {
     });
     const go = {
       "New session": "newSession", "Join session…": "joinSession",
-      "Copy share link": "copyShareLink", "Send selection": "sendSelection",
+      "Copy share link": "copyShareLink", "Show QR": "showQr", "Send selection": "sendSelection",
       "History…": "history", "Sync mode…": "syncMode", "Lock with a PIN…": "lockSession",
       "Remove PIN": "unlockSession", "Open in browser": "openInBrowser",
       "Leave session": "leaveSession",

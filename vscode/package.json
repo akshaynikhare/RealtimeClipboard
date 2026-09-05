@@ -44,6 +44,7 @@
       { "command": "realtimeclipboard.lockSession", "title": "Lock Session…", "category": "RealtimeClipboard" },
       { "command": "realtimeclipboard.unlockSession", "title": "Remove Session PIN", "category": "RealtimeClipboard" },
       { "command": "realtimeclipboard.leaveSession", "title": "Leave Session", "category": "RealtimeClipboard" },
+      { "command": "realtimeclipboard.showQr", "title": "Show QR Code", "category": "RealtimeClipboard" },
       { "command": "realtimeclipboard.openInBrowser", "title": "Open Session in Browser", "category": "RealtimeClipboard" },
       { "command": "realtimeclipboard.menu", "title": "Show Menu", "category": "RealtimeClipboard" }
     ],
@@ -68,6 +69,7 @@
         { "command": "realtimeclipboard.sendSelection", "when": "realtimeclipboard.connected && editorHasSelection" },
         { "command": "realtimeclipboard.sendClipboard", "when": "realtimeclipboard.connected" },
         { "command": "realtimeclipboard.leaveSession", "when": "realtimeclipboard.connected" },
+        { "command": "realtimeclipboard.showQr", "when": "realtimeclipboard.connected" },
         { "command": "realtimeclipboard.openInBrowser", "when": "realtimeclipboard.connected" },
         { "command": "realtimeclipboard.lockSession", "when": "realtimeclipboard.connected" },
         { "command": "realtimeclipboard.unlockSession", "when": "realtimeclipboard.locked" }

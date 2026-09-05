@@ -802,6 +802,49 @@ async function wireFiles() {
  * Optional features, loaded dynamically so a missing or failing one degrades to
  * "that panel is absent" rather than a blank page.
  */
+/**
+ * `?qr=1` — show the share code as soon as there is a session to show.
+ *
+ * It exists so a surface that cannot draw a QR can hand the job to the app: the
+ * VS Code extension opens this URL rather than growing a renderer, and gets the
+ * accessible modal, the right caption and the locked/unlocked distinction for
+ * free. See keys.qrLink().
+ *
+ * WAITS for the session rather than testing for it once. startSession() is
+ * deliberately not awaited in boot() — the session must not queue behind panel
+ * rendering — so by the time this runs the key is often not set yet, and for a
+ * LOCKED link it is guaranteed not to be: that path is sitting on a PIN prompt
+ * waiting for a human. Checking once and returning meant the QR never opened in
+ * exactly the case where scanning it is most useful.
+ *
+ * The parameter survives keys.clearUrl(), which strips the fragment and keeps
+ * the search, so it is read after boot rather than snapshotted before it.
+ */
+function openQrIfAsked(wanted) {
+  if (!keys.qrRequested()) return;
+  if (state.get().key) return sessionPanel.showQr();
+  // No key to wait for. Leaving a session emits KEY_CHANGED with an empty one,
+  // which would otherwise match an empty `wanted` and draw a code for no room.
+  if (!wanted) return;
+
+  // Armed for ONE room — the one the link named — and it stays armed until that
+  // room opens. Both halves matter, and they fail in opposite directions.
+  //
+  // Without the key check, backing out of the PIN prompt left this waiting and
+  // the next session the user started by hand had ITS code put on screen
+  // unasked. Unsubscribing before the check fixed that and broke the other way:
+  // joining any other room first disarmed the listener, so coming back to the
+  // requested one never showed the code and only a reload would.
+  //
+  // So: ignore rooms that are not the one asked for, and stop only once it
+  // arrives. It can fire at most once, and only for the room named in the link.
+  const off = on(EV.KEY_CHANGED, ({ key }) => {
+    if (key !== wanted) return;
+    off();
+    sessionPanel.showQr();
+  });
+}
+
 async function loadOptional() {
   // Thunks with LITERAL specifiers. `import(variable)` is opaque to a bundler:
   // it leaves the specifier alone and the deploy asks for a file the bundle does
@@ -925,6 +968,12 @@ async function boot() {
 
   await loadOptional();
   safeInit("panes", panes.init);
+
+  // After loadOptional(), because qr.js is one of the modules it fetches — and
+  // after the session is up, because the code is built from state, not from the
+  // fragment we have already cleared. Nothing is awaited on this: a QR is
+  // decoration and must not be able to hold up the connection.
+  safeInit("qr deep link", () => openQrIfAsked(key));
 
   // After loadOptional(), because the phone tab bar offers a Clips tab only if
   // the history pane actually mounted.

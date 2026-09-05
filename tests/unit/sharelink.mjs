@@ -100,6 +100,42 @@ for (const [name, flag] of [["desktop", "--as-desktop"], ["web", "--as-web"]]) {
   ok(`the ${name} surface agrees`, good, "checked in its own process");
 }
 
+/* ------------------------------------------------------- the ?qr= deep link */
+/* keys.qrLink() itself, not a copy of it. A test that reimplements the thing it
+   is testing agrees with itself no matter what the shipped code does.
+
+   The one rule to get wrong is which side of the `#` the flag goes: everything
+   after it is the key, so `#KEY?qr=1` is not a broken flag, it is a broken key,
+   and the symptom is a room nobody else can join rather than an error. */
+console.log("\nThe ?qr= deep link\n");
+
+for (const locked of [false, true]) {
+  const url = new URL(keys.qrLink(KEY, locked));
+  const label = locked ? "locked" : "unlocked";
+  ok(`${label}: the flag is a query, not part of the key`,
+     url.searchParams.get(SITE.QR_PARAM) === "1", url.href);
+  const parsed = keys.parseFragment(url.hash.slice(1));
+  ok(`${label}: the key survives it intact`, parsed.key === KEY, url.hash);
+  ok(`${label}: and so does the lock sigil`, parsed.locked === locked, url.hash);
+  ok(`${label}: it is the share link plus the flag, nothing else`,
+     url.href.replace(`?${SITE.QR_PARAM}=1`, "") === keys.shareLink(KEY, locked));
+}
+
+/* The reader sits beside the writer, and is strict on purpose: a truthiness
+   test on the string would have opened the modal for ?qr=0 and ?qr=false. */
+const withSearch = (search, fn) => {
+  const had = Object.prototype.hasOwnProperty.call(globalThis, "location");
+  const prev = globalThis.location;
+  globalThis.location = { search };
+  try { return fn(); } finally { had ? (globalThis.location = prev) : delete globalThis.location; }
+};
+for (const [search, want] of [["?qr=1", true], ["?qr=0", false], ["?qr=false", false],
+                              ["?qr=", false], ["", false], ["?relay=ws://x&qr=1", true]]) {
+  ok(`qrRequested("${search}") === ${want}`, withSearch(search, keys.qrRequested) === want);
+}
+ok("no location at all is not a request", keys.qrRequested() === false,
+   "the CLI and the extension host have none");
+
 console.log("\n" + "=".repeat(58));
 console.log(`SHARELINK: ${pass}/${pass + fail} passed`);
 console.log("=".repeat(58) + "\n");

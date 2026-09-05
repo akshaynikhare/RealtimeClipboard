@@ -121,7 +121,7 @@ function onMenuEvent(e, close) {
  * The note travels with the payload, so qr.js needs no opinion about sessions
  * and the caption cannot claim the code carries the PIN when it does not.
  */
-function showQr() {
+export function showQr() {
   const { key, locked } = state.get();
   emit("ui:qr", {
     text: keys.shareLink(key, locked),

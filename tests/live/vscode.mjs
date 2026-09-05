@@ -51,11 +51,13 @@ try {
 
 // Read, not restated — the key length is a config value, not a literal to copy.
 const keys = await import(new URL("../../src/core/keys.js", import.meta.url).href);
+const { SITE } = await import(new URL("../../src/core/config.js", import.meta.url).href);
 const KEY = keys.generate();
 
 /* ---------------------------------------------------------- fake vscode -- */
 
 const clipboard = { value: "", writes: [] };
+const opened = [];
 const info = [];
 let focused = true;
 
@@ -70,7 +72,7 @@ const vscode = {
       async readText() { return clipboard.value; },
       async writeText(t) { clipboard.writes.push(t); clipboard.value = t; },
     },
-    openExternal: async () => true,
+    openExternal: async (uri) => { opened.push(String(uri)); return true; },
   },
   window: {
     state: { get focused() { return focused; } },
@@ -180,6 +182,19 @@ await sleep(2500);
 check("a clip that reads like a shell command is NOT written unasked",
   !clipboard.writes.some(w => w.includes("evil.example")),
   "the integrated terminal is one keystroke away");
+
+/* ---- the QR command, as registered ---------------------------------------- */
+/* Through vscode.commands.executeCommand, not by calling a copy of the helper:
+   the point is that the REGISTERED command still hands the right URL to
+   openExternal. A helper tested in isolation can stop being wired up. */
+opened.length = 0;
+await vscode.commands.executeCommand("realtimeclipboard.showQr");
+const qr = opened.at(-1) ?? "";
+check("showQr opens exactly one external URL", opened.length === 1, JSON.stringify(opened));
+check("...pointing at the app with the QR flag",
+  qr.includes(`?${SITE.QR_PARAM}=1`), qr);
+check("...carrying THIS session's key in the fragment",
+  qr.endsWith(`#${KEY}`), qr);
 
 ext.deactivate();
 
