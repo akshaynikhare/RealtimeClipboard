@@ -21,6 +21,13 @@
  */
 
 :root {
+  /* The tokens below cover everything this sheet paints; the BROWSER paints the
+     scrollbar and the key field's native chrome, and without this it paints
+     them light on a dark page. Same declaration, same reason, as
+     styles/tokens.css — these pages share no CSS with the app, so it is stated
+     twice rather than imported. */
+  color-scheme: light dark;
+
   /* surfaces */
   --bg:#1e1e1e;          /* --editor  */
   --panel:#252526;       /* --side    */

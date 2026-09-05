@@ -135,6 +135,40 @@ ELECTRON_RUN_AS_NODE=1 "/Applications/Visual Studio Code.app/Contents/MacOS/Code
   -e 'console.log(process.versions.node, typeof WebSocket, typeof crypto.subtle)'
 ```
 
+### The MCP server
+
+```bash
+npm run relay                                   # :8000
+REALTIMECLIPBOARD_RELAY=ws://127.0.0.1:8000 node mcp/server.mjs
+```
+
+It speaks JSON-RPC on stdin/stdout, so it is drivable by hand — one line in, one
+line out. `npm run test:mcp` does it properly, with the CLI as the peer.
+
+**stdout is the transport.** A stray `console.log` is a parse error at the
+client, which presents as "the server is broken" with nothing saying why;
+diagnostics go to stderr, and a static check enforces it.
+
+`npm run build:mcp` stages the published package — a bundle, because the source
+imports `../cli/` and `../src/`, which resolve to nothing once installed. That
+script also spawns the result and speaks MCP at it, so a bundle that cannot
+start fails the build.
+
+### The browser extension
+
+```bash
+npm run build:browser        # -> browser/dist/pkg
+```
+
+Load `browser/dist/pkg` at `chrome://extensions` → Developer mode → Load
+unpacked. There is **no no-build dev loop** here, unlike `vscode/`: an extension
+may not import outside its own directory, so it always has to be bundled first.
+
+Every permission in the manifest must be justified in `build-browser.mjs`'s
+`USES` table, and an unlisted one fails the build — the store rejects a
+permission nothing uses, and a reviewer asks about one they cannot see a reason
+for.
+
 ---
 
 ## 3. The service worker will lie to you

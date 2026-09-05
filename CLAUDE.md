@@ -6,15 +6,35 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 RealtimeClipboard — an end-to-end encrypted online clipboard. Text is encrypted in the browser
 (AES-GCM), routed by `SHA-256(key)` through a relay that stores nothing; files go peer-to-peer over
-WebRTC. Five surfaces share one codebase: the web app (`app.html` + `src/`), the marketing landing
-page (`index.html` + `src/landing/`), a Node CLI (`cli/`), a Tauri desktop shell
-(`desktop/`) that loads `src/` unmodified, and a VS Code extension (`vscode/`) that imports
-`src/core/`, `src/transport/` and `src/clipboard/` on the extension host.
+WebRTC. Seven surfaces share one codebase:
 
-`cli/` and `vscode/` are **consumers** of `src/`, not members of it: they sit outside the rank table
-below and carry their own `CLAUDE.md`. The rule both obey is the one in `cli/CLAUDE.md` — nothing
-there may reimplement a protocol detail. `desktop/` and `vscode/` are both **native hosts**, and
-`core/native.js` is the single file that knows one exists.
+| | |
+|---|---|
+| `app.html` + `src/` | the web app |
+| `index.html` + `src/landing/` | the marketing landing page |
+| `cli/` | a Node CLI |
+| `desktop/` | a Tauri shell that loads `src/` unmodified |
+| `vscode/` | a VS Code extension, on the extension host |
+| `mcp/` | the clipboard as tools for an AI agent, over stdio |
+| `browser/` | an MV3 extension for Chrome, Edge and Firefox |
+
+`cli/`, `vscode/`, `mcp/` and `browser/` are **consumers** of `src/`, not members of it: they sit
+outside the rank table below and carry their own `CLAUDE.md`. The rule all four obey is the one in
+`cli/CLAUDE.md` — **nothing there may reimplement a protocol detail**. The derive/connect/decrypt
+half they share lives once, in `cli/session.mjs`.
+
+`desktop/` and `vscode/` are both **native hosts**, and `core/native.js` is the single file that
+knows one exists.
+
+Two of the newer surfaces carry a rule the others do not:
+
+- **`mcp/` hands clip text to a model, which may act on it.** Every clip is defused through
+  `clipboard/guard.js` and every tool says the text is data rather than instructions — but the
+  actual control is that the server executes nothing. If that stops being true the labelling stops
+  being sufficient.
+- **`browser/` cannot sync in the background, and does not claim to.** Chromium exposes
+  `navigator.clipboard` to neither a service worker nor an offscreen document, so every read there
+  happens because someone asked for one. Do not put "background sync" on a store listing.
 
 **Zero runtime dependencies. No build step for development.** `src/` is native ES modules served
 as-is; `npm run build` exists only to assemble the deploy.

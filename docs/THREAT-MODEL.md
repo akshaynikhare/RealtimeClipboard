@@ -232,6 +232,13 @@ Limits: **5 MB** per file, 20 files per session, memory only.
   planted `curl … | sh` is one keystroke from a shell rather than a browser tab; the extension holds
   a flagged clip behind a modal and `capture.confirmPending()` is the only path that writes it.
   Neither surface executes anything it receives.
+- **What an LLM does with a clip.** `mcp/` puts clip text into a model's context, and a room is
+  joinable by anyone holding the key — so that text is attacker-controlled input to something that
+  may act on it. This is a prompt-injection surface and is treated as one: clips are defused, tools
+  say the content is data rather than instructions, and command-like clips are labelled. **None of
+  that is a control** — it is advice to a model, and a determined injection will beat it. The
+  control is that the server executes nothing, and the boundary is whatever the agent around it is
+  allowed to do. Do not hand an agent a room key you would not hand its operator.
 - **Traffic analysis.** Frame sizes and timing are not padded.
 - **The relay operator's honesty about §2.** You are trusting a deployment you cannot inspect.
   `deploy/docker-compose.yml` brings up your own with TLS in one command; that is the answer, and
