@@ -270,7 +270,8 @@ has to be re-deployed when the binaries land.
 verify ──┬── desktop (windows / macos / ubuntu-22.04) ──┬── publish-release ── manifests
          ├── vscode ──┬─────────────────────────────────┤
          │            └── vscode-publish                │
-         ├── browser ─────────────────────────────────  ┘
+         ├── browser ─┬───────────────────────────────  ┘
+         │            └── edge-publish
          ├── npm
          ├── mcp
          └── relay-image
@@ -488,9 +489,31 @@ the `mcp-publisher` CLI. Its `version` and its `packages[0].version` are both
 checked against `package.json`; a registry entry naming an unpublished version
 is a server nobody can install.
 
-**The browser extension is a manual upload.** The zip is on the release. Chrome
-Web Store: a one-time $5 registration, 2FA on the Google account, then a review
-queue measured in days. Firefox and Edge take the same zip.
+**Edge Add-ons is the one Chromium store with no registration fee**, which is why
+it is automated and Chrome is not. Three one-time steps:
+
+1. Register at [Partner Center](https://partner.microsoft.com/dashboard/microsoftedge/public/login)
+   with a Microsoft account. No fee.
+2. **Make the first submission by hand.** The REST API cannot create a product —
+   Microsoft is explicit about it — so upload the zip once through the dashboard,
+   fill in the listing, and let it pass certification.
+3. **Publish API** → *Create API credentials*, then:
+
+   ```bash
+   gh secret set EDGE_CLIENT_ID      # from the Publish API page
+   gh secret set EDGE_API_KEY        # shown once
+   gh secret set EDGE_PRODUCT_ID     # the GUID in the extension overview URL
+   ```
+
+Every tag after that updates the listing by itself. **Edge API keys expire**, the
+same trap as the Azure PAT — a lapsed one is a channel that quietly stops
+updating while everything else works. `tools/release/edge-publish.mjs` says so by
+name when it gets a 401 or 403, rather than reporting a bare status code.
+
+**Chrome and Firefox are not automated, for different reasons.** Chrome wants a
+one-time $5 registration and has not been paid. Firefox cannot run this extension
+at all: the clipboard bridge needs `chrome.offscreen`, which Firefox does not
+implement. The zip on the release is what serves both, through *Load unpacked*.
 
 **Do not claim background clipboard sync on any store listing.** The extension
 cannot do it, no browser extension can, and it is the one claim a reviewer can
