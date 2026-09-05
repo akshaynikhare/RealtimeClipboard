@@ -16,7 +16,7 @@ WebRTC. Seven surfaces share one codebase:
 | `desktop/` | a Tauri shell that loads `src/` unmodified |
 | `vscode/` | a VS Code extension, on the extension host |
 | `mcp/` | the clipboard as tools for an AI agent, over stdio |
-| `browser/` | an MV3 extension for Chrome, Edge and Firefox |
+| `browser/` | an MV3 extension for Chromium browsers (Chrome, Edge, Brave) |
 
 `cli/`, `vscode/`, `mcp/` and `browser/` are **consumers** of `src/`, not members of it: they sit
 outside the rank table below and carry their own `CLAUDE.md`. The rule all four obey is the one in

@@ -353,6 +353,37 @@
           </div>
         </div>
 
+        <h3 id="browser">In your browser</h3>
+        <p>
+          A popup and two keyboard shortcuts, for sending what you copied
+          without opening the app. It is not on a store: the build rides every
+          release as a zip, and Chrome loads it from a folder.
+        </p>
+
+        <div class="cmdgrid">
+          <div class="cmdcard wide">
+            <h4>Chrome, Edge, Brave — load unpacked</h4>
+            <pre><code># 1. take realtimeclipboard-browser-&lt;version&gt;.zip from the release above
+# 2. unzip it somewhere you will keep it
+# 3. chrome://extensions -&gt; Developer mode -&gt; Load unpacked -&gt; pick the folder</code></pre>
+            <p class="hint">
+              Keep the folder: the browser reads it at every launch, so a
+              Downloads directory you empty is the wrong home. There is no
+              auto-update this way, and Chrome will occasionally ask whether you
+              meant to keep a developer-mode extension. A downloadable installer
+              is not on offer because Chrome has refused
+              <code>.crx</code> files from outside its Web Store since 2014.
+              <a href="https://github.com/akshaynikhare/RealtimeClipboard/releases/latest">Latest release</a>
+            </p>
+          </div>
+        </div>
+        <p class="hint">
+          Chromium only — Chrome, Edge, Brave, Opera, Arc. Not Firefox: the
+          clipboard bridge needs an API Firefox does not implement. And it does
+          not sync in the background on any browser, which is what the desktop
+          app and the editor extension are for.
+        </p>
+
         <h3 id="cli">Servers, SSH and scripts</h3>
         <p>
           A command-line client, for the machines that have no clipboard at all.
