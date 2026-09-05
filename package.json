@@ -35,11 +35,11 @@
   },
   "scripts": {
     "verify": "node tests/unit/static-check.mjs && node tests/unit/relay-url.mjs && node tests/unit/lock.mjs && node tests/unit/files.mjs && node tests/unit/transfer.mjs && node tests/unit/clipsize.mjs && node tests/unit/syncmode.mjs && node tests/unit/pasteguard.mjs && node tests/unit/sharelink.mjs && node tests/unit/keyfloor.mjs && node tests/unit/adpolicy.mjs && node tests/unit/vscode-host.mjs && node tests/dom/dialog.mjs && node tests/dom/theme.mjs && node tests/dom/whatsnew.mjs && node tests/dom/tiles.mjs && node tests/dom/guide.mjs && node tests/dom/links.mjs && node tests/dom/editor.mjs && node tests/dom/capture.mjs && node tests/dom/offer.mjs",
-    "test": "npm run verify && npm run build:vscode && node tests/dom/bundle.mjs && node tests/dom/extension.mjs && node tests/live/vscode.mjs && node tests/live/e2e.mjs && node tests/live/boot.mjs && node tests/live/boot.mjs --locked && node tests/live/boot.mjs --qr && node tests/live/fallback.mjs",
+    "test": "npm run verify && npm run build:vscode && node tests/dom/bundle.mjs && node tests/dom/extension.mjs && node tests/live/vscode.mjs && node tests/live/e2e.mjs && node tests/live/boot.mjs && node tests/live/boot.mjs --locked && node tests/live/boot.mjs --qr && node tests/live/boot.mjs --locked --qr && node tests/live/fallback.mjs",
     "test:static": "node tests/unit/static-check.mjs",
     "test:lock": "node tests/unit/lock.mjs && node tests/dom/dialog.mjs",
     "test:e2e": "node tests/live/e2e.mjs",
-    "test:boot": "node tests/live/boot.mjs && node tests/live/boot.mjs --locked && node tests/live/boot.mjs --qr",
+    "test:boot": "node tests/live/boot.mjs && node tests/live/boot.mjs --locked && node tests/live/boot.mjs --qr && node tests/live/boot.mjs --locked --qr",
     "test:bundle": "node tests/dom/bundle.mjs",
     "test:vscode": "node tools/build/build-vscode.mjs && node tests/dom/extension.mjs && node tests/live/vscode.mjs",
     "test:tiles": "node tests/dom/tiles.mjs",

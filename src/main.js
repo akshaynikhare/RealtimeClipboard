@@ -820,15 +820,18 @@ async function wireFiles() {
  * The parameter survives keys.clearUrl(), which strips the fragment and keeps
  * the search, so it is read after boot rather than snapshotted before it.
  */
-function openQrIfAsked() {
+function openQrIfAsked(wanted) {
   if (!keys.qrRequested()) return;
   if (state.get().key) return sessionPanel.showQr();
 
-  // One shot: a later rotation or re-PIN is a new room, not this request again.
+  // Armed for ONE room — the one the link named. Backing out of the PIN prompt
+  // leaves this waiting, and without the check the next session the user starts
+  // by hand would have its code put on screen unasked. Retrying the same locked
+  // link still opens it, because that is the room that was requested.
   const off = on(EV.KEY_CHANGED, ({ key }) => {
     if (!key) return;
     off();
-    sessionPanel.showQr();
+    if (key === wanted) sessionPanel.showQr();
   });
 }
 
@@ -960,7 +963,7 @@ async function boot() {
   // after the session is up, because the code is built from state, not from the
   // fragment we have already cleared. Nothing is awaited on this: a QR is
   // decoration and must not be able to hold up the connection.
-  safeInit("qr deep link", openQrIfAsked);
+  safeInit("qr deep link", () => openQrIfAsked(key));
 
   // After loadOptional(), because the phone tab bar offers a Clips tab only if
   // the history pane actually mounted.

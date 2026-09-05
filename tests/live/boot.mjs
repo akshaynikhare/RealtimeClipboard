@@ -12,6 +12,7 @@
  *   node tests/live/boot.mjs [ws_base]            open session, must CONNECT
  *   node tests/live/boot.mjs [ws_base] --locked    locked link, must NOT connect
  *   node tests/live/boot.mjs [ws_base] --qr        ?qr=1 must open the code
+ *   node tests/live/boot.mjs [ws_base] --locked --qr   ...but not with no session
  *
  * The --locked run guards the invariant that is easiest to lose and worst to
  * lose silently: a link marked locked must not open a socket until the PIN has
@@ -174,8 +175,10 @@ if (LOCKED) {
 }
 if (QR) {
   console.log("  ?qr=1 opened the code:  " + (qrShown ? "YES" : "NO"));
-  console.log("  expected:               YES — and it must survive the session");
-  console.log("                          not being ready when boot() ends");
+  console.log("  expected:               " + (LOCKED
+    ? "NO — the PIN was never given, so no room was requested"
+    : "YES — and it must survive the session not being"));
+  if (!LOCKED) console.log("                          ready when boot() ends");
 }
 
 const problems = log.filter(([lvl]) => lvl === "warn" || lvl === "error");
@@ -186,6 +189,8 @@ if (problems.length) {
 console.log("=".repeat(60));
 
 const ok = LOCKED
-  ? (reachedEnd && !connected && !openedARoom)
+  // A code for a room nobody is in would be a code for the wrong room: the
+  // listener is armed for the key the LINK named, and that key never opened.
+  ? (reachedEnd && !connected && !openedARoom && (!QR || !qrShown))
   : (reachedEnd && connected && (!QR || qrShown));
 process.exit(ok ? 0 : 1);
