@@ -1,6 +1,7 @@
 # browser/ — the extension surface
 
-An MV3 extension for Chrome, Edge and Firefox. It imports `cli/session.mjs`, `src/core/keys.js` and
+An MV3 extension for **Chromium browsers only** — Chrome, Edge, Brave, Opera, Arc. It imports
+`cli/session.mjs`, `src/core/keys.js` and
 `src/clipboard/guard.js`, bundled — **nothing here may reimplement a protocol detail**, the same rule
 `cli/` states.
 
@@ -15,7 +16,12 @@ The obvious pitch for a browser extension is background clipboard sync, which a 
 - What is left is `document.execCommand` inside an offscreen document, which needs a user gesture.
 
 So the product is **on demand plus a keyboard command**: the popup, `Ctrl/Cmd+Shift+U` to send,
-`Ctrl/Cmd+Shift+Y` to receive. The surface that watches the clipboard unattended is the desktop app
+`Ctrl/Cmd+Shift+Y` to receive.
+
+**And it is why there is no Firefox build.** The whole clipboard path runs through
+`chrome.offscreen`, which Firefox does not implement and has said it will not — it extended event
+pages instead. Porting means a second clipboard implementation for one browser, not a manifest
+tweak, so this said "Chrome, Edge and Firefox" for a while and was wrong about a third of it. The surface that watches the clipboard unattended is the desktop app
 or the VS Code extension, because there the code doing the watching is not a web page
 (`docs/CLIPBOARD-FLOW.md` §5).
 

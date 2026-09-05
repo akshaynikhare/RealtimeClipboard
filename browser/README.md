@@ -26,6 +26,28 @@ Anyone with the key can join the room, so an arriving clip is not trusted. Invis
 trailing newlines are stripped from every one, and a clip that reads like a shell command is shown
 in the popup rather than written to your clipboard — the keyboard shortcut refuses it outright.
 
+## Install it
+
+Not on any store. The build is attached to every
+[GitHub release](https://github.com/akshaynikhare/RealtimeClipboard/releases/latest) as
+`realtimeclipboard-browser-<version>.zip`:
+
+1. Unzip it somewhere you will keep — Chrome loads it from that folder every launch, so a
+   Downloads folder you empty is the wrong home.
+2. `chrome://extensions` → turn on **Developer mode** → **Load unpacked** → pick the folder.
+
+**Why there is no one-click installer.** Two reasons, and the second is the one that decides it.
+Chrome has refused to install a `.crx` from outside the Web Store since Chrome 33 on Windows and
+Chrome 44 on macOS — Linux and ChromeOS still allow it, and a managed fleet can force-install one
+by policy. But no release here ships a `.crx` at all, so there is nothing to install that way on any
+platform. The zip is what is published, and *Load unpacked* is what reads it.
+
+Loaded this way there is **no auto-update** — repeat the steps for a new version — and Chrome will
+periodically ask whether you meant to keep a developer-mode extension.
+
+**Chromium only.** Chrome, Edge, Brave, Opera and Arc all work. Firefox does not: the clipboard
+bridge needs `chrome.offscreen`, which Firefox does not implement.
+
 ## Build it
 
 ```bash
