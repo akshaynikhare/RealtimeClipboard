@@ -1,0 +1,25 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
+  "name": "io.github.akshaynikhare/realtimeclipboard",
+  "description": "An end-to-end encrypted clipboard shared between your machines. Send text to your other devices, or pick up what you copied there. The relay stores nothing and can read nothing.",
+  "repository": {
+    "url": "https://github.com/akshaynikhare/RealtimeClipboard",
+    "source": "github"
+  },
+  "version": "0.6.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "realtimeclipboard-mcp",
+      "version": "0.6.0",
+      "transport": { "type": "stdio" },
+      "environmentVariables": [
+        {
+          "name": "REALTIMECLIPBOARD_RELAY",
+          "description": "Relay to route through. Defaults to the hosted one; set this to self-host.",
+          "isRequired": false
+        }
+      ]
+    }
+  ]
+}

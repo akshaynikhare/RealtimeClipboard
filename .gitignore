@@ -88,3 +88,7 @@ desktop.ini
 !/.vscode/
 /.vscode/*
 !/.vscode/launch.json
+
+# ---- the browser extension --------------------------------------------------
+# Build output, and the zip that goes to a store's upload form.
+/browser/dist/

@@ -442,7 +442,9 @@ const PROSE = [
   ...["README.md", "CONTRIBUTING.md", "CLAUDE.md", "package.json", "sw.js",
       "cli/realtimeclipboard.mjs", "backend/README.md", "backend/CLAUDE.md",
       "desktop/README.md", "desktop/CLAUDE.md", "desktop/src-tauri/tauri.conf.json",
-      "vscode/README.md", "vscode/CLAUDE.md", "vscode/package.json"]
+      "vscode/README.md", "vscode/CLAUDE.md", "vscode/package.json",
+      "mcp/README.md", "mcp/CLAUDE.md", "mcp/package.json", "mcp/server.json",
+      "browser/README.md", "browser/CLAUDE.md", "browser/manifest.json"]
     .map(f => join(ROOT, f)),
 ].filter(f => /\.(md|ya?ml|json|m?js)$/.test(f) && existsSync(f));
 
@@ -465,7 +467,7 @@ ok(`paths named in docs, config and comments resolve (${PROSE.length} files)`,
    directory with neither is a directory whose rules are back to being folklore. */
 const DOCUMENTED = [
   ...readdirSync(join(ROOT, "src")).map(d => `src/${d}`).filter(d => statSync(join(ROOT, d)).isDirectory()),
-  "src", "tests", "tools", "cli", "backend", "desktop", "docs", "assets", "vscode",
+  "src", "tests", "tools", "cli", "backend", "desktop", "docs", "assets", "vscode", "mcp", "browser",
 ];
 bad = DOCUMENTED.flatMap(d => ["CLAUDE.md", "README.md"]
   .filter(f => !existsSync(join(ROOT, d, f)))
@@ -536,11 +538,38 @@ const confOk = conf.version === "../../package.json" || conf.version === pkgVers
    can — the Marketplace reads a literal — so it is a fifth copy that must not
    drift, and tools/release/release.mjs rewrites it with the others. */
 const vsceVersion = JSON.parse(read(join(ROOT, "vscode/package.json"))).version;
-ok(`desktop, extension and package.json versions agree (${pkgVersion})`,
+/* The MCP server carries it twice more: its own manifest, and the registry
+   entry that tells a client which npm version to fetch. A registry entry
+   pointing at a version that was never published is a server nobody can
+   install, and nothing else would notice. */
+const mcpPkg = JSON.parse(read(join(ROOT, "mcp/package.json")));
+const mcpServer = JSON.parse(read(join(ROOT, "mcp/server.json")));
+const mcpPkgVersion = mcpPkg.version;
+const mcpRegVersion = mcpServer.version;
+const mcpPkgd = mcpServer.packages?.[0]?.version;
+const extVersion = JSON.parse(read(join(ROOT, "browser/manifest.json"))).version;
+ok(`every surface's version agrees with package.json (${pkgVersion})`,
    confOk && cargoVersion === pkgVersion && lockVersion === pkgVersion
-     && vsceVersion === pkgVersion,
+     && vsceVersion === pkgVersion && mcpPkgVersion === pkgVersion
+     && mcpRegVersion === pkgVersion && mcpPkgd === pkgVersion
+     && extVersion === pkgVersion,
    `package.json ${pkgVersion}, Cargo.toml ${cargoVersion}, Cargo.lock ${lockVersion}, `
-   + `tauri.conf ${conf.version}, vscode ${vsceVersion}`);
+   + `tauri.conf ${conf.version}, vscode ${vsceVersion}, mcp ${mcpPkgVersion}, `
+   + `mcp/server.json ${mcpRegVersion}/${mcpPkgd}, browser ${extVersion}`);
+
+/* The MCP server's dependency on the CLI package is what keeps ONE copy of the
+   crypto. Vendoring src/ into mcp/ would be a second implementation with a
+   version skew nobody would see until two ends disagreed. */
+ok("the MCP server depends on the published CLI package rather than vendoring it",
+   mcpPkg.dependencies?.realtimeclipboard === `^${pkgVersion}`,
+   `dependencies.realtimeclipboard = ${mcpPkg.dependencies?.realtimeclipboard}`);
+
+/* stdout is the MCP transport. One stray console.log is a parse error at the
+   client, which presents as "the server is broken" with nothing saying why. */
+const mcpSrc = stripComments(read(join(ROOT, "mcp/server.mjs")));
+ok("nothing in mcp/ writes to stdout except the transport",
+   !/console\.(log|info|warn|error)/.test(mcpSrc),
+   "diagnostics go to process.stderr");
 
 /* ---------- 23b-23f. the desktop shell's native half is actually reachable ----
    Every one of these shipped wrong, silently, and each has the same shape: the

@@ -1,0 +1,16 @@
+:root { color-scheme: light dark; --bg: #1e1e1e; --fg: #d4d4d4; --blue: #007acc; --danger: #f48771; }
+body { margin: 0; width: 300px; font: 13px/1.5 system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+main { padding: 12px; display: grid; gap: 8px; }
+h1 { margin: 0; font-size: 20px; font-family: ui-monospace, monospace; letter-spacing: .06em; }
+p { margin: 0; }
+.row { display: flex; gap: 6px; }
+button, input { font: inherit; padding: 6px 8px; border-radius: 5px; border: 1px solid #3c3c3c;
+  background: #2d2d2d; color: inherit; flex: 1; cursor: pointer; }
+button:hover { border-color: var(--blue); }
+button.danger { border-color: var(--danger); color: var(--danger); }
+input { cursor: text; }
+pre { margin: 0; padding: 6px; background: #2d2d2d; border-radius: 5px; max-height: 90px;
+  overflow: auto; white-space: pre-wrap; word-break: break-all; font-size: 11px; }
+#risk { border: 1px solid var(--danger); border-radius: 5px; padding: 8px; display: grid; gap: 6px; }
+.fine { font-size: 11px; opacity: .65; }
+a { color: var(--blue); }

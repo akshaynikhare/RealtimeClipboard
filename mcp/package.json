@@ -1,0 +1,21 @@
+{
+  "name": "realtimeclipboard-mcp",
+  "version": "0.6.0",
+  "description": "An end-to-end encrypted clipboard as an MCP tool surface — move text between an agent and your other machines.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akshaynikhare/RealtimeClipboard.git",
+    "directory": "mcp"
+  },
+  "homepage": "https://realtimeclipboard.com",
+  "bugs": "https://github.com/akshaynikhare/RealtimeClipboard/issues",
+  "keywords": ["mcp", "modelcontextprotocol", "clipboard", "clipboard-sync", "end-to-end-encrypted"],
+  "type": "module",
+  "bin": { "realtimeclipboard-mcp": "server.mjs" },
+  "files": ["server.mjs", "server.json", "README.md"],
+  "engines": { "node": ">=22" },
+  "dependencies": {
+    "realtimeclipboard": "^0.6.0"
+  }
+}

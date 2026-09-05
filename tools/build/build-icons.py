@@ -361,6 +361,9 @@ def build():
     # so the extension's mark cannot drift from the app's.
     out[ROOT / "vscode/icon.png"] = png(app, 128)
 
+    # The browser extension's action icon, from the same master render.
+    out[ROOT / "browser/icon.png"] = png(app, 128)
+
     icons = ROOT / "desktop/src-tauri/icons"
     for name, size in DESKTOP.items():
         out[icons / name] = png(app, size)
