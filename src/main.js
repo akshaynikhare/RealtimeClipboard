@@ -823,15 +823,25 @@ async function wireFiles() {
 function openQrIfAsked(wanted) {
   if (!keys.qrRequested()) return;
   if (state.get().key) return sessionPanel.showQr();
+  // No key to wait for. Leaving a session emits KEY_CHANGED with an empty one,
+  // which would otherwise match an empty `wanted` and draw a code for no room.
+  if (!wanted) return;
 
-  // Armed for ONE room — the one the link named. Backing out of the PIN prompt
-  // leaves this waiting, and without the check the next session the user starts
-  // by hand would have its code put on screen unasked. Retrying the same locked
-  // link still opens it, because that is the room that was requested.
+  // Armed for ONE room — the one the link named — and it stays armed until that
+  // room opens. Both halves matter, and they fail in opposite directions.
+  //
+  // Without the key check, backing out of the PIN prompt left this waiting and
+  // the next session the user started by hand had ITS code put on screen
+  // unasked. Unsubscribing before the check fixed that and broke the other way:
+  // joining any other room first disarmed the listener, so coming back to the
+  // requested one never showed the code and only a reload would.
+  //
+  // So: ignore rooms that are not the one asked for, and stop only once it
+  // arrives. It can fire at most once, and only for the room named in the link.
   const off = on(EV.KEY_CHANGED, ({ key }) => {
-    if (!key) return;
+    if (key !== wanted) return;
     off();
-    if (key === wanted) sessionPanel.showQr();
+    sessionPanel.showQr();
   });
 }
 
