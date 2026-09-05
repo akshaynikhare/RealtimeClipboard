@@ -17,17 +17,19 @@ const { join } = require("node:path");
 const { tmpdir } = require("node:os");
 
 /**
- * A fixed path, not an environment variable.
+ * The launcher passes the report path in, rather than setting it in the
+ * environment: on macOS the only way to reach a window server from a
+ * non-interactive shell is `open -a`, which goes through LaunchServices, and
+ * LaunchServices does NOT carry the caller's environment. It does carry the
+ * command line, so host.mjs generates a one-line entry point holding a path
+ * unique to that run and points --extensionTestsPath at it.
  *
- * On macOS the only way to reach a window server from a non-interactive shell
- * is `open -a`, which launches through LaunchServices — and LaunchServices does
- * NOT pass the caller's environment through. An env var here meant the host
- * could run and still have nowhere to write, which looks exactly like the host
- * never running at all.
+ * The default is for pointing --extensionTestsPath straight at this file by
+ * hand. Two runs sharing it would fight over one report; the launcher does not.
  */
-const OUT = process.env.RTC_TEST_OUT || join(tmpdir(), "realtimeclipboard-editor-test.json");
+const DEFAULT_OUT = join(tmpdir(), "realtimeclipboard-editor-test.json");
 
-exports.run = async () => {
+exports.run = async (out = DEFAULT_OUT) => {
   const vscode = require("vscode");
   const results = [];
   const check = (name, ok, detail = "") => results.push({ name, ok, detail: String(detail) });
@@ -71,7 +73,7 @@ exports.run = async () => {
     typeof WebSocket === "function" && typeof crypto?.subtle === "object",
     `node ${process.versions.node}, WebSocket ${typeof WebSocket}`);
 
-  writeFileSync(OUT, JSON.stringify({
+  writeFileSync(out, JSON.stringify({
     vscode: vscode.version, node: process.versions.node, results,
   }, null, 2));
 
