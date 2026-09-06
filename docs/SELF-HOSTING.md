@@ -112,6 +112,8 @@ exactly the relay described above.
 | `REALTIMECLIPBOARD_ROOM_TTL` | `600` | Seconds a room survives after its last peer leaves. |
 | `REALTIMECLIPBOARD_REDIS_URL` | none | Shared backend. See §2. |
 | `REALTIMECLIPBOARD_MAX_FRAME_BYTES` | `32768` | Protocol limit. Changing it desynchronises you from stock clients. |
+| `REALTIMECLIPBOARD_TRUSTED_PROXIES` | `*` | Which immediate peers may set `CF-Connecting-IP` / `X-Forwarded-For`. **Set this if your relay is reachable directly** — see below. |
+| `REALTIMECLIPBOARD_REQUIRE_SHARED` | on | Whether an unreachable `REALTIMECLIPBOARD_REDIS_URL` is fatal at startup. Leave it on. |
 
 `backend/test_policy.py` is the gate for these. Run it after changing any of
 them — a flag that silently does nothing looks exactly like a flag that works,
@@ -125,6 +127,30 @@ deployment being an open relay for anyone who learns the hostname. It travels as
 query parameter because browsers cannot set headers on a WebSocket or an
 EventSource, so treat it as a deployment secret, not a credential: it will appear
 in proxy logs.
+
+Each device is given the token **once**, and then remembers it:
+
+```
+https://your-app.example/app?org=YOUR_TOKEN          # web, desktop — stored per device
+REALTIMECLIPBOARD_ORG=YOUR_TOKEN realtimeclipboard watch D75LV       # CLI, MCP server
+```
+
+It is deliberately **not** in share links. A link gets pasted into chats and read
+off screens; this is the value that admits a device to your deployment, and the
+two do not belong in the same string. A device that has not been given one is
+refused with `ORG_TOKEN_REQUIRED` rather than failing silently.
+
+**On `REALTIMECLIPBOARD_TRUSTED_PROXIES`.** The relay counts live connections per source
+address, and it learns that address from `CF-Connecting-IP` or `X-Forwarded-For`.
+Those headers are facts only when something you control sets them. If your relay
+can be reached directly — not only through your proxy — a client can put any
+address it likes in there: not merely to evade its own limit, but to fill
+*somebody else's* bucket and lock a real user out. Name your proxy's address, or
+put the relay somewhere only the proxy can reach.
+
+The default is `*` because the hosted deployment sits behind Cloudflare, where
+every connection genuinely arrives from an edge address and distrusting the
+header would put every user in one bucket.
 
 ---
 

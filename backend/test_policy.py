@@ -14,6 +14,7 @@ are read at import time, so they cannot be toggled inside one process.
 """
 
 import asyncio
+import contextlib
 import json
 import os
 import subprocess
@@ -27,6 +28,8 @@ PORT_TOKEN = 8021
 PORT_FILES = 8022
 PORT_CAPS = 8023
 PORT_IP = 8024
+PORT_SESSION = 8025
+PORT_CORS = 8026
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 passed = failed = 0
@@ -213,6 +216,67 @@ async def main() -> None:
     finally:
         rooms_relay.kill()
         ip_relay.kill()
+
+    # --- REALTIMECLIPBOARD_MAX_SESSION -------------------------------------------------
+    #
+    # Read at startup and then referenced by nothing at all, so an operator who
+    # capped session lifetime got no cap — the exact shape of failure this file
+    # exists to catch, and it had no test.
+    print("\nREALTIMECLIPBOARD_MAX_SESSION")
+    session_relay = spawn(PORT_SESSION, {"REALTIMECLIPBOARD_MAX_SESSION": "2"})
+    try:
+        host = f"ws://127.0.0.1:{PORT_SESSION}"
+        room = "s" * 32
+        ws = await websockets.connect(f"{host}/ws/{room}")
+        await asyncio.wait_for(ws.recv(), timeout=4)
+        check("a room opens normally under the cap", True)
+
+        # Past the cap, and the sweeper runs on its own without anyone joining.
+        await asyncio.sleep(4.0)
+        health = json.loads(urllib.request.urlopen(
+            f"http://127.0.0.1:{PORT_SESSION}/health", timeout=2).read())
+        check("the room is retired once it outlives REALTIMECLIPBOARD_MAX_SESSION",
+              health.get("rooms") == 0, json.dumps(health)[:110])
+        with contextlib.suppress(Exception):
+            await ws.close()
+
+        # And the retirement takes the retained clip with it: rejoining is a
+        # fresh room, not the old one with its history intact.
+        got = await first_frame(f"{host}/ws/{room}")
+        check("...and rejoining gets a fresh room, not the expired one",
+              got.get("t") == "welcome" and got.get("existing") == 0
+              and got.get("last") is None, json.dumps(got)[:110])
+    finally:
+        session_relay.kill()
+
+    # --- REALTIMECLIPBOARD_CORS_ORIGINS ------------------------------------------------
+    #
+    # The SSE and /pub routes wrote their own "*" header, which survived a
+    # pinned allowlist all the way to the browser: Starlette neither sets nor
+    # strips the header for a disallowed origin, so pinning did nothing on the
+    # transport that actually needs CORS.
+    print("\nREALTIMECLIPBOARD_CORS_ORIGINS")
+    cors_relay = spawn(PORT_CORS, {"REALTIMECLIPBOARD_CORS_ORIGINS": "https://allowed.example"})
+    try:
+        base = f"http://127.0.0.1:{PORT_CORS}"
+
+        def acao(url: str, origin: str) -> str | None:
+            req = urllib.request.Request(url, headers={"Origin": origin})
+            try:
+                with urllib.request.urlopen(req, timeout=3) as r:
+                    return r.headers.get("Access-Control-Allow-Origin")
+            except urllib.error.HTTPError as e:
+                return e.headers.get("Access-Control-Allow-Origin")
+
+        allowed = acao(f"{base}/pub/{'c' * 32}?sid=nope", "https://allowed.example")
+        check("an allowed origin is echoed back", allowed == "https://allowed.example",
+              str(allowed))
+
+        denied = acao(f"{base}/pub/{'c' * 32}?sid=nope", "https://evil.example")
+        check("a DENIED origin gets no wildcard to ride in on", denied != "*",
+              f"got {denied!r} — a hard-coded * here voids the allowlist")
+    finally:
+        cors_relay.kill()
 
     print("\n" + "=" * 56)
     print(f"POLICY: {passed}/{passed + failed} passed")

@@ -28,5 +28,14 @@ the server read my clipboard" is no.
 ```bash
 python test_relay.py ws://127.0.0.1:8000     # protocol
 python test_sse.py http://127.0.0.1:8000     # the SSE + POST fallback
+python test_policy.py                        # the REALTIMECLIPBOARD_* flags, each on its own relay
+python test_shared.py                        # cross-replica behaviour, against a fake Redis
 python test_idle.py ws://127.0.0.1:8000 5    # run against a DEPLOYED relay — nothing local reaps idle connections
 ```
+
+`test_policy.py` and `test_shared.py` exist for the same reason: **a flag that
+silently does nothing looks exactly like a flag that works**, and code that only
+runs with two replicas is code nothing else executes. `REALTIMECLIPBOARD_MAX_SESSION` was
+read at startup and referenced by nothing for its whole life; the roster and
+replay helpers in `shared.py` had no callers at all. Anything added to either
+category needs a check here, or it will be discovered the same way.

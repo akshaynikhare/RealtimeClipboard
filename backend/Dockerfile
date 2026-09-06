@@ -24,8 +24,16 @@ WORKDIR /app
 
 # Requirements first, so a change to main.py does not re-resolve the whole
 # dependency tree on every rebuild.
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+#
+# BOTH files. requirements-ha.txt is one pure-Python package, and leaving it out
+# is what made deploy/helm's replica guard a lie: the chart refuses replicas > 1
+# unless redis.enabled is set, and then deploys THIS image, which could not
+# import redis — so shared.py fell back to inert and every pod ran its own
+# private room table. The operator followed the instruction and got the exact
+# split-brain the instruction exists to prevent. An image that can be scaled is
+# worth more than the few hundred kilobytes.
+COPY requirements.txt requirements-ha.txt ./
+RUN pip install --no-cache-dir -r requirements.txt -r requirements-ha.txt
 
 # shared.py too: main.py imports it unconditionally at module scope, so an image
 # without it fails at import, not at the first cross-replica publish.

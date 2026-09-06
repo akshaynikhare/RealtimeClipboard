@@ -328,7 +328,7 @@ async def p2p(url):
     # The accept/deny handshake, completion marker and abort paths the client
     # actually emits (src/files/transfer.js). Any one of these coming back as
     # UNKNOWN_TYPE strands a transfer half-open.
-    control = ["file-accept", "file-deny", "file-done", "file-cancel", "file-error"]
+    control = ["file-accept", "file-deny", "file-done", "file-ok", "file-cancel", "file-error"]
     for t in control:
         await send(q, {"t": t, "id": "f1", "to": "peerP", "reason": "test"})
     fwd = [m.get("t") for m in await drain(p) if m.get("t") != "peers"]
