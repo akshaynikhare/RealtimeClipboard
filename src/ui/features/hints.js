@@ -14,14 +14,18 @@
 import { on, EV } from "../../core/bus.js";
 import * as state from "../../core/state.js";
 import { $, esc, setHTML } from "../primitives/dom.js";
+import { t } from "../../core/i18n.js";
 
 const FADE_AFTER_MS = 14000;
 
-const HINTS = [
-  "Copy anything on this machine — it reaches your other devices automatically.",
-  "Or paste here with Ctrl/Cmd+V to share it deliberately.",
-  "Drop a file or image on the right. Only the preview is sent until someone asks for it.",
-  "Share the key above to connect another device. Anyone holding it can read this session.",
+/* A function, not a stored array: it captures the four sentences at whatever
+   moment it is called, so calling it from init() rather than at module load
+   is what keeps a late-loading catalogue from being missed. */
+const HINTS = () => [
+  t("Copy anything on this machine — it reaches your other devices automatically."),
+  t("Or paste here with Ctrl/Cmd+V to share it deliberately."),
+  t("Drop a file or image on the right. Only the preview is sent until someone asks for it."),
+  t("Share the key above to connect another device. Anyone holding it can read this session."),
 ];
 
 let node = null;
@@ -35,7 +39,7 @@ export function init() {
   setHTML(host, `
     <div class="hints" id="hintBox">
       <ol>
-        ${HINTS.map(h => `<li>${esc(h)}</li>`).join("")}
+        ${HINTS().map(h => `<li>${esc(h)}</li>`).join("")}
       </ol>
     </div>`);
   node = $("hintBox");
@@ -54,9 +58,8 @@ export function init() {
     if (!node) return;
     const last = node.querySelector("li:last-child");
     if (last) {
-      last.textContent =
-        `Share the key ${state.get().key || ""} to connect another device. `
-        + "Anyone holding it can read this session.";
+      last.textContent = t("Share the key {key} to connect another device. Anyone holding it can read this session.",
+        { key: state.get().key || "" });
     }
   });
 

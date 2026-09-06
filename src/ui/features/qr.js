@@ -18,6 +18,7 @@
 
 import { emit, on, EV } from "../../core/bus.js";
 import { $, esc, on as bind, setHTML } from "../primitives/dom.js";
+import { t } from "../../core/i18n.js";
 
 /* ════════════════════════════════════════════════════════════ spec tables ══ */
 
@@ -358,7 +359,8 @@ export function encode(text) {
   const bytes = new TextEncoder().encode(String(text ?? ""));
   const version = chooseVersion(bytes.length);
   if (!version) {
-    throw new RangeError(`QR payload too long: ${bytes.length} bytes, max ${dataCodewords(MAX_VERSION) - 3}`);
+    throw new RangeError(t("QR payload too long: {bytes} bytes, max {max}",
+      { bytes: bytes.length, max: dataCodewords(MAX_VERSION) - 3 }));
   }
 
   const size = version * 4 + 17;
@@ -389,7 +391,7 @@ export function encode(text) {
  * Inline SVG for a symbol. Colours are class-driven so styles/qr.css owns them;
  * the quiet zone is 4 modules, as the spec requires — scanners need it.
  */
-export function toSvg(qr, { quiet = 4, label = "QR code" } = {}) {
+export function toSvg(qr, { quiet = 4, label = t("QR code") } = {}) {
   const dim = qr.size + quiet * 2;
   let path = "";
   for (let r = 0; r < qr.size; r++) {
@@ -449,11 +451,11 @@ function setShellInert(on) {
  * a locked session's code carries the key and NOT the PIN, and this module has
  * no business knowing which kind of session it is drawing.
  */
-const DEFAULT_NOTE = "The link contains the key. Anyone who scans it can read what you copy.";
+const DEFAULT_NOTE = () => t("The link contains the key. Anyone who scans it can read what you copy.");
 
-export function showQr(text, note = DEFAULT_NOTE) {
+export function showQr(text, note = DEFAULT_NOTE()) {
   const payload = String(text ?? "");
-  if (!payload) return emit(EV.TOAST, "Nothing to encode");
+  if (!payload) return emit(EV.TOAST, t("Nothing to encode"));
 
   close();
 
@@ -462,7 +464,7 @@ export function showQr(text, note = DEFAULT_NOTE) {
     // The label is short on purpose. It used to be the whole share link, which
     // a screen reader then read out character by character before the same URL
     // appeared again, verbatim, in .qrlink immediately below.
-    body = `<div class="qrframe">${toSvg(encode(payload), { label: "QR code for this session's share link" })}</div>`;
+    body = `<div class="qrframe">${toSvg(encode(payload), { label: t("QR code for this session's share link") })}</div>`;
   } catch (err) {
     // Too long for version 10 — say so rather than rendering a broken symbol.
     body = `<div class="qrfail">${esc(err.message)}</div>`;
@@ -485,9 +487,9 @@ export function showQr(text, note = DEFAULT_NOTE) {
     <div class="qrdlg" role="dialog" aria-modal="true" tabindex="-1"
          aria-labelledby="qrTitle" aria-describedby="qrNote">
       <div class="qrhead">
-        <span id="qrTitle">Scan to join this session</span>
+        <span id="qrTitle">${t("Scan to join this session")}</span>
         <span class="spacer"></span>
-        <button class="ibtn" type="button" id="qrClose" title="Close" aria-label="Close" data-close>
+        <button class="ibtn" type="button" id="qrClose" title="${t("Close")}" aria-label="${t("Close")}" data-close>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
         </button>
       </div>

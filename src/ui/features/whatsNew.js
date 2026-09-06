@@ -22,6 +22,7 @@ import { esc, lazyStyle } from "../primitives/dom.js";
 import { atRoot } from "../../core/paths.js";
 import { IS_DESKTOP } from "../../core/native.js";
 import { LINKS } from "../../core/config.js";
+import { t } from "../../core/i18n.js";
 
 const SEEN = "seenVersion";
 const SOURCE = atRoot("changelog.json");
@@ -57,11 +58,11 @@ export async function init() {
   emit("ui:banner", {
     key: "whatsnew",
     tone: "info",
-    title: `Updated to ${current}`,
+    title: t("Updated to {version}", { version: current }),
     body: count > 1
-      ? `${count} releases have landed since you were last here.`
-      : "A new version of RealtimeClipboard is running in this tab.",
-    action: { label: "See what's new", onClick: () => open() },
+      ? t("{n} releases have landed since you were last here.", { n: count })
+      : t("A new version of RealtimeClipboard is running in this tab."),
+    action: { label: t("See what's new"), onClick: () => open() },
     dismissAfter: 20000,
   });
 
@@ -85,13 +86,13 @@ export function open() {
     labelledBy: "wnTitle",
     html: `
       <div class="wnhead">
-        <h2 id="wnTitle">What's new</h2>
+        <h2 id="wnTitle">${t("What's new")}</h2>
         <button class="wnclose" type="button" data-modal-dismiss
-                aria-label="Close">✕</button>
+                aria-label="${t("Close")}">✕</button>
       </div>
       <div class="wnbody">${log.releases.map(release).join("")}</div>
       <div class="wnfoot">
-        <a href="${esc(FULL_LOG)}" target="_blank" rel="noopener noreferrer">Full history</a>
+        <a href="${esc(FULL_LOG)}" target="_blank" rel="noopener noreferrer">${t("Full history")}</a>
       </div>`,
   });
 }
@@ -100,14 +101,14 @@ function release(r) {
   return `
     <section class="wnrel">
       <h3>${esc(r.version)}${r.date ? ` <span class="wndate">${esc(r.date)}</span>` : ""}${
-        r.breaking ? ` <span class="wnbreak">breaking</span>` : ""}</h3>
+        r.breaking ? ` <span class="wnbreak">${t("breaking")}</span>` : ""}</h3>
       ${(r.groups ?? []).map(group).join("")}
     </section>`;
 }
 
 function group(g) {
   const more = g.more
-    ? `<li class="wnmore">…and ${g.more} more</li>`
+    ? `<li class="wnmore">${g.more === 1 ? t("…and 1 more") : t("…and {n} more", { n: g.more })}</li>`
     : "";
   return `
     <h4>${esc(g.title)}</h4>
