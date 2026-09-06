@@ -14,32 +14,28 @@
  * offered the original. What decides is the page's own `lang` attribute
  * against the browser's list, so there is nothing per-page to keep in sync.
  *
- * The path maps by prefix — /download/ has a twin at /pt/download/, and "/" has
- * one at /pt/. UNTRANSLATED lists the pages where that is not true, and every
- * one of them is deliberate: the legal pages state liability limits and name no
- * governing language, so a translation of one would be ambiguous about which
- * version binds. Offering a link that 404s is worse than offering nothing, so
- * anything added here without a translation belongs in that list too.
+ * What it may offer comes from the page's own <link rel="alternate" hreflang>
+ * tags, and nothing else. Those have to be right for search engines anyway, so
+ * reading them means there is no second list to keep in step and no way to
+ * offer a translation that does not exist — during a rollout, or on the legal
+ * pages, which stay English because they state liability limits and name no
+ * governing language.
  *
  * A file rather than an inline <script> so `script-src 'self'` holds with no
  * hash, and no innerHTML: Trusted Types rejects it outside
  * ui/primitives/dom.js. No import — it runs on 85 pages and must not pull core/
  * in to show a bar, the same reasoning redirect.js states.
  */
-
 /* Keyed by primary subtag, which is what a browser sends for every regional
-   variant: pt-BR and pt-PT both want the same page. `prefix` is what goes in
-   front of the path, so English — the original — is the empty string. */
+   variant: pt-BR and pt-PT both want the same page. The href comes from the
+   page's own hreflang, so there is no path to build here. */
 const LANGS = {
-  en: { prefix: "",    name: "English",    offer: "This page is also available in English" },
-  zh: { prefix: "/zh", name: "中文",        offer: "本页也有中文版" },
-  pt: { prefix: "/pt", name: "Português",  offer: "Esta página também está em português" },
-  es: { prefix: "/es", name: "Español",    offer: "Esta página también está en español" },
-  ru: { prefix: "/ru", name: "Русский",    offer: "Эта страница также доступна на русском" },
+  en: { name: "English",    offer: "This page is also available in English" },
+  zh: { name: "中文",        offer: "本页也有中文版" },
+  pt: { name: "Português",  offer: "Esta página também está em português" },
+  es: { name: "Español",    offer: "Esta página también está en español" },
+  ru: { name: "Русский",    offer: "Эта страница также доступна на русском" },
 };
-
-/* Paths with no translations. Matched against the language-stripped path. */
-const UNTRANSLATED = ["/privacy/", "/terms/"];
 
 const DISMISSED = "rtc.lang.dismissed";
 const primary = (tag) => String(tag || "").toLowerCase().split("-")[0];
@@ -68,19 +64,24 @@ function readerLang() {
   return null;
 }
 
-/** This page's path with any language prefix taken off. */
-function basePath() {
-  const path = location.pathname;
-  for (const { prefix } of Object.values(LANGS)) {
-    if (!prefix) continue;
-    if (path === prefix) return "/";
-    if (path.startsWith(`${prefix}/`)) return path.slice(prefix.length);
+/**
+ * The translations this page declares, as { code: href }.
+ *
+ * x-default is skipped: it duplicates the English URL and is a fallback
+ * instruction to a crawler, not a language a reader chose.
+ */
+function alternates() {
+  const found = {};
+  for (const el of document.querySelectorAll("link[rel=alternate][hreflang]")) {
+    const code = primary(el.getAttribute("hreflang"));
+    if (code === "x" || !LANGS[code]) continue;
+    found[code] = el.getAttribute("href");
   }
-  return path;
+  return found;
 }
 
-function show(code) {
-  const { name, offer, prefix } = LANGS[code];
+function show(code, href) {
+  const { name, offer } = LANGS[code];
 
   const bar = document.createElement("aside");
   bar.className = "langbar";
@@ -90,8 +91,7 @@ function show(code) {
   text.textContent = offer;
 
   const link = document.createElement("a");
-  // basePath() keeps its leading slash, so "/" under /pt becomes "/pt/".
-  link.href = `${prefix}${basePath()}` || "/";
+  link.href = href;
   link.textContent = name;
 
   const close = document.createElement("button");
@@ -105,6 +105,6 @@ function show(code) {
   document.body.prepend(bar);
 }
 
-const want = dismissed() || UNTRANSLATED.includes(basePath())
-  ? null : readerLang();
-if (want && want !== pageLang()) show(want);
+const want = dismissed() ? null : readerLang();
+const href = want ? alternates()[want] : null;
+if (want && href && want !== pageLang()) show(want, href);

@@ -67,34 +67,68 @@ export const ENGLISH_ONLY = ["privacy", "terms"];
 
 const jsonStr = (s) => JSON.stringify(String(s));
 
-function hreflang(slug) {
+/**
+ * Only the translations that actually exist.
+ *
+ * hreflang is reciprocal or it is ignored, and a cluster naming a page that
+ * 404s is worse than a smaller one — it is also what src/landing/lang.js reads
+ * to decide what it may offer, so a name here that is not on disk becomes a
+ * bar offering a dead link. `have` is the set of language codes holding a
+ * translation of this slug.
+ */
+function hreflang(slug, have) {
   const rows = [`<link rel="alternate" hreflang="en" href="${ORIGIN}/${slug}/">`];
-  for (const [code, { tag }] of Object.entries(LANGS)) {
-    rows.push(`<link rel="alternate" hreflang="${tag}" href="${ORIGIN}/${code}/${slug}/">`);
+  for (const code of have) {
+    rows.push(`<link rel="alternate" hreflang="${LANGS[code].tag}" href="${ORIGIN}/${code}/${slug}/">`);
   }
   rows.push(`<link rel="alternate" hreflang="x-default" href="${ORIGIN}/${slug}/">`);
   return rows.join("\n");
 }
 
-function languageRow(slug) {
+function languageRow(slug, have) {
   const cells = [`<a href="/${slug}/">English</a>`];
-  for (const [code, { name }] of Object.entries(LANGS)) {
-    cells.push(`<a href="/${code}/${slug}/">${name}</a>`);
-  }
+  for (const code of have) cells.push(`<a href="/${code}/${slug}/">${LANGS[code].name}</a>`);
   return cells.join(" · ");
 }
+
+/**
+ * A footer link to a page that may not be translated yet.
+ *
+ * Falls back to the English original rather than pointing at a directory that
+ * does not exist. That is what lets a translation ship before its neighbours
+ * do, instead of the whole set having to land in one commit.
+ */
+/**
+ * Rewrite in-body cross-links to translations that do not exist yet.
+ *
+ * Content is authored linking to /zh/live-clipboard/ — the page it will
+ * eventually be — and this downgrades it to /live-clipboard/ until that
+ * translation lands, then stops when it does. Without it, shipping one
+ * translated page means shipping its links to the siblings it mentions, and
+ * every one of those is a 404 for the reader who follows it.
+ */
+const resolveLinks = (html, lang, index) =>
+  html.replace(new RegExp(`href="/${lang}/([a-z0-9-]+(?:/[a-z0-9-]+)*)/"`, "g"),
+    (whole, slug) => index[slug]?.has(lang) ? whole : `href="/${slug}/"`);
+
+const navLink = (lang, slug, label, index) =>
+  index[slug]?.has(lang)
+    ? `<a href="/${lang}/${slug}/">${label}</a>`
+    : `<a href="/${slug}/">${label}</a>`;
 
 /**
  * @param {string} lang   language code, a key of LANGS
  * @param {string} slug   the English page's directory, e.g. "live-clipboard"
  * @param {object} c      translated content
  * @param {string} csp    the CSP meta tag, lifted from the English original
+ * @param {object} index   { slug: Set(langCodes) } — every translation on disk
  */
-export function page(lang, slug, c, csp) {
+export function page(lang, slug, c, csp, index = {}) {
   const { tag, og } = LANGS[lang];
   const ch = CHROME[lang];
   const url = `${ORIGIN}/${lang}/${slug}/`;
   const note = c.note ? `\n<!--\n${c.note.trim()}\n-->\n` : "";
+  const have = [...(index[slug] ?? [lang])].sort();
 
   return `<!doctype html>
 <html lang="${tag}">
@@ -114,7 +148,7 @@ ${note}
 <link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
 
-${hreflang(slug)}
+${hreflang(slug, have)}
 
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="RealtimeClipboard">
@@ -191,12 +225,12 @@ ${hreflang(slug)}
         <h1>${c.h1}</h1>
 
         <p class="lede">
-${c.lede}
+${resolveLinks(c.lede, lang, index)}
         </p>
       </header>
 
       <div class="article">
-${c.body}
+${resolveLinks(c.body, lang, index)}
       </div>
 
       <div class="faq" id="faq">
@@ -208,7 +242,7 @@ ${c.body}
             <span class="faqall-t">${ch.faqAll}</span>
           </button>
         </div>
-${c.faq}
+${resolveLinks(c.faq, lang, index)}
       </div>
 
     </div>
@@ -219,8 +253,8 @@ ${c.faq}
   <div class="in">
     <div class="footgrid">
       <p>${ch.oss} — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
-      <p>${languageRow(slug)}</p>
-      <p><a href="/${lang}/">${ch.home}</a> · <a href="/${lang}/download/">${ch.download}</a> · <a href="/${lang}/help/">${ch.help}</a> · <a href="/${lang}/about/">${ch.about}</a> · <a href="/privacy/">${ch.privacy}</a> · <a href="/terms/">${ch.terms}</a></p>
+      <p>${languageRow(slug, have)}</p>
+      <p><a href="/${lang}/">${ch.home}</a> · ${navLink(lang, "download", ch.download, index)} · ${navLink(lang, "help", ch.help, index)} · ${navLink(lang, "about", ch.about, index)} · <a href="/privacy/">${ch.privacy}</a> · <a href="/terms/">${ch.terms}</a></p>
       <p>${ch.foot}</p>
     </div>
   </div>

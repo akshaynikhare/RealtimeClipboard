@@ -16,7 +16,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { page, LANGS } from "./template.mjs";
+import { page, LANGS, ORIGIN } from "./template.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const CONTENT = join(ROOT, "tools/i18n/content");
@@ -31,6 +31,18 @@ function cspOf(slug) {
   return m[0];
 }
 
+/* Which languages hold a translation of each slug. Built first, because a page
+   must know about its siblings to emit a correct hreflang cluster. */
+const index = {};
+for (const lang of Object.keys(LANGS)) {
+  const dir = join(CONTENT, lang);
+  if (!existsSync(dir)) continue;
+  for (const f of readdirSync(dir).filter(f => f.endsWith(".json"))) {
+    const slug = f.replace(/\.json$/, "");
+    (index[slug] ??= new Set()).add(lang);
+  }
+}
+
 let written = 0, stale = [];
 
 for (const lang of Object.keys(LANGS)) {
@@ -39,7 +51,7 @@ for (const lang of Object.keys(LANGS)) {
   for (const file of readdirSync(dir).filter(f => f.endsWith(".json")).sort()) {
     const slug = file.replace(/\.json$/, "");
     const content = JSON.parse(readFileSync(join(dir, file), "utf8"));
-    const html = page(lang, slug, content, cspOf(slug));
+    const html = page(lang, slug, content, cspOf(slug), index);
     const out = join(ROOT, "src/pages", lang, slug, "index.html");
 
     if (CHECK) {
@@ -51,6 +63,43 @@ for (const lang of Object.keys(LANGS)) {
     writeFileSync(out, html);
     written++;
   }
+}
+
+/**
+ * The English originals carry the same cluster.
+ *
+ * hreflang is reciprocal or it is ignored outright, so a translation that names
+ * its English original while the original names nothing back buys nothing. The
+ * block is delimited so regenerating replaces it rather than stacking copies,
+ * and it is emitted only for slugs that actually have a translation.
+ */
+const MARK_OPEN = "<!-- i18n:hreflang -->";
+const MARK_CLOSE = "<!-- /i18n:hreflang -->";
+
+for (const [slug, langs] of Object.entries(index)) {
+  const file = join(ROOT, "src/pages", slug, "index.html");
+  if (!existsSync(file)) continue;
+  const src = readFileSync(file, "utf8");
+
+  const rows = [`<link rel="alternate" hreflang="en" href="${ORIGIN}/${slug}/">`];
+  for (const code of [...langs].sort()) {
+    rows.push(`<link rel="alternate" hreflang="${LANGS[code].tag}" href="${ORIGIN}/${code}/${slug}/">`);
+  }
+  rows.push(`<link rel="alternate" hreflang="x-default" href="${ORIGIN}/${slug}/">`);
+  const block = `${MARK_OPEN}\n${rows.join("\n")}\n${MARK_CLOSE}`;
+
+  let next;
+  if (src.includes(MARK_OPEN)) {
+    next = src.replace(new RegExp(`${MARK_OPEN}[\\s\\S]*?${MARK_CLOSE}`), block);
+  } else {
+    // After the canonical, which is the tag it belongs beside.
+    next = src.replace(/(<link rel="canonical"[^>]*>\n)/, `$1\n${block}\n`);
+    if (next === src) throw new Error(`no canonical to anchor hreflang in ${slug}`);
+  }
+  if (next === src) continue;
+
+  if (CHECK) stale.push(`${slug} (English hreflang)`);
+  else { writeFileSync(file, next); written++; }
 }
 
 if (CHECK) {
