@@ -47,6 +47,13 @@ import { INVISIBLE_SOURCE } from "../src/core/text.js";
  * itself and never goes through the bundler, so its depth in the tree is fixed.
  * npm always includes package.json in a tarball, so this resolves after install.
  */
+/**
+ * This process's id in the room. One per run, not one per clip: it is how peers
+ * recognise our own frames coming back, and how a locked room's verification
+ * answer is attributed.
+ */
+const ORIGIN = `cli-${Date.now().toString(36)}`;
+
 const VERSION = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
 ).version;
@@ -190,6 +197,7 @@ function connect(sess, opts, onClip) {
   return room.open({
     session: sess,
     name: `cli@${hostname()}`,
+    originId: ORIGIN,
     url: url ? normaliseRelay(url) : undefined,
     timeoutMs: opts.timeout || 0,
     onClip,
@@ -208,7 +216,7 @@ async function sendText(sess, text) {
   if (text.length > TEXT.MAX_CHARS) {
     throw new Error(`that is ${text.length} characters; the limit is ${TEXT.MAX_CHARS}`);
   }
-  await room.send(sess, text, `cli-${Date.now().toString(36)}`);
+  await room.send(sess, text, ORIGIN);
   // The frame is handed to a socket, not delivered. Give it a moment to flush
   // before the process exits out from under it.
   await new Promise(r => setTimeout(r, 250));

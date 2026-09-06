@@ -56,7 +56,7 @@ async function join(key, pin) {
     // NEXT one — and an agent is always a turn behind a human copying something.
     const state = { session: s, clips: [], unread: [], waiters: [] };
   await session.open({
-    session: s, name: NAME, url: RELAY, timeoutMs: 20_000,
+    session: s, name: NAME, url: RELAY, timeoutMs: 20_000, originId: ORIGIN,
     onClip: (text) => {
       const entry = describe(text);
       state.clips.unshift(entry);

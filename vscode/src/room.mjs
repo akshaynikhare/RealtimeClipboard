@@ -41,6 +41,11 @@ export async function open({ key, pin = null }) {
   await shared.open({
     session: s,
     name: peerName(),
+    originId: originId(),
+    // The one surface here with a rung. Off means nothing leaves, and a
+    // verification answer is a frame put on the wire for somebody else's
+    // benefit — exactly what that rung promises it will not do.
+    sharing: () => sharesSession(state.get().settings.syncMode),
     // The shared layer has already shut the connection: the room was abandoned
     // by the device that owned it, and staying in it means syncing with nobody
     // while the status bar says otherwise.

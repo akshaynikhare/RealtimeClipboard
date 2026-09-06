@@ -48,7 +48,10 @@ async function connect() {
 
 /** The ONE place a room is opened, so there is one onClip and one verdict. */
 async function openRoom(s) {
-  await room.open({ session: s, name: "Browser extension", timeoutMs: 15_000, onClip: received });
+  await room.open({
+    session: s, name: "Browser extension", timeoutMs: 15_000,
+    originId: ORIGIN, onClip: received,
+  });
 }
 
 /**

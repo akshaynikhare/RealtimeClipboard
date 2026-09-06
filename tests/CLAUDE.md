@@ -5,7 +5,7 @@
 
 | Folder | Prerequisite | Suites |
 |---|---|---|
-| `unit/` | nothing | `static-check` `relay-url` `lock` `session-boundaries` `verify` `files` `transfer` `clipsize` `syncmode` `pasteguard` `sharelink` `keyfloor` `adpolicy` `vscode-host` `browser-worker` `browser-popup` |
+| `unit/` | nothing | `static-check` `relay-url` `lock` `session-boundaries` `verify` `shared-session` `files` `transfer` `clipsize` `syncmode` `pasteguard` `sharelink` `keyfloor` `adpolicy` `vscode-host` `browser-worker` `browser-popup` |
 | `dom/` | jsdom | `dialog` `theme` `whatsnew` `tiles` `guide` `links` `editor` `capture` `offer` `bundle` (also needs a build) |
 | `live/` | a reachable relay | `e2e` `boot` `fallback` `cli` |
 
