@@ -33,6 +33,7 @@ const check = (name, ok, detail = "") => {
 console.log("\nBROWSER WORKER\n");
 
 const SRC = readFileSync(new URL("../../browser/src/worker.js", import.meta.url), "utf8");
+const POPUP = readFileSync(new URL("../../browser/src/popup.js", import.meta.url), "utf8");
 
 /* ---------------------------------------------------- one clip, one verdict */
 /* Structural, because the bug was structural: two open paths meant two onClip
@@ -77,9 +78,39 @@ check("memory is preferred while this worker is alive",
   /if \(latest\) return latest;/.test(SRC),
   "storage is for the restart after MV3 evicts the worker, not for now");
 check("...and storage is still consulted when memory is empty",
-  /chrome\.storage\.session\?\.get\(\["latest", "executable"\]\)/.test(SRC));
-check("...and it is still read as a pair",
+  /chrome\.storage\.session\?\.get\(\["latest", "executable", "latestId"\]\)/.test(SRC));
+check("...and it is still read as a set",
   /text: st\.latest, executable: Boolean\(st\.executable\)/.test(SRC));
+
+/* ------------------------------------------------- the reviewed clip wins ---
+   The popup shows one clip and the button confirms a moment later. Without an
+   id the worker wrote whatever was newest at click time, so a command arriving
+   between the two was written under an approval given to something else. */
+check("every clip is given an id",
+  /latest = \{ id: nextClipId\(\)/.test(SRC),
+  "the id is what ties a confirmation to the clip it was given for");
+check("the id is mirrored to storage with the clip",
+  /latestId: latest\.id/.test(SRC));
+check("confirming refuses when the id does not match what was shown",
+  /if \(!msg\.clipId \|\| clip\.id !== msg\.clipId\)/.test(SRC),
+  "a missing id is refused too — otherwise the check is optional");
+check("the popup sends the id it displayed",
+  /clipId: shownClipId/.test(POPUP));
+check("...and remembers it from the state it rendered",
+  /shownClipId = s\.clipId/.test(POPUP));
+
+/* --------------------------------------------------- a clip is per-room --- */
+check("changing room forgets the clip it was holding",
+  /function forgetLatest\(\)/.test(SRC) && (SRC.match(/forgetLatest\(\);/g) ?? []).length >= 2,
+  "creating AND joining — a clip from the previous room is not the current one");
+check("...in memory, in storage and on the badge",
+  /chrome\.storage\.session\?\.remove\(\["latest", "executable", "latestId"\]\)/.test(SRC));
+
+/* ------------------------------------------- an action result is visible --- */
+check("rendering does not paint over what an action just reported",
+  /async function render\(\{ status = null \} = \{\}\)/.test(POPUP)
+  && /say\(status$/m.test(POPUP),
+  "every failed join, send and paste was hidden behind \"Ready.\" a moment later");
 
 /* --------------------------------------------------------- locked links --- */
 const LOCKED = keys.shareLink("D75LVX9QRS", true);
