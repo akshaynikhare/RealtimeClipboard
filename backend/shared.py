@@ -158,6 +158,10 @@ class Backend:
         """
         Start relaying this room's remote frames into `deliver`.
 
+        `deliver` is awaited as `deliver(frame, to=...)`, where `to` names a
+        single peer for a targeted frame and is None for a room-wide one. It
+        must accept that keyword.
+
         One task per room rather than one shared task, so a room going quiet
         cleans itself up and a slow room cannot stall the others.
         """
@@ -182,7 +186,13 @@ class Backend:
                     # Our own publish, coming back around.
                     if envelope.get("o") == self.instance:
                         continue
-                    await deliver(envelope.get("f", ""), envelope.get("to"))
+                    # `to` by KEYWORD, deliberately. Passed positionally it
+                    # silently bound to whatever second parameter the callback
+                    # happened to have — main.py's was a defaulted room_hash, so
+                    # every remote frame was delivered to a room named after a
+                    # peer id and nothing raised. A keyword makes a callback
+                    # with the wrong shape fail loudly instead.
+                    await deliver(envelope.get("f", ""), to=envelope.get("to"))
             except asyncio.CancelledError:
                 raise
             except Exception as exc:                      # pragma: no cover

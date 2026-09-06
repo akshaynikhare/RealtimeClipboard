@@ -237,6 +237,29 @@ async def main() -> None:
             f"http://127.0.0.1:{PORT_SESSION}/health", timeout=2).read())
         check("the room is retired once it outlives REALTIMECLIPBOARD_MAX_SESSION",
               health.get("rooms") == 0, json.dumps(health)[:110])
+
+        # The peers have to actually GO. Connection had no close() for a while,
+        # and the AttributeError was swallowed — so the room vanished from the
+        # table while every socket carrying it stayed open, which is a cap on
+        # joining wearing the clothes of a cap on the session.
+        told = None
+        with contextlib.suppress(Exception):
+            while True:
+                frame = json.loads(await asyncio.wait_for(ws.recv(), timeout=3))
+                if frame.get("t") == "error":
+                    told = frame.get("code")
+                    break
+        check("...and the peers are told why", told == "SESSION_EXPIRED", str(told))
+
+        closed = False
+        try:
+            await asyncio.wait_for(ws.recv(), timeout=3)
+        except websockets.ConnectionClosed:
+            closed = True
+        except Exception:
+            pass
+        check("...and actually disconnected, not just forgotten", closed,
+              "a live transport on a room that no longer exists is worse than no cap")
         with contextlib.suppress(Exception):
             await ws.close()
 

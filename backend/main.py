@@ -460,6 +460,18 @@ class Connection:
     async def send_text(self, text: str) -> None:
         raise NotImplementedError
 
+    async def close(self, code: int = 1000) -> None:
+        """End the transport. Every subclass must actually end it.
+
+        _retire() calls this to evict a room that has hit its lifetime cap, and
+        for a while nothing implemented it: the AttributeError was swallowed by
+        the suppress() around the call, so the room was removed from `rooms`
+        while every socket carrying it stayed open. The peers went on talking to
+        a Room object nothing could reach — a cap on joining, dressed as a cap
+        on the session.
+        """
+        raise NotImplementedError
+
 
 class WsConnection(Connection):
     """A WebSocket peer.
@@ -485,6 +497,9 @@ class WsConnection(Connection):
     async def send_text(self, text: str) -> None:
         async with self.lock:
             await self.sock.send_text(text)
+
+    async def close(self, code: int = 1000) -> None:
+        await self.sock.close(code=code)
 
 
 class SseConnection(Connection):
@@ -518,6 +533,11 @@ class SseConnection(Connection):
             self.queue.put_nowait(None)
         except asyncio.QueueFull:
             pass
+
+    async def close(self, code: int = 1000) -> None:
+        # There is no socket to close: the stream ends when its generator does,
+        # and the sentinel is what tells it to.
+        self.end()
 
 
 @dataclass
@@ -1082,12 +1102,18 @@ async def _retire(room_hash: str, room: Room) -> None:
     SESSION, so leaving the current occupants connected until they happen to
     reconnect would make it a cap on joining instead.
     """
-    peers = list(room.peers)
-    for conn in peers:
+    for conn in list(room.peers):
+        # Told before it is cut off, so the client can say why rather than
+        # showing a bare disconnect.
         with contextlib.suppress(Exception):
             await _send(conn, {"t": "error", "code": "SESSION_EXPIRED"})
-        with contextlib.suppress(Exception):
+        try:
             await conn.close(1013)
+        except Exception as exc:
+            # NOT silent. A close that cannot happen leaves a live transport
+            # attached to a room that no longer exists, which is worse than the
+            # expiry never firing — and swallowing it is how that shipped.
+            print(f"[relay] could not close a {conn.kind} peer on expiry: {exc}")
         _drop_peer(room, conn)
     room.last = None
     rooms.pop(room_hash, None)
@@ -1207,10 +1233,15 @@ async def _join(room_hash: str, conn: Connection, country: str,
         room = rooms[room_hash] = Room(hash=room_hash)
         # Frames from the other replicas are fanned out locally and NOT
         # re-published, or the two processes would bounce each one forever.
-        await shared.subscribe(
-            room_hash,
-            lambda frame, rh=room_hash: _deliver_remote(rh, frame),
-        )
+        # A named function, not a lambda. The pump calls deliver(frame, to=...)
+        # and the lambda took `frame` plus a defaulted `rh` — so the second
+        # argument bound to `rh` and every remote frame was delivered to a room
+        # named after a peer id. Nothing raised; cross-replica delivery simply
+        # stopped, which is the exact silent failure shared.py exists to prevent.
+        async def deliver(frame: str, to: str | None = None, rh: str = room_hash) -> None:
+            await _deliver_remote(rh, frame, to)
+
+        await shared.subscribe(room_hash, deliver)
 
     if len(room.peers) >= MAX_PEERS:
         await _send(conn, {"t": "error", "code": "ROOM_FULL"})

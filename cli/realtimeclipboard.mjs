@@ -318,12 +318,16 @@ if (cmd === "both") {
   // them, because the first was still being encrypted — and the exit status said
   // it had worked. Bounded, so a wedged relay cannot hold the process open.
   rl.on("close", async () => {
-    await Promise.race([
-      sending,
-      new Promise(done => setTimeout(done, DRAIN_MS)),
+    // Which of the two won matters: the timeout winning means lines are still
+    // unsent, and exiting 0 there reports a success that did not happen — the
+    // same overstatement as the send path that ignored its own return value.
+    const drained = await Promise.race([
+      sending.then(() => true, () => true),
+      new Promise(done => setTimeout(() => done(false), DRAIN_MS)),
     ]);
     relay.close();
-    exit(failed ? 4 : 0);
+    if (!drained) note("  timed out with lines still unsent", opts);
+    exit(failed || !drained ? 4 : 0);
   });
 }
 

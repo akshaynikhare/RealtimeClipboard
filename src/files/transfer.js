@@ -510,6 +510,7 @@ async function streamOverDataChannel(t) {
   }
 
   if (t.done) return;
+  released(t);
   const confirmed = await awaitReceipt(t);
   if (t.done) return;                              // cancelled or failed meanwhile
   sent(t, confirmed);
@@ -608,6 +609,7 @@ async function streamOverRelay(t) {
   }
 
   signal({ t: FT.FILE_DONE, id: t.id, to: t.peer, digest: t.digest, total: p.total });
+  released(t);
   const confirmed = await awaitReceipt(t);
   if (t.done) return;                              // cancelled or failed meanwhile
   sent(t, confirmed);
@@ -625,11 +627,24 @@ function sent(t, confirmed = false) {
   const name = registry.get(t.id)?.name ?? "file";
   const via = t.path === PATH.P2P ? "a direct connection" : "the relay";
   finish(t);
-  registry.setState(t.id, registry.STATE.IDLE);
-  registry.setProgress(t.id, 0);
+  released(t);
   emit(EV.TOAST, confirmed
     ? `Sent ${name} over ${via}`
     : `Sent ${name} over ${via} — the other device did not confirm it`);
+}
+
+/**
+ * The bytes have left this machine: stop showing a transfer in progress.
+ *
+ * Separate from sent() because of what sits between them — a wait for the
+ * receiver's acknowledgement. A relay too old to forward `file-ok` rejects it,
+ * the acknowledgement never arrives, and the wait runs to its deadline; the
+ * transfer still succeeded and the tile must not sit at "sending" for ten
+ * seconds to find that out. Only the WORDING waits.
+ */
+function released(t) {
+  registry.setState(t.id, registry.STATE.IDLE);
+  registry.setProgress(t.id, 0);
 }
 
 /**

@@ -346,8 +346,7 @@ async function onFrame(msg) {
       if (msg.originId === originId) return;          // our own echo, ignore
       if (!aesKey) return;
       if (!sharesSession(state.get().settings.syncMode)) return;
-      const frame = await decryptFrame(msg);
-      if (gen !== sessionGen) return;
+      const frame = await openFrame(msg, gen);
       // A view update and nothing else: no history, no clipboard write, no
       // dedupe. The editor decides whether it is safe to render.
       if (frame && typeof frame.text === "string") {
@@ -370,20 +369,12 @@ async function onFrame(msg) {
 
       // x/y/name are sealed by encryptFrame(), so the relay sees only `t` and
       // `originId` — it never learns where a mouse is.
-      if (cursors.FRAMES.includes(msg.t)) {
-        const frame = await decryptFrame(msg);
-        if (gen !== sessionGen) return;
-        return cursors.onSignal(frame);
-      }
+      if (cursors.FRAMES.includes(msg.t)) return cursors.onSignal(await openFrame(msg, gen));
 
       // Driven off transfer.FRAMES, never a hand-written case list: an earlier
       // version enumerated six of eleven and silently dropped file-accept, which
       // carries the chunk plan, so every transfer stalled with no error.
-      if (filesFrames.has(msg.t)) {
-        const frame = await decryptFrame(msg);
-        if (gen !== sessionGen) return;
-        routeToFiles(frame);
-      }
+      if (filesFrames.has(msg.t)) routeToFiles(await openFrame(msg, gen));
   }
 }
 
@@ -396,6 +387,22 @@ let filesFrames = new Set();
  * missing one must not break leaving a session.
  */
 let filesTeardown = () => {};
+
+/**
+ * Open a signalling frame, and only let it count as proof of the PIN once the
+ * session it arrived in is still the one we are in.
+ *
+ * setVerified() used to sit inside decryptFrame(), which returns BEFORE the
+ * generation is re-checked — so a frame decrypted under a room being left could
+ * mark the room just arrived at as verified, which is the padlock in the status
+ * bar saying the PIN has been proved when nothing has proved it.
+ */
+async function openFrame(msg, gen) {
+  const frame = await decryptFrame(msg);
+  if (gen !== sessionGen) return null;
+  if (frame && msg.payload && msg.iv) state.setVerified();
+  return frame;
+}
 
 function routeToFiles(msg) {
   if (msg && filesSignalHandler) filesSignalHandler(msg);
@@ -485,9 +492,14 @@ async function sendStream({ text, caret }) {
   if (!aesKey || !relay.isOpen()) return;
   if (textBytes(text) > TEXT.STREAM_MAX_BYTES) return;
 
+  // Keystrokes are sealed asynchronously like everything else, so the room can
+  // change between typing one and putting it on the wire.
+  const gen = sessionGen;
   try {
-    relay.send(await encryptFrame(
-      proto.stream({ text, caret, name: device.name(), originId })));
+    const sealed = await encryptFrame(
+      proto.stream({ text, caret, name: device.name(), originId }));
+    if (gen !== sessionGen) return;
+    relay.send(sealed);
   } catch (err) {
     console.error("[realtimeclipboard] could not send a stream frame", err);
   }
@@ -520,9 +532,16 @@ const sealedSender = what => {
     // Same reason as sendClip: encryption reads the key when it RUNS, so a
     // frame issued in one room could be sealed with the next room's key.
     const gen = sessionGen;
+    // Re-read at every step, not once on the way in. A frame accepted while
+    // this device was sharing must not leave after it stopped: the queue can
+    // hold a file chunk for as long as the encryptions ahead of it take, which
+    // is exactly the window someone dropping to Off is trying to close.
+    const sharing = () => sharesSession(state.get().settings.syncMode);
     tail = tail
-      .then(() => (gen === sessionGen ? encryptFrame(frame) : null))
-      .then(sealed => { if (sealed && gen === sessionGen) relay.send(sealed); })
+      .then(() => (gen === sessionGen && sharing() ? encryptFrame(frame) : null))
+      .then(sealed => {
+        if (sealed && gen === sessionGen && sharing()) relay.send(sealed);
+      })
       .catch(err => console.error(`[realtimeclipboard] could not send ${what}`, err));
     return true;
   };
@@ -620,9 +639,13 @@ function wire() {
     // that a clip arriving behind this one can finish first — it queues and
     // returns without touching the clipboard at all. Resuming then would put the
     // OLDER clip in the editor, on top of the newer one already shown.
+    const gen = sessionGen;
     const seq = ++receivedSeq;
     const onClipboard = await capture.apply(text);
     if (seq !== receivedSeq) return;
+    // And the same write is slow enough for a whole room change to finish
+    // underneath it, which would land the old room's clip in the new editor.
+    if (gen !== sessionGen) return;
 
     // A clip identical to what is on screen has nothing to destroy, so it
     // never warrants an offer — "replaces what you have typed" with itself.

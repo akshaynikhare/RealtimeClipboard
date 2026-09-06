@@ -164,6 +164,43 @@ async def main():
     check("a departure clears the shared entry",
           await b.remote_peers("room1") == [], str(await b.remote_peers("room1")))
 
+    # ---- the callback contract ------------------------------------------
+    #
+    # This suite passed while cross-replica delivery was entirely broken,
+    # because it registered its OWN callbacks and never the shape main.py
+    # registers. The pump passed `to` positionally; main.py's callback took
+    # (frame, rh=room_hash), so `to` bound to `rh` and every remote frame was
+    # delivered to a room named after a peer id. Nothing raised.
+    print("\nThe shape main.py actually registers\n")
+    seen = []
+
+    async def like_main(frame, to=None, rh="room3"):
+        seen.append((rh, frame, to))
+
+    d = backend(store, bus, "replica-D")
+    await d.subscribe("room3", like_main)
+    await asyncio.sleep(0.05)
+    await a.publish("room3", '{"t":"file-req"}', to="peerT")
+    await asyncio.sleep(0.05)
+    check("the room a frame belongs to is not overwritten by the peer id",
+          seen == [("room3", '{"t":"file-req"}', "peerT")], str(seen))
+
+    # And the old shape must now FAIL rather than mis-bind, which is what
+    # passing `to` by keyword buys.
+    blew_up = []
+
+    async def old_lambda_shape(frame, rh="room4"):        # no `to` parameter
+        blew_up.append("delivered anyway")
+
+    e = backend(store, bus, "replica-E")
+    e._degrade = lambda what, exc: blew_up.append(f"{type(exc).__name__}")
+    await e.subscribe("room4", old_lambda_shape)
+    await asyncio.sleep(0.05)
+    await a.publish("room4", '{"t":"clip"}', to="peerU")
+    await asyncio.sleep(0.05)
+    check("a callback that cannot take `to` fails loudly rather than silently",
+          blew_up == ["TypeError"], str(blew_up))
+
     # ---- degradation and recovery ---------------------------------------
     print("\nRedis goes away, and comes back\n")
     a._redis.fail = True

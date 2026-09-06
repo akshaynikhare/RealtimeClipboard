@@ -66,6 +66,13 @@ export async function encryptFrame(frame) {
  * secret-last, so a session member could seal `from: someoneElsesPeerId` inside
  * a payload and displace the relay's stamp — the field file-retraction
  * ownership is checked against.
+ *
+ * It deliberately does NOT latch state.setVerified(). Opening a frame is proof
+ * the PIN is right for the room the frame came from, and this returns to a
+ * caller that has yet to check whether that is still the room we are in — so
+ * latching here could mark a session verified on the strength of a frame from
+ * the one before it. The caller does it, after that check. See openFrame() in
+ * main.js.
  */
 export async function decryptFrame(frame) {
   const { aesKey } = state.get();
@@ -79,7 +86,6 @@ export async function decryptFrame(frame) {
 
   try {
     const secret = JSON.parse(await cryptoBox.decrypt(aesKey, frame.payload, frame.iv));
-    state.setVerified();          // a sealed frame opened: the PIN is right
     const { payload, iv, ...routing } = frame;
 
     // A sealed payload has no business carrying routing: encryptFrame() splits

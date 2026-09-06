@@ -134,6 +134,19 @@ await (async () => {
      `got ${judged.from} — this is the field file retraction is authorised by`);
   ok("...and the rest of the payload still arrives", judged.nested === 1);
 
+  /* Opening a frame proves the PIN for the room the frame CAME FROM, and this
+     returns to a caller that has yet to check whether that is still the room we
+     are in. Latching here marked the room just arrived at as verified on the
+     strength of a frame from the one before it — a padlock claiming the PIN was
+     proved when nothing had proved it. main.js openFrame() does it, after the
+     generation check. */
+  state.setKey({ key: "D75LVX9QRS", roomHash, aesKey, locked: true });
+  ok("a locked session starts unverified", state.get().verified === false);
+  await frames.decryptFrame(sealed);
+  ok("opening a frame does not itself latch verification",
+     state.get().verified === false,
+     "the caller latches it, once it knows the session has not moved");
+
   state.clearKey();
   ok("with no session, nothing decrypts at all",
      await frames.decryptFrame(sealed) === null);
