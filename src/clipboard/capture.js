@@ -30,6 +30,7 @@ import * as state from "../core/state.js";
 import * as native from "../core/native.js";
 import * as guard from "./guard.js";
 import * as os from "./os.js";
+import { t } from "../core/i18n.js";
 
 let pollTimer = null;
 let started = false;
@@ -70,7 +71,7 @@ function wireDomTiers() {
     const image = os.imageFromPaste(e);
     if (image) {
       e.preventDefault();               // don't also drop a filename into the editor
-      captureImage(image, "Image pasted");
+      captureImage(image, t("Image pasted"));
       return;
     }
     if (editsText(e.target)) return;      // that control's input, not a share
@@ -227,7 +228,7 @@ export async function tryReadImage() {
   if (!bindsClipboard(state.get().settings.syncMode)) return;   // ...and again: hashing awaits
   if (key === lastImageKey) return;
   lastImageKey = key;
-  captureImage(blob, "Image captured");
+  captureImage(blob, t("Image captured"));
 }
 
 /** A new room is a new context: the same image is worth sharing into it. */
@@ -479,7 +480,7 @@ async function writePending() {
   // banner of a clip that arrived mid-write, and a flagged clip whose banner is
   // gone can never be confirmed or discarded.
   if (pending === null) emit(EV.PENDING_CLIP, { pending: false });
-  emit(EV.TOAST, "Pending clip written to your clipboard");
+  emit(EV.TOAST, t("Pending clip written to your clipboard"));
 }
 
 export const hasPending = () => pending !== null;

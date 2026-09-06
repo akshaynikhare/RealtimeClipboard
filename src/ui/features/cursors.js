@@ -28,6 +28,7 @@ import { on, EV } from "../../core/bus.js";
 import * as state from "../../core/state.js";
 import * as device from "../../core/device.js";
 import { $, esc, setHTML, lazyStyle } from "../primitives/dom.js";
+import { t } from "../../core/i18n.js";
 
 /** Frame types. "cursor" is ROOM_WIDE in the relay — broadcast, never targeted. */
 export const FT = { CURSOR: "cursor" };
@@ -370,7 +371,7 @@ function place(c, x, y) {
  */
 function setName(c, raw) {
   const clean = String(raw ?? "").replace(/\s+/g, " ").trim().slice(0, NAME_CHARS);
-  const name = clean || "Another device";
+  const name = clean || t("Another device");
   if (name === c.name) return;
   c.name = name;
   const slot = c.el.querySelector(".hb-cursor-name");

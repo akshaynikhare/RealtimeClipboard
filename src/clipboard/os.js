@@ -6,6 +6,7 @@
 import { emit, EV } from "../core/bus.js";
 import { IMAGES } from "../core/config.js";
 import * as native from "../core/native.js";
+import { t } from "../core/i18n.js";
 
 /**
  * Requires document focus in a browser. Needs no permission.
@@ -37,7 +38,7 @@ export async function write(text) {
     await navigator.clipboard.writeText(text);
     return true;
   } catch {
-    emit(EV.TOAST, "Window must be focused to write the clipboard");
+    emit(EV.TOAST, t("Window must be focused to write the clipboard"));
     return false;
   }
 }
