@@ -32,6 +32,11 @@ globalThis.sessionStorage = {
   removeItem: k => store.delete(k),
 };
 
+const readMain = async () => {
+  const { readFile } = await import("node:fs/promises");
+  return readFile(join(REPO, "src/main.js"), "utf8");
+};
+
 const state   = await load("src/core/state.js");
 const history = await load("src/core/history.js");
 const crypto_ = await load("src/core/crypto.js");
@@ -185,6 +190,48 @@ await (async () => {
      "which is why every device holding the old link stayed in");
   ok("the admission token moves with it", before.authToken !== after.authToken);
 })();
+
+/* ------------------------------- what leaving invalidates, structurally --- */
+/* main.js is the composition root and cannot be imported under node — it pulls
+   in the DOM. These read it, because the property under test is WHERE a rule
+   sits: every one of these bugs was a correct check placed in a caller instead
+   of in the one function every room change goes through. */
+console.log("\nLeaving a room invalidates everything that belonged to it\n");
+
+const MAIN = await readMain();
+
+ok("leaveRoom() invalidates the generation itself",
+   /function leaveRoom\(\)[^]*?sessionGen\+\+/.test(MAIN),
+   "several callers then sit on a modal — an eviction notice, a PIN prompt — "
+   + "and for that whole dialog the old generation still matched");
+ok("...and clears the key with it",
+   /function leaveRoom\(\)[^]*?state\.clearKey\(\)/.test(MAIN));
+ok("...and drops the clip waiting for a click",
+   /function leaveRoom\(\)[^]*?capture\.forgetSession\(\)/.test(MAIN));
+ok("eviction is a full teardown, not a subset of one",
+   /async function onEvicted\(\)[^]*?endSession\(\)/.test(MAIN),
+   "being removed from a session is an involuntary leave");
+ok("re-PIN reads the key BEFORE leaving, since leaving clears it",
+   /const key = state\.get\(\)\.key;\s*\n\s*const pin = await lockDialog\.ask\(\{ mode: "create" \}\)/
+     .test(MAIN),
+   "otherwise it reopens with an empty key");
+
+console.log("\nOff means nothing leaves — the control clips included\n");
+
+const beacon = MAIN.slice(MAIN.indexOf("async function sendBeacon"),
+                          MAIN.indexOf("async function sendEviction"));
+const evict = MAIN.slice(MAIN.indexOf("async function sendEviction"),
+                         MAIN.indexOf("async function onEvicted"));
+
+ok("the beacon is gated on the rung", /sharesSession/.test(beacon),
+   "it goes out as a clip and takes the room's one retained slot");
+ok("...and re-checked after its encryption", (beacon.match(/sharesSession/g) ?? []).length >= 2);
+ok("the eviction is gated on the rung too", /sharesSession/.test(evict));
+ok("...and reports whether the goodbye actually went",
+   /return true;/.test(evict) && /return false;/.test(evict),
+   "an Off device leaves the others connected to nothing; that must be said, not hidden");
+ok("...and the lock toast says so when it did not",
+   /not told/.test(MAIN), "silence here is the failure sendEviction() exists to prevent");
 
 /* ------------------------------------------ the deployment credential --- */
 console.log("\nThe org token is a credential, not a room name\n");

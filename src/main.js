@@ -233,16 +233,23 @@ async function retryLock() {
  * stays "unverified" rather than guessing — see ui/shell/banners.js.
  */
 async function sendBeacon() {
-  const { aesKey } = state.get();
+  const { aesKey, settings } = state.get();
   if (!aesKey || !relay.isOpen()) return;
-  // Deliberately NOT gated on the rung — the beacon is how a locked session
-  // proves itself, and an Off device still needs that. It IS gated on the
-  // session: the relay retains one clip per room, so a beacon sealed under the
-  // room being left would overwrite the new room's retained clip with a
-  // sentinel nobody there can read.
+  // Off means nothing leaves, and this is a clip in every sense that matters:
+  // it goes out as one and it takes the room's single retained slot. The
+  // exemption that used to be here argued the beacon is only proof of the room
+  // — true, but it is proof planted for OTHER devices to find, so an Off device
+  // is putting a frame on the wire for somebody else's benefit while its own UI
+  // says nothing leaves. A locked room whose first arrival is Off simply has no
+  // beacon until a sharing device gets there; the plant re-arms on its own.
+  if (!sharesSession(settings.syncMode)) return;
   const gen = sessionGen;
   const { payload, iv } = await cryptoBox.encrypt(aesKey, LOCK.BEACON);
+  // Re-read both: the relay keeps one clip per room, so a sentinel sealed for
+  // the room being left would overwrite the NEXT room's retained clip with
+  // something nobody there can decrypt.
   if (gen !== sessionGen) return;
+  if (!sharesSession(state.get().settings.syncMode)) return;
   relay.send(proto.clip({ payload, iv, originId: state.get().originId }));
 }
 
@@ -253,16 +260,21 @@ async function sendBeacon() {
  * with nothing on screen to say so. This sealed sentinel is the goodbye.
  */
 async function sendEviction() {
-  const { aesKey, originId } = state.get();
-  if (!aesKey || !relay.isOpen()) return;
-  // Same reason as the beacon: this is a retained clip, and the room it is a
-  // goodbye TO is the one it must land in.
+  const { aesKey, originId, settings } = state.get();
+  if (!aesKey || !relay.isOpen()) return false;
+  // Gated like the beacon, and for the same reason. The cost is real and is
+  // reported rather than hidden: an Off device that locks the session leaves
+  // the others connected to a room nobody is in, with nothing on screen to say
+  // so. The caller says it out loud instead of claiming they were told.
+  if (!sharesSession(settings.syncMode)) return false;
   const gen = sessionGen;
   const { payload, iv } = await cryptoBox.encrypt(aesKey, LOCK.EVICT);
-  if (gen !== sessionGen) return;
+  if (gen !== sessionGen) return false;
+  if (!sharesSession(state.get().settings.syncMode)) return false;
   relay.send(proto.clip({ payload, iv, originId }));
   // Awaited: the caller's next act is to close the socket this travels down.
   await new Promise(done => setTimeout(done, LOCK.EVICT_FLUSH_MS));
+  return true;
 }
 
 /**
@@ -279,15 +291,13 @@ async function onEvicted() {
   if (evicted) return;
   evicted = true;
 
-  leaveRoom();
-  storage.clearLock();
-  // Forget the room everywhere resolveKey() looks, or a reload bounces straight
-  // back off the retained goodbye into a loop that keeps announcing the same
-  // removal. Three places now, and missing one is indistinguishable from missing
-  // all three.
-  storage.forgetLastKey();
-  storage.clearSessionKey();
-  keys.clearUrl();
+  // The whole teardown, not a subset of it. Being removed from a session is an
+  // involuntary leave, and it used to keep the generation and the key alive
+  // across the modal below — so a clip decrypting as the eviction arrived could
+  // land after the user had been told they were out. endSession() also forgets
+  // the room everywhere resolveKey() looks, or a reload bounces straight back
+  // off the retained goodbye into a loop announcing the same removal.
+  endSession();
   state.setConnection("idle", "removed — the session was locked");
 
   const answer = await lockDialog.notice({
@@ -570,8 +580,17 @@ const sealedSender = what => {
  * key of a room we have left, or a roster that reports old peers as new.
  */
 function leaveRoom() {
+  // Anything still in flight belonged to the room being left: a decrypt that
+  // has not resolved, a clip half-sealed, a derivation mid-PBKDF2. Invalidated
+  // HERE rather than in each caller, because several of them then sit on a
+  // modal — an eviction notice, a PIN prompt, a collision — and for the length
+  // of that dialog the old generation still matched and the old key was still
+  // live, so a decrypt that started before the room changed could finish
+  // afterwards and put its clip in the editor and on the clipboard.
+  sessionGen++;
   relay.close();
   cryptoBox.clearCache();
+  state.clearKey();
   state.resetRoster();
 
   // A clip committed into the room being left is not a clip for the next one,
@@ -596,8 +615,7 @@ function leaveRoom() {
  * checks the generation after it to decide whether it is still wanted.
  */
 function endSession() {
-  sessionGen++;
-  leaveRoom();
+  leaveRoom();                    // invalidates the generation and clears the key
   pendingLock = null;
   storage.clearLock();
   storage.clearSessionKey();
@@ -605,7 +623,6 @@ function endSession() {
   keys.clearUrl();
   history.clear("session-left");
   filesTeardown({ full: true });
-  state.clearKey();
 }
 
 /* ---- wiring ---- */
@@ -741,16 +758,17 @@ function wire() {
   });
 
   on("session:rejoin", async ({ key, locked = false }) => {
-    leaveRoom();
-
-    // Cancelling leaves the app where it was rather than dropping the user into
-    // some other room.
+    // Asked BEFORE leaving, so cancelling genuinely leaves the app where it was.
+    // Leaving first meant the socket was already closed and the key already
+    // gone by the time the prompt appeared, so backing out dropped the user into
+    // no session at all rather than into the one they were in.
+    let pin = null;
     if (locked) {
-      const pin = await lockDialog.ask({ mode: "join", key });
+      pin = await lockDialog.ask({ mode: "join", key });
       if (!pin) return;
-      return openSession(keys.normalise(key), "join", { locked: true, pin });
     }
-    await openSession(keys.normalise(key), "join");
+    leaveRoom();
+    await openSession(keys.normalise(key), "join", pin ? { locked: true, pin } : {});
   });
 
   /**
@@ -808,14 +826,19 @@ function wire() {
     if (!pin) return;
 
     // Said out loud to the room being left, before the socket carrying it goes.
-    if (others) await sendEviction();
+    // It does not always get said: on the Off rung nothing leaves this device,
+    // the goodbye included, and the toast reports which of the two happened.
+    const saidGoodbye = others ? await sendEviction() : true;
 
     leaveRoom();
     const key = keys.generate(keys.nextLength());
-    emit(EV.TOAST, others
-      ? `Locked — ${others} device${others === 1 ? "" : "s"} disconnected. `
-        + "They need the new link and the PIN"
-      : "Locked — your other devices need the new link and the PIN");
+    emit(EV.TOAST, !others
+      ? "Locked — your other devices need the new link and the PIN"
+      : saidGoodbye
+        ? `Locked — ${others} device${others === 1 ? "" : "s"} disconnected. `
+          + "They need the new link and the PIN"
+        : `Locked — but this device is set to Off, so the other `
+          + `${others === 1 ? "device was" : "devices were"} not told`);
     await openSession(key, "create", { locked: true, pin });
   });
 
@@ -829,13 +852,16 @@ function wire() {
 
   on("session:repin", async () => {
     if (!state.get().locked) return;
+    // Read BEFORE leaving: leaveRoom() clears the key along with everything else
+    // belonging to the room, and this is the one path that reuses it.
+    const key = state.get().key;
     const pin = await lockDialog.ask({ mode: "create" });
-    if (!pin) return;
+    if (!pin || !key) return;
     leaveRoom();
     // Same key, new PIN — and therefore a different room. The link does not
     // change, which is the point: this is "the PIN got out", not "the link did".
     emit(EV.TOAST, "New PIN — devices using the old one are left behind");
-    await openSession(state.get().key, "create", { locked: true, pin });
+    await openSession(key, "create", { locked: true, pin });
   });
 
   /**
