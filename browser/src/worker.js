@@ -7,6 +7,10 @@
  * key is re-read from storage on every wake.
  */
 
+// FIRST, and it must stay first: core/native.js decides the surface at module
+// scope, so this has to be evaluated before anything under src/ is.
+import "./surface.js";
+
 import * as room from "../../cli/session.mjs";
 import * as keys from "../../src/core/keys.js";
 import * as guard from "../../src/clipboard/guard.js";
@@ -47,14 +51,39 @@ async function openRoom(s) {
   await room.open({ session: s, name: "Browser extension", timeoutMs: 15_000, onClip: received });
 }
 
+/**
+ * Every clip carries an id, because the popup reviews one clip and confirms it
+ * a moment later: without an id the confirmation wrote whatever had arrived by
+ * the time of the click, so a command sent between the two was written under an
+ * approval the user gave to something else entirely.
+ *
+ * Unique across a worker restart as well — MV3 evicts one after ~30s idle, and
+ * a counter alone would start again at the same numbers.
+ */
+let clipSeq = 0;
+const nextClipId = () => `${Date.now().toString(36)}-${(++clipSeq).toString(36)}`;
+
 function received(text) {
   const clip = guard.defuse(text);
-  latest = { text: clip, executable: guard.looksExecutable(clip) };
-  // Mirrored so a restarted worker — MV3 evicts one after ~30s idle — still
-  // knows what it was holding. The pair is written together or not at all.
-  chrome.storage.session?.set({ latest: latest.text, executable: latest.executable });
+  latest = { id: nextClipId(), text: clip, executable: guard.looksExecutable(clip) };
+  // Mirrored so a restarted worker still knows what it was holding. The three
+  // are written together or not at all.
+  chrome.storage.session?.set({
+    latest: latest.text, executable: latest.executable, latestId: latest.id,
+  });
   chrome.action.setBadgeText({ text: "1" });
   chrome.action.setBadgeBackgroundColor({ color: "#4ec9b0" });
+}
+
+/**
+ * A clip belongs to the room it arrived in. Creating or joining a session left
+ * it standing — in memory, in storage and on the badge — so paste-latest and
+ * the popup went on offering the previous room's clip as the current one.
+ */
+function forgetLatest() {
+  latest = null;
+  chrome.storage.session?.remove(["latest", "executable", "latestId"]);
+  chrome.action.setBadgeText({ text: "" });
 }
 
 /**
@@ -69,9 +98,9 @@ function received(text) {
  */
 async function currentClip() {
   if (latest) return latest;
-  const st = (await chrome.storage.session?.get(["latest", "executable"])) ?? {};
+  const st = (await chrome.storage.session?.get(["latest", "executable", "latestId"])) ?? {};
   return typeof st.latest === "string"
-    ? { text: st.latest, executable: Boolean(st.executable) }
+    ? { id: st.latestId ?? null, text: st.latest, executable: Boolean(st.executable) }
     : null;
 }
 
@@ -110,6 +139,7 @@ chrome.runtime.onMessage.addListener((msg, _s, respond) => {
         const key = keys.generate(keys.nextLength());
         await chrome.storage.local.set({ key, locked: false });
         session = null;
+        forgetLatest();
         await connect();
         respond({ ok: true, key, link: keys.shareLink(key, false) });
       } else if (msg.type === "join") {
@@ -121,6 +151,7 @@ chrome.runtime.onMessage.addListener((msg, _s, respond) => {
         if (parsed.locked && !msg.pin) throw new Error("that link is locked — enter its PIN");
         session = await room.derive(parsed.key, msg.pin || null);
         await chrome.storage.local.set({ key: parsed.key, locked: Boolean(msg.pin) });
+        forgetLatest();
         await openRoom(session);
         respond({ ok: true, key: parsed.key });
       } else if (msg.type === "send") { respond({ ok: true, message: await sendClipboard() }); }
@@ -130,6 +161,14 @@ chrome.runtime.onMessage.addListener((msg, _s, respond) => {
         // person clicked. Same rule as capture.confirmPending() everywhere else.
         const clip = await currentClip();
         if (!clip?.text) { respond({ ok: false, message: "Nothing to write." }); return; }
+        // The approval is for the clip the popup DISPLAYED, not for whatever is
+        // newest when the click lands. The web app keeps the two together by
+        // re-rendering its banner on every replacement; there is no such live
+        // view here, so the id is what ties the decision to its subject.
+        if (!msg.clipId || clip.id !== msg.clipId) {
+          respond({ ok: false, message: "A newer clip arrived — review it before writing." });
+          return;
+        }
         await clipboard.write(clip.text);
         chrome.action.setBadgeText({ text: "" });
         respond({ ok: true, message: "On your clipboard." });
@@ -137,7 +176,8 @@ chrome.runtime.onMessage.addListener((msg, _s, respond) => {
         const { key, locked } = await load();
         const clip = await currentClip();
         respond({ ok: true, key, locked, link: key ? keys.shareLink(key, locked) : null,
-                  latest: clip?.text ?? null, executable: Boolean(clip?.executable) });
+                  latest: clip?.text ?? null, executable: Boolean(clip?.executable),
+                  clipId: clip?.id ?? null });
       } else respond({ ok: false, message: "unknown request" });
     } catch (err) { respond({ ok: false, message: err.message }); }
   })();

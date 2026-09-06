@@ -41,8 +41,14 @@ export async function derive(rawKey, pin) {
   if (refused) throw new Error(`"${rawKey}" cannot be used — ${refused}`);
 
   if (pin) {
+    // Length, not truthiness. A one-character PIN passed this and derived a real
+    // locked room that the web PIN dialog then refused to join, because it
+    // enforces the floor on every mode — so these clients could create sessions
+    // no browser could open, with a secret worth a couple of bits.
     const clean = cryptoBox.normalisePin(pin);
-    if (!clean) throw new Error(`a PIN needs at least ${LOCK.MIN_PIN} characters`);
+    if (clean.length < LOCK.MIN_PIN) {
+      throw new Error(`a PIN needs at least ${LOCK.MIN_PIN} characters`);
+    }
     const d = await cryptoBox.deriveLocked(key, clean);
     return { key, roomHash: d.roomHash, aesKey: d.aesKey, auth: d.authToken, locked: true };
   }
@@ -58,10 +64,13 @@ export async function derive(rawKey, pin) {
  * failures, and a script handed one when it expected the other has been told a
  * lie about its own network.
  *
- *   onClip(text, frame)   decrypted, beacon already dropped
+ *   onClip(text, frame)   decrypted, control frames already dropped
+ *   onEvicted()           the room was abandoned; the connection is ALREADY shut
  *   onUndecryptable()     someone in the room on another secret — not an error
  */
-export function open({ session, name, url, onClip, onUndecryptable, onState, timeoutMs = 0 }) {
+export function open({
+  session, name, url, onClip, onEvicted, onUndecryptable, onState, timeoutMs = 0,
+}) {
   return new Promise((resolve, reject) => {
     let off = null;
     const timer = setTimeout(() => {
@@ -93,6 +102,21 @@ export function open({ session, name, url, onClip, onUndecryptable, onState, tim
       // "looks like a control character", which would also swallow a legitimate
       // clip that happened to start with NUL.
       if (text === LOCK.BEACON) return;
+
+      // The other control frame, and it was not filtered — it reached callers as
+      // clip text, so the sentinel was printed to stdout by the CLI, recorded as
+      // a clip for the model by the MCP server, and put on the extension's badge.
+      // Every one of them then stayed connected to a room the owner had left.
+      //
+      // Closed here rather than left to each surface: "stop talking to a room
+      // nobody is in" is not a per-client decision, and three of the four
+      // clients did not know they had to make it.
+      if (text === LOCK.EVICT) {
+        close();
+        onEvicted?.();
+        return;
+      }
+
       onClip?.(text, msg);
     });
 
@@ -113,7 +137,15 @@ export async function send(session, text, originId) {
     throw new Error(`that is ${textBytes(text)} bytes; the limit is ${TEXT.MAX_BYTES}`);
   }
   const { payload, iv } = await cryptoBox.encrypt(session.aesKey, text);
-  return relay.send(proto.clip({ payload, iv, originId }));
+  // The relay's boolean means "handed to an open socket", and every caller
+  // ignored it: the CLI exited 0 having sent nothing, the MCP server told the
+  // model the clip was delivered, and the extension said "Sent N characters."
+  // — all while disconnected. A throw is the one result none of them can drop
+  // by accident, and each already reports a thrown error.
+  if (!relay.send(proto.clip({ payload, iv, originId }))) {
+    throw new Error("not connected to the relay — nothing was sent");
+  }
+  return true;
 }
 
 /** Announce a room being abandoned, so nobody is left connected to nothing. */

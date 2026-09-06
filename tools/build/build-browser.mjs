@@ -78,6 +78,26 @@ for (const p of manifest.permissions) {
   if (!USES[p].test(code)) die(`manifest asks for "${p}" and nothing in the bundle uses it`);
 }
 
+/*
+ * The surface must be declared, and declared BEFORE core/native.js reads it.
+ *
+ * An MV3 service worker is undetectable: no Tauri globals, no `process`, but it
+ * does have a `location` — so native.js called it "web" and keys.shareLink()
+ * built every share link from `chrome-extension://<id>/src/worker.js`. The
+ * links opened nothing on any device, and there is no other source of a link
+ * here. Position IS meaningful in this bundle, unlike the VS Code one: esbuild
+ * emits ESM in dependency order, so the declaration appearing before the read
+ * is exactly the guarantee needed.
+ */
+const worker = readFileSync(join(PKG, "src/worker.js"), "utf8");
+const declaredAt = worker.indexOf('__REALTIMECLIPBOARD_SURFACE__="browser"');
+const readAt = worker.indexOf('typeof $.__REALTIMECLIPBOARD_SURFACE__');
+if (declaredAt === -1) die("the worker bundle never declares __REALTIMECLIPBOARD_SURFACE__");
+if (readAt !== -1 && declaredAt > readAt) {
+  die("the worker declares its surface AFTER core/native.js reads it — "
+    + 'browser/src/surface.js must stay the first import in worker.js');
+}
+
 // The CSP names the relay; config.js is the one place that decides it.
 const relay = readFileSync(join(ROOT, "src/core/config.js"), "utf8")
   .match(/DEFAULT_RELAY_URL\s*=\s*"([^"]+)"/)?.[1];

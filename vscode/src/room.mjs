@@ -12,7 +12,7 @@ import * as keys from "../../src/core/keys.js";
 import * as state from "../../src/core/state.js";
 import * as relay from "../../src/transport/relay.js";
 import { emit, EV } from "../../src/core/bus.js";
-import { LOCK } from "../../src/core/config.js";
+import { sharesSession } from "../../src/core/config.js";
 import * as shared from "../../cli/session.mjs";
 
 /** Sent in the clear and rebroadcast to the whole roster, so: no hostname, no
@@ -41,13 +41,20 @@ export async function open({ key, pin = null }) {
   await shared.open({
     session: s,
     name: peerName(),
+    // The shared layer has already shut the connection: the room was abandoned
+    // by the device that owned it, and staying in it means syncing with nobody
+    // while the status bar says otherwise.
+    onEvicted: () => {
+      session = null;
+      state.clearKey();
+      state.resetRoster();
+      state.setConnection("idle", "removed — the session was locked");
+      emit(EV.TOAST, "This session moved — the key or PIN was changed");
+    },
     onClip: (text) => {
-      // EVICT is a control frame too, but only surfaces with a UI care: the room
-      // moved, and anyone still in this one is in sync with nobody.
-      if (text === LOCK.EVICT) {
-        emit(EV.TOAST, "This session moved — the key or PIN was changed");
-        return;
-      }
+      // "Off: nothing arrives" holds here too, and the control frames never
+      // reach this far — cli/session.mjs drops them before the callback.
+      if (!sharesSession(state.get().settings.syncMode)) return;
       emit(EV.TEXT_RECEIVED, { text });
     },
   });

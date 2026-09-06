@@ -19,21 +19,48 @@
 
 import { POLL_OPTIONS, TEXT } from "../../src/core/config.js";
 
-/** A ring, not a single value: two writes can land inside one poll interval. */
+/**
+ * Two different questions, which one ring could not answer.
+ *
+ * `lastSeen` is what the previous tick read, and it stops one copy being
+ * reported twice. `writes` records what WE put on the clipboard, so our own
+ * writes are not read straight back and broadcast — a ring, not a single value,
+ * because two writes can land inside one poll interval, and time-bounded,
+ * because something written a minute ago is something the user may legitimately
+ * copy again.
+ *
+ * Remembering every OBSERVED value in the write ring conflated the two: copy A,
+ * then B, then A again, and the second A was discarded as "ours" until eight
+ * other values had pushed it out. Alternating between a few values suppressed
+ * every re-copy indefinitely.
+ */
 const MEMORY = 8;
+const WRITE_MEMORY_MS = 30_000;
 
 export function create(vscode, { pollMs = 1000, whenUnfocused = true } = {}) {
-  const recent = [];
+  const writes = new Map();          // text -> when we wrote it
+  let lastSeen = null;               // what the previous tick read
   let timer = null;
   let listener = null;
   let interval = pollMs;
   let unfocusedOk = whenUnfocused;
 
+  /** Record a write of OURS, so reading it back is not a capture. */
   const remember = (text) => {
-    recent.push(text);
-    while (recent.length > MEMORY) recent.shift();
+    const now = Date.now();
+    writes.set(text, now);
+    for (const [value, at] of writes) {
+      if (now - at > WRITE_MEMORY_MS) writes.delete(value);
+    }
+    while (writes.size > MEMORY) writes.delete(writes.keys().next().value);
   };
-  const isOwn = (text) => recent.includes(text);
+
+  const isOwn = (text) => {
+    const at = writes.get(text);
+    if (at === undefined) return false;
+    if (Date.now() - at > WRITE_MEMORY_MS) { writes.delete(text); return false; }
+    return true;
+  };
 
   async function tick() {
     if (!listener) return;
@@ -41,8 +68,10 @@ export function create(vscode, { pollMs = 1000, whenUnfocused = true } = {}) {
     let text;
     try { text = await vscode.env.clipboard.readText(); }
     catch { return; }                       // a locked screen can refuse; not an error
-    if (typeof text !== "string" || !text || isOwn(text)) return;
-    remember(text);                         // ours now, so the next tick is quiet
+    if (typeof text !== "string" || !text) return;
+    if (text === lastSeen) return;          // nothing has changed since last tick
+    lastSeen = text;
+    if (isOwn(text)) return;                // our own write, read back
     listener(text);
   }
 
@@ -63,6 +92,7 @@ export function create(vscode, { pollMs = 1000, whenUnfocused = true } = {}) {
       if (command !== "set_clipboard") return null;
       const text = String(args?.text ?? "");
       remember(text);                       // BEFORE the write. See the header.
+      lastSeen = text;
       await vscode.env.clipboard.writeText(text);
       return true;
     },
@@ -72,7 +102,10 @@ export function create(vscode, { pollMs = 1000, whenUnfocused = true } = {}) {
       listener = fn;
       // Seed from the current clipboard so whatever is already on it is not
       // mistaken for a fresh copy the moment the session opens.
-      try { remember(await vscode.env.clipboard.readText()); } catch { /* empty is fine */ }
+      // Seeded as SEEN, not as ours: it is the user's own clipboard, and
+      // recording it as one of our writes would suppress the next real copy of
+      // the same value.
+      try { lastSeen = await vscode.env.clipboard.readText(); } catch { /* empty is fine */ }
       restart();
       return () => { listener = null; restart(); };
     },
@@ -81,6 +114,7 @@ export function create(vscode, { pollMs = 1000, whenUnfocused = true } = {}) {
      *  Without the record, the next tick reads it back and broadcasts it. */
     async writeQuietly(text) {
       remember(text);
+      lastSeen = text;
       await vscode.env.clipboard.writeText(text);
     },
 

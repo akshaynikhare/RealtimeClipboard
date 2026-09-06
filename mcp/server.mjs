@@ -174,6 +174,19 @@ const HANDLERS = {
     const raw = String(key ?? "");
     const frag = raw.includes("#") ? raw.slice(raw.indexOf("#") + 1) : raw;
     const parsed = keys.parseFragment(frag);
+
+    // A locked link without its PIN opens NOTHING. The marker was parsed and
+    // then dropped, so the derivation ran unlocked and joined the open room of
+    // the same key — a real room, joinable by anyone holding the link, which
+    // every later send_clip then wrote into while reporting a joined session.
+    if (parsed.locked && !pin) {
+      throw new Error(
+        `Session ${parsed.key} is locked. Call join_session again with its PIN — `
+        + "the link alone does not open it, and joining without one would put "
+        + "clips in the unlocked room of the same name."
+      );
+    }
+
     const s = await join(parsed.key, pin ?? null);
     return `Joined session ${s.key}${s.locked ? " (locked)" : ""}.`;
   },

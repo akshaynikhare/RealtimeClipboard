@@ -9,21 +9,32 @@ const ask = (type, extra = {}) =>
 
 const say = (msg) => { $("status").textContent = msg; };
 
-async function render() {
+/** The clip currently on display, so confirming writes THAT one and no other. */
+let shownClipId = null;
+
+/**
+ * `status` is what an action just reported. It outranks the idle description:
+ * rendering the generic line over it is how every failed join, send and paste
+ * ended up hidden behind "Ready." a few milliseconds after being shown.
+ */
+async function render({ status = null } = {}) {
   const s = await ask("state");
   $("key").textContent = s.key ?? "no session";
-  say(s.key ? (s.locked ? "Locked with a PIN." : "Ready.") : "Start a session to begin.");
+  say(status
+    ?? (s.key ? (s.locked ? "Locked with a PIN." : "Ready.") : "Start a session to begin."));
   // A flagged clip is shown, never written. The button is the only path that
   // writes one — the hotkey deliberately refuses.
   $("risk").hidden = !s.executable;
   if (s.executable) $("riskText").textContent = s.latest ?? "";
+  shownClipId = s.clipId ?? null;
 }
 
 const run = (type) => async () => {
   say("…");
-  const r = await ask(type);
-  say(r.message ?? (r.ok ? "Done." : "No answer from the extension. Try again."));
-  render();
+  // Confirming names the clip it is confirming. Without it the worker wrote
+  // whatever was newest at click time, which need not be what was reviewed.
+  const r = await ask(type, type === "confirm-paste" ? { clipId: shownClipId } : {});
+  render({ status: r.message ?? (r.ok ? "Done." : "No answer from the extension. Try again.") });
 };
 
 $("bSend").onclick = run("send");
@@ -33,8 +44,7 @@ $("bConfirm").onclick = run("confirm-paste");
 $("bNew").onclick = async () => {
   say("Creating…");
   const r = await ask("new");
-  say(r.ok ? "Session started." : r.message);
-  render();
+  render({ status: r.ok ? "Session started." : r.message });
 };
 
 $("bLink").onclick = async () => {
@@ -68,9 +78,8 @@ $("joinForm").onsubmit = async (e) => {
   }
   say("Joining…");
   const r = await ask("join", { key, pin });
-  say(r.ok ? "Joined." : r.message);
   $("joinPin").value = "";              // never leave a PIN sitting in the DOM
-  render();
+  render({ status: r.ok ? "Joined." : r.message });
 };
 
 render();
