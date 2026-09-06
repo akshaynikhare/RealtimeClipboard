@@ -7,6 +7,23 @@ commit.
 Format follows [Keep a Changelog](https://keepachangelog.com); versions follow
 [Semantic Versioning](https://semver.org).
 
+## v1.0.0 — 2026-09-07
+
+### Added
+
+- i18n: finish the app translation and fix the download card (#76)
+- i18n: translate the app, keyed by the English string (#74)
+- i18n: translate all eighteen content pages into four languages (#73)
+- seo: add Chinese, Portuguese, Spanish and Russian landing pages (#70)
+- download: offer the editor extension, now that it exists (#67)
+- vscode: make the listing findable for what people search (#66)
+
+### Fixed
+
+- remediate the 2026-09-06 audit across all seven surfaces (#71)
+- seo: redirect /blog/, and let site-check see the links it missed (#72)
+- browser: Chromium only, and say how to actually install it (#68)
+
 ## v0.7.1 — 2026-09-05
 
 ### Fixed
