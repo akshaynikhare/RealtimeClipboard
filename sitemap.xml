@@ -186,6 +186,12 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+  <url>
+    <loc>https://realtimeclipboard.com/pt/live-clipboard/</loc>
+    <lastmod>2026-09-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <!-- Publisher identity. Low priority as search targets and load-bearing as
        trust signals: an ad network, a security researcher and a first-time
        visitor all look for these, and a site monetised without them reads as

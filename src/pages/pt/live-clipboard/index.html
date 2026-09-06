@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Portuguese is ~5% of browser languages and second only to Chinese among the
+  four. Unlike the Chinese page, the terminology table stays close to the
+  English: "ao vivo" and "em tempo real" are genuinely distinct terms a
+  Brazilian reader searches separately, so the comparison carries over intact.
+
+  Terminology follows /pt/: área de transferência, chave curta, retransmissor,
+  criptografia de ponta a ponta.
+-->
+
+<title>Área de transferência ao vivo, sincronizada em tempo real</title>
+<meta name="description" content="Uma área de transferência ao vivo sincroniza no instante em que você digita, sem botão de enviar. Como funciona e no que difere de um pastebin.">
+<link rel="canonical" href="https://realtimeclipboard.com/pt/live-clipboard/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/live-clipboard/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/live-clipboard/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/live-clipboard/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/live-clipboard/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="Área de transferência ao vivo, sincronizada em tempo real">
+<meta property="og:description" content="Sem botão de enviar. O texto aparece no outro dispositivo enquanto você digita, e o que você copia vai junto sozinho.">
+<meta property="og:url" content="https://realtimeclipboard.com/pt/live-clipboard/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/pt/live-clipboard/#article",
+      "headline": "Área de transferência ao vivo — sincronizada em tempo real pela internet",
+      "description": "Uma área de transferência ao vivo envia o que você digita enquanto você digita, sem botão de enviar. Como funciona a sincronização em tempo real e o que ela custa.",
+      "inLanguage": "pt-BR",
+      "datePublished": "2026-08-08",
+      "dateModified": "2026-09-06",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/pt/live-clipboard/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/pt/" },
+        { "@type": "ListItem", "position": 2, "name": "Área de transferência ao vivo" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/faq.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/pt/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir o aplicativo</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Trilha de navegação">
+        <a href="/pt/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Área de transferência ao vivo</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>Área de transferência ao vivo, sincronizada em tempo real</h1>
+
+        <p class="lede">
+          <b>Uma área de transferência ao vivo é uma área de transferência online
+          sem botão de enviar: o texto aparece no seu outro dispositivo enquanto
+          você o digita, e o que você copia vai junto sozinho.</b> Quase toda
+          ferramenta dessa categoria é uma caixa de texto e um botão. A diferença
+          parece cosmética e não é — é o que separa uma área de transferência que
+          você compartilha de um formulário que você envia.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2>O que torna uma área de transferência ao vivo</h2>
+
+        <p>
+          <b>O teste é se alguma coisa precisa ser apertada.</b> Uma
+          <a href="/pt/what-is-an-online-clipboard/">área de transferência online</a>
+          comum te dá uma caixa, você cola nela, aperta Enviar, e o outro
+          dispositivo mostra o resultado depois de recarregar ou consultar o
+          servidor. Cada passo é uma decisão, e a ida e volta é longa o bastante
+          para as pessoas perderem a confiança e voltarem a mandar mensagem para
+          si mesmas.
+        </p>
+
+        <p>Uma área de transferência ao vivo elimina os três passos:</p>
+
+        <ul>
+          <li><b>Nada para apertar.</b> As teclas seguem para o outro dispositivo enquanto você ainda está digitando.</li>
+          <li><b>Nada para recarregar.</b> A conexão fica aberta, então o texto que chega aparece sozinho.</li>
+          <li><b>Nada em que colar.</b> No nível mais alto, copiar em qualquer lugar da máquina já basta — o que está sendo observado é a própria área de transferência.</li>
+        </ul>
+
+        <p>
+          O último é o prêmio de verdade e também o que exige mais cuidado, porque
+          uma área de transferência que sincroniza tudo sincroniza também as senhas
+          que você copiou por motivos que nada têm a ver. Por isso ele é um degrau
+          que você escolhe subir, e não o único jeito de a coisa funcionar.
+        </p>
+
+        <h2>Ao vivo, em tempo real, online</h2>
+
+        <p>
+          <b>São três nomes para a mesma categoria, e a diferença está na ênfase,
+          não na natureza.</b> Quem procura por qualquer um deles quase sempre quer
+          a mesma coisa, mas as palavras carregam expectativas diferentes e vale
+          dizer qual é qual.
+        </p>
+
+        <div class="tablewrap" tabindex="0" role="region"
+             aria-label="Os termos ao vivo, em tempo real, online e na nuvem comparados — rola na horizontal">
+          <table class="cmp">
+            <caption class="sr-only">
+              Os termos área de transferência ao vivo, em tempo real, online e na
+              nuvem comparados pelo que a palavra enfatiza e pelo que quem procura
+              por ela costuma querer.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Termo</th>
+                <th scope="col">O que a palavra enfatiza</th>
+                <th scope="col">O que as pessoas costumam querer dizer</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="me">
+                <th scope="row">Ao vivo</th>
+                <td>Nenhum passo manual</td>
+                <td>Ela se atualiza sozinha, nos dois sentidos</td>
+              </tr>
+              <tr class="me">
+                <th scope="row">Em tempo real</th>
+                <td>Nenhum atraso</td>
+                <td>Chega agora, não na próxima atualização</td>
+              </tr>
+              <tr>
+                <th scope="row">Online</th>
+                <td>Pela internet</td>
+                <td>A categoria em geral, ao vivo ou não</td>
+              </tr>
+              <tr>
+                <th scope="row">Na nuvem</th>
+                <td>Presa a uma conta</td>
+                <td class="n">Normalmente a nativa — Windows, Apple</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          A última linha é a que confunde. <b>Área de transferência na nuvem</b> é
+          como a Microsoft e a Apple chamam o recurso embutido nos seus próprios
+          sistemas operacionais, e os dois estão presos a um único ecossistema e a
+          uma conta com sessão iniciada: o histórico do Windows sincroniza entre PCs
+          com Windows, a Área de Transferência Universal entre dispositivos Apple, e
+          nenhum dos dois atravessa para o outro lado. Se você está procurando
+          justamente porque seu celular e seu notebook são de fabricantes
+          diferentes, a área de transferência na nuvem nativa é exatamente a que não
+          pode ajudar.
+        </p>
+
+        <h2>Digitação em tempo real, não só colagem em tempo real</h2>
+
+        <p>
+          <b>São duas coisas distintas que uma área de transferência pode fazer em
+          tempo real, e a maioria das ferramentas que reivindica o termo só faz a
+          segunda.</b> Entregar rápido um trecho já pronto é a metade fácil. Mostrar
+          o texto enquanto ele ainda está sendo escrito é a metade que faz duas
+          telas parecerem uma só.
+        </p>
+
+        <p>Aqui a digitação é transmitida e os trechos são confirmados, e os dois caminhos são deliberadamente diferentes:</p>
+
+        <ol class="steps">
+          <li><b>Enquanto você digita</b>, o editor envia o texto cerca de dez vezes por segundo. O outro lado o desenha na tela e não faz mais nada com ele — nada de histórico, nada de escrever na área de transferência.</li>
+          <li><b>Quando você para</b>, após 800&nbsp;ms de silêncio, ao perder o foco, ou com <kbd>Ctrl</kbd>+<kbd>Enter</kbd>, ele é confirmado. É nesse momento que vira um trecho de verdade: entra no histórico e, no nível mais alto, vai para a área de transferência do sistema.</li>
+        </ol>
+
+        <p>
+          Acima de cerca de 4&nbsp;KB a transmissão para e o texto só sincroniza na
+          confirmação, o que na prática é invisível — texto desse tamanho é colado,
+          não digitado.
+        </p>
+
+        <p>
+          <b>Duas pessoas digitando ao mesmo tempo nunca são mescladas.</b> Mesclar
+          edições simultâneas exige um CRDT, e isto é uma área de transferência, não
+          um editor de documentos. O que chega enquanto você digita é descartado, e
+          um trecho que sobrescreveria trabalho não salvo é oferecido em vez de
+          aplicado. O que evita a colisão na prática é ver que ela vem: o cursor de
+          cada pessoa tinge a linha dela na margem, na cor dela, então você vê o
+          outro começar antes de os dois confirmarem.
+        </p>
+
+        <h2>Até onde a sincronização ao vivo chega</h2>
+
+        <p>
+          <b>O alcance da sincronização é um ajuste com três degraus, e cada um
+          acrescenta exatamente uma coisa ao de baixo.</b> Ele fica no cabeçalho do
+          aplicativo, e não num menu de configurações, porque é o controle que
+          decide o que sai da máquina.
+        </p>
+
+        <div class="tablewrap" tabindex="0" role="region"
+             aria-label="Os três degraus de sincronização — rola na horizontal">
+          <table class="cmp">
+            <caption class="sr-only">
+              Os três degraus de sincronização — Desligado, Aplicativo e Área de
+              transferência — pelo que sai do dispositivo e se a área de
+              transferência do sistema é tocada.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Degrau</th>
+                <th scope="col">O que acontece</th>
+                <th scope="col">Toca a área de transferência do sistema?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Desligado</th>
+                <td>Nada sai deste dispositivo, e nada chega</td>
+                <td class="n">Não</td>
+              </tr>
+              <tr>
+                <th scope="row">Aplicativo</th>
+                <td>O texto sincroniza dentro da janela, ao vivo, nos dois sentidos</td>
+                <td class="n">Não</td>
+              </tr>
+              <tr class="me">
+                <th scope="row">Área de transferência</th>
+                <td>O que você copia é compartilhado, e o que chega é copiado aqui</td>
+                <td class="y">Sim, nos dois sentidos</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          <b>Aplicativo</b> é o degrau em que a maioria das pessoas deveria ficar em
+          máquinas compartilhadas ou de trabalho: a sessão fica totalmente ao vivo,
+          mas a área de transferência do sistema não é lida nem escrita, então nada
+          que você copie por outro motivo sai daí. <b>Área de transferência</b> é o
+          degrau que faz copiar em qualquer lugar da máquina bastar, e é um único
+          ajuste governando os dois sentidos — um dispositivo que parou de enviar
+          não continua recebendo em silêncio.
+        </p>
+
+        <h2>O que a sincronização ao vivo custa de verdade</h2>
+
+        <p>
+          <b>Ler a área de transferência do sistema automaticamente é uma permissão
+          do navegador, não um recurso que um site simplesmente decide ter</b>, e
+          vale conhecer os limites antes de concluir que algo está quebrado.
+        </p>
+
+        <ul>
+          <li><b>A captura automática exige um navegador baseado em Chromium</b> — Chrome, Edge, Brave, Opera. Firefox e Safari enviam e recebem o texto que você cola, mas não conseguem ler a área de transferência por conta própria.</li>
+          <li><b>Nenhum navegador lê a área de transferência com a aba em segundo plano.</b> É uma regra de segurança do navegador e vale para toda ferramenta web dessa categoria, não só para esta. A janela precisa estar em foco.</li>
+          <li><b>Um trecho é limitado a 24.000 caracteres</b>, que é o tamanho do quadro do retransmissor depois da criptografia, e não um limite arbitrário.</li>
+          <li><b>Arquivos não são texto</b> e não são transmitidos assim — vão direto entre os navegadores por WebRTC, até 5&nbsp;MB cada.</li>
+        </ul>
+
+        <p>
+          Se a sincronização não chega de jeito nenhum, a causa quase sempre está
+          numa lista curta —
+          <a href="/help/clipboard-sync-not-working/">sincronização da área de
+          transferência não funciona</a> percorre essa lista em ordem.
+        </p>
+
+        <h2>Usando uma área de transferência ao vivo</h2>
+
+        <p>
+          O <a href="/pt/">RealtimeClipboard</a> é uma área de transferência ao vivo
+          do tipo de chave compartilhada, então não há nada para cadastrar:
+        </p>
+
+        <ol class="steps">
+          <li>Abra o aplicativo nos dois dispositivos.</li>
+          <li>Digite a mesma chave curta em cada um. É essa chave que os pareia — sem conta, sem e-mail, <a href="/online-clipboard-no-login/">sem login</a>.</li>
+          <li>Digite. Aparece na outra tela conforme você escreve.</li>
+        </ol>
+
+        <p>
+          A chave nunca sai do seu navegador: o que chega ao retransmissor é
+          <code>SHA-256(chave)</code>, usado só como endereço de sala, mais o texto
+          já criptografado com AES-GCM. O retransmissor encaminha o texto cifrado
+          entre as conexões e não grava nada em disco, então "ao vivo" aqui não
+          quer dizer "guardado num servidor para você buscar depois" — não existe
+          cópia alguma para buscar. Funciona
+          <a href="/clipboard-sync-different-networks/">entre redes diferentes</a>,
+          e não só no mesmo Wi-Fi, que é a linha onde ferramentas apenas locais como
+          o <a href="/snapdrop-alternative/">Snapdrop</a> param.
+        </p>
+
+        <p>
+          <a class="btn" href="/app.html">Abrir uma área de transferência ao vivo</a>
+        </p>
+      </div>
+
+      <div class="faq" id="faq">
+        <div class="faqhead">
+          <h2>Perguntas frequentes</h2>
+          <button type="button" class="faqall" id="faqAll"
+                  aria-expanded="false" aria-controls="faq" hidden>
+            <span class="faqall-i" aria-hidden="true"></span>
+            <span class="faqall-t">Expandir tudo</span>
+          </button>
+        </div>
+
+        <details class="qa">
+          <summary><h3>Existe área de transferência online que sincroniza sozinha em tempo real?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Existe. Os dois dispositivos abrem a mesma página e digitam a mesma
+            chave curta, e daí em diante o texto vai de um para o outro sem nada
+            para apertar — enquanto você ainda está digitando, não depois de enviar.
+            No nível mais alto a área de transferência do sistema também entra no
+            circuito, então copiar em qualquer lugar da máquina já basta.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Qual a diferença entre ao vivo e em tempo real?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Na prática, nenhuma — os dois nomeiam a mesma categoria. "Ao vivo"
+            enfatiza que nada precisa ser apertado para atualizar, e "em tempo real"
+            enfatiza que chega agora e não na próxima atualização. Os dois descrevem
+            uma área de transferência online que mantém a conexão aberta em vez de
+            fazer você enviar um formulário.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Em que uma área de transferência ao vivo difere de um pastebin?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Um pastebin guarda seu texto numa URL para você mandar o link a alguém,
+            e o texto fica lá até expirar. Uma área de transferência ao vivo não tem
+            URL nenhuma guardando seu conteúdo nem nada para compartilhar — ela põe
+            o texto no outro dispositivo conforme ele é escrito e não guarda nada
+            depois. Uma publica; a outra sincroniza.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Funciona entre Windows e Android?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Sim, e essa é a principal razão para usar uma em vez da opção nativa. A
+            sincronização do Windows só funciona entre PCs com Windows numa mesma
+            conta Microsoft, e a Área de Transferência Universal da Apple só entre
+            dispositivos Apple. Uma área de transferência no navegador trata todas as
+            plataformas igual, porque tudo de que precisa é um navegador.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Por que a sincronização para quando eu troco de aba?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Porque nenhum navegador deixa uma página ler a área de transferência do
+            sistema com a aba em segundo plano — é uma regra de segurança e vale para
+            toda ferramenta web do tipo. O texto que já está na sessão continua
+            chegando; o que pausa é a captura automática do que você copia em outro
+            lugar. Voltar o foco para a janela retoma.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>É seguro se ela vê tudo o que eu copio?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Depende inteiramente de o serviço conseguir ou não ler o que você copia.
+            Aqui o texto é criptografado no seu navegador antes de ser enviado, então
+            o retransmissor encaminha um texto cifrado que não consegue abrir e não
+            grava nada em disco. É também por isso que o alcance da sincronização é
+            um degrau que você escolhe: no nível Aplicativo a sessão continua
+            totalmente ao vivo, mas a área de transferência do sistema nunca é lida,
+            então senhas que você copia por outros motivos não entram nela.
+            </p>
+          </div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código aberto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/live-clipboard/">English</a> · <a href="/pt/live-clipboard/">Português</a> · <a href="/zh/live-clipboard/">中文</a></p>
+      <p><a href="/pt/">Início</a> · <a href="/download/">Download</a> · <a href="/help/">Ajuda</a> · <a href="/about/">Sobre</a> · <a href="/privacy/">Privacidade</a> · <a href="/terms/">Termos</a></p>
+      <p>As sessões ficam em memória e nunca são gravadas em disco. O conteúdo da área de transferência é criptografado no seu navegador antes de ser enviado.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
