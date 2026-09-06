@@ -256,6 +256,12 @@ for (const dir of ["src", "assets/icons"]) {
     // them would put marketing copy in the offline cache of an app that is
     // supposed to hold nothing.
     if (rel(f).startsWith("src/pages/")) continue;
+    // src/core/lang/ is one catalogue per language and a reader needs exactly
+    // one. Precaching the set would have every visitor download four languages
+    // to use none or one of them, which is the opposite of what the lazy import
+    // in core/i18n.js is for. The cost is that a translated app falling back
+    // offline renders English, which core/i18n.js already handles by design.
+    if (rel(f).startsWith("src/core/lang/")) continue;
     // assets/icons is precached whole; assets/social deliberately is not, which
     // is why the walk names the subdirectory rather than assets/.
     if (/\.(js|css)$/.test(f) || dir === "assets/icons") {

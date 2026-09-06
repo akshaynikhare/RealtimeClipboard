@@ -5,13 +5,17 @@ import { TRANSPORT } from "../../core/config.js";
 import * as state from "../../core/state.js";
 import * as menu from "../primitives/statusMenu.js";
 import { $, esc } from "../primitives/dom.js";
+import { t } from "../../core/i18n.js";
 
+/* Read through t() at call time, not built once at module load: the catalogue
+   arrives before the UI initialises, but a function keeps that an ordering
+   detail rather than a dependency. */
 const LABEL = {
-  idle:         "Not connected",
-  connecting:   "Connecting…",
-  connected:    "Connected",
-  reconnecting: "Reconnecting",
-  offline:      "Offline",
+  idle:         () => t("Not connected"),
+  connecting:   () => t("Connecting…"),
+  connected:    () => t("Connected"),
+  reconnecting: () => t("Reconnecting"),
+  offline:      () => t("Offline"),
 };
 const DOT = {
   idle: "", connecting: "wait", connected: "on", reconnecting: "wait", offline: "off",
@@ -19,7 +23,8 @@ const DOT = {
 
 export function init() {
   on(EV.CONN_STATE, ({ state, detail }) => {
-    $("sbConnText").textContent = detail ? `${LABEL[state]} · ${detail}` : LABEL[state];
+    const label = LABEL[state]?.() ?? state;
+    $("sbConnText").textContent = detail ? `${label} · ${detail}` : label;
     $("sbConn").querySelector(".dot").className = `dot ${DOT[state] || ""}`;
   });
 
@@ -40,7 +45,8 @@ export function init() {
     const sharing = s.settings.cursors !== false && others > 0;
     el.hidden = !sharing;
     el.textContent = sharing
-      ? `Pointer visible to ${others} device${others === 1 ? "" : "s"}`
+      ? (others === 1 ? t("Pointer visible to 1 device")
+                      : t("Pointer visible to {n} devices", { n: others }))
       : "";
   };
   on(EV.PEERS_CHANGED, showBroadcast);
@@ -48,7 +54,7 @@ export function init() {
   showBroadcast();
 
   on(EV.TRANSFER_PATH, ({ path }) => {
-    $("sbP2P").textContent = path === "relay" ? "Relay fallback" : "P2P connected";
+    $("sbP2P").textContent = path === "relay" ? t("Relay fallback") : t("P2P connected");
   });
 
   // The label must follow the actual path. Printing "P2P n%" for every tick
@@ -57,7 +63,9 @@ export function init() {
   // labelled as direct.
   on(EV.FILE_PROGRESS, ({ percent, path }) => {
     const label = path === "relay" ? "Relay" : "P2P";
-    $("sbP2P").textContent = percent >= 100 ? `${label} connected` : `${label} ${percent}%`;
+    $("sbP2P").textContent = percent >= 100
+      ? t("{path} connected", { path: label })
+      : `${label} ${percent}%`;
   });
 }
 
@@ -72,10 +80,13 @@ export function init() {
  * emits, and main.js calls relay.setTransport().
  */
 
+/* Names and hints are read at draw time so the menu is correct whichever
+   language loaded, and so a catalogue arriving late cannot leave a stale label
+   baked into a module-level array. */
 const OPTIONS = [
-  { value: "",              name: "Automatic",     hint: "WebSocket, with HTTP as the fallback" },
-  { value: TRANSPORT.WS,    name: "WebSocket",     hint: "Fastest. Blocked on some corporate networks" },
-  { value: TRANSPORT.SSE,   name: "HTTP fallback", hint: "Server-sent events plus POST. Slower, gets through more" },
+  { value: "",              name: () => t("Automatic"),     hint: () => t("WebSocket, with HTTP as the fallback") },
+  { value: TRANSPORT.WS,    name: () => t("WebSocket"),     hint: () => t("Fastest. Blocked on some corporate networks") },
+  { value: TRANSPORT.SSE,   name: () => t("HTTP fallback"), hint: () => t("Server-sent events plus POST. Slower, gets through more") },
 ];
 
 let picked = "";          // what the user chose; "" is automatic
@@ -83,7 +94,7 @@ let live = null;          // what is actually carrying frames right now
 
 function initTransportPicker() {
   menu.attach("sbConn", {
-    label: "Connection transport",
+    label: t("Connection transport"),
     render: drawMenu,
     onEvent: (e, close) => {
       const option = e.target.closest?.("[data-transport]");
@@ -113,8 +124,8 @@ function drawMenu() {
                aria-checked="${chosen}" data-mi="${esc(o.value || "auto")}"
                data-transport="${esc(o.value)}">
       <span class="tick">${chosen ? "✓" : ""}</span>
-      <span class="tx"><b>${esc(o.name)}</b><span>${esc(o.hint)}</span></span>
-      ${inUse ? `<span class="tnow">in use</span>` : ""}
+      <span class="tx"><b>${esc(o.name())}</b><span>${esc(o.hint())}</span></span>
+      ${inUse ? `<span class="tnow">${esc(t("in use"))}</span>` : ""}
     </button>`;
   }).join("");
 }

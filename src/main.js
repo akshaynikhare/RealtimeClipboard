@@ -11,6 +11,7 @@ import {
 } from "./core/config.js";
 import { emit, on, EV } from "./core/bus.js";
 import * as state from "./core/state.js";
+import * as i18n from "./core/i18n.js";
 import * as keys from "./core/keys.js";
 import * as storage from "./core/storage.js";
 import * as cryptoBox from "./core/crypto.js";
@@ -1081,6 +1082,16 @@ async function boot() {
   // init() this waits behind. Under the default — System — it stamps nothing and
   // the first paint was already right.
   safeInit("theme", theme.init);
+
+  // The same argument as the palette, and the same position for the same
+  // reason: every label below is built once, so the catalogue has to be in hand
+  // before any of them render or the first paint is English and has to be
+  // redrawn. Awaited, which the rest of boot is careful not to do — the cost is
+  // one small same-origin module, it is service-worker cached after the first
+  // visit, and an English reader never pays it at all because pick() returns
+  // "en" and load() resolves without a fetch. It cannot fail the session:
+  // load() swallows its own errors and leaves English in place.
+  await i18n.load(i18n.pick(state.get().settings.language, navigator.languages ?? []));
 
   // Core UI first: these own the surfaces that report connection state, so a
   // failure here is worth knowing about loudly rather than swallowing.
