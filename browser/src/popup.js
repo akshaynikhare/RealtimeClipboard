@@ -4,8 +4,23 @@
  */
 
 const $ = (id) => document.getElementById(id);
-const ask = (type, extra = {}) =>
-  chrome.runtime.sendMessage({ target: "worker", type, ...extra });
+
+/**
+ * The worker not answering is a real state, not an impossible one: it is
+ * evicted after ~30s idle, and a wake can fail or the context be invalidated.
+ * `sendMessage` then resolves undefined or rejects, and every caller below
+ * reads a field off the reply — so without this the popup dies on a TypeError
+ * and the status is left on "…", the one value that tells the reader nothing.
+ */
+const NO_ANSWER = "No answer from the extension. Try again.";
+const ask = async (type, extra = {}) => {
+  try {
+    return await chrome.runtime.sendMessage({ target: "worker", type, ...extra })
+      ?? { noAnswer: true };
+  } catch {
+    return { noAnswer: true };
+  }
+};
 
 const say = (msg) => { $("status").textContent = msg; };
 
@@ -19,6 +34,9 @@ let shownClipId = null;
  */
 async function render({ status = null } = {}) {
   const s = await ask("state");
+  // Nothing is known about the session, so claim none. The idle line would
+  // otherwise report "Start a session to begin." over a session that exists.
+  if (s.noAnswer) return say(status ?? NO_ANSWER);
   $("key").textContent = s.key ?? "no session";
   say(status
     ?? (s.key ? (s.locked ? "Locked with a PIN." : "Ready.") : "Start a session to begin."));
@@ -34,7 +52,7 @@ const run = (type) => async () => {
   // Confirming names the clip it is confirming. Without it the worker wrote
   // whatever was newest at click time, which need not be what was reviewed.
   const r = await ask(type, type === "confirm-paste" ? { clipId: shownClipId } : {});
-  render({ status: r.message ?? (r.ok ? "Done." : "No answer from the extension. Try again.") });
+  render({ status: r.message ?? (r.ok ? "Done." : NO_ANSWER) });
 };
 
 $("bSend").onclick = run("send");
@@ -44,11 +62,12 @@ $("bConfirm").onclick = run("confirm-paste");
 $("bNew").onclick = async () => {
   say("Creating…");
   const r = await ask("new");
-  render({ status: r.ok ? "Session started." : r.message });
+  render({ status: r.ok ? "Session started." : r.message ?? NO_ANSWER });
 };
 
 $("bLink").onclick = async () => {
   const s = await ask("state");
+  if (s.noAnswer) return say(NO_ANSWER);
   if (!s.link) return say("No session yet.");
   await navigator.clipboard.writeText(s.link);
   say("Share link copied.");
@@ -79,7 +98,7 @@ $("joinForm").onsubmit = async (e) => {
   say("Joining…");
   const r = await ask("join", { key, pin });
   $("joinPin").value = "";              // never leave a PIN sitting in the DOM
-  render({ status: r.ok ? "Joined." : r.message });
+  render({ status: r.ok ? "Joined." : r.message ?? NO_ANSWER });
 };
 
 render();
