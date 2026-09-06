@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Every id on this page is a deep-link target used from /help/install/ and from
+  the other platform guides (#install, #pkg, #check, #wayland, #first, #trouble,
+  #remove). They are byte-identical to the English original and must stay that
+  way; #wayland in particular is linked from the hub.
+
+  Every command inside pre and code is byte-identical to the English: those
+  blocks carry a copy button, and a translated command is a command that fails
+  when pasted. Only the standalone comment lines in the install block are
+  translated, and the trailing comment on the apt remove line is left alone
+  because that line is itself the command. The status-bar strings sit in code for
+  the same reason, and because the desktop app is not localised.
+
+  The Wayland table is the point of the page and its four rows keep the English
+  order and the y/n classes that colour them.
+
+  "Seletor" for the App/Clipboard switch, because "chave" is already the short
+  key on every page of this site.
+
+  Terminology follows /pt/: área de transferência, chave curta, retransmissor,
+  extensão, instalação, desinstalar.
+-->
+
+<title>Instalar o RealtimeClipboard no Linux</title>
+<meta name="description" content="Instale no Debian, no Ubuntu, no Fedora e no Arch, e a ressalva do Wayland dita sem rodeios: X11 sim, KDE e wlroots sim, GNOME não.">
+<link rel="canonical" href="https://realtimeclipboard.com/pt/help/install/linux/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/install/linux/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/install/linux/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/install/linux/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/install/linux/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/install/linux/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/install/linux/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="Instalar o RealtimeClipboard no Linux">
+<meta property="og:description" content=".deb, .rpm e AppImage, o piso do webkit2gtk e exatamente quais compositores permitem a captura da área de transferência em segundo plano.">
+<meta property="og:url" content="https://realtimeclipboard.com/pt/help/install/linux/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/pt/help/install/linux/#article",
+      "headline": "Instalar o RealtimeClipboard no Linux — .deb, .rpm e AppImage",
+      "description": "Como instalar no Debian, no Ubuntu, no Fedora e no Arch, e a ressalva do Wayland dita sem rodeios: X11 sim, KDE e wlroots sim, GNOME não.",
+      "inLanguage": "pt-BR",
+      "datePublished": "",
+      "dateModified": "",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/pt/help/install/linux/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/pt/" },
+        { "@type": "ListItem", "position": 2, "name": "Instalação no Linux" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/copy.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/pt/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir o aplicativo</a>
+    </div>
+  </div>
+</header>
+
+<svg class="icons" aria-hidden="true">
+  <symbol id="i-linux" viewBox="0 0 24 24"><path d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333l.003.003c.391.778 1.113 1.132 1.884 1.071.771-.06 1.592-.536 2.257-1.306.631-.765 1.683-1.084 2.378-1.503.348-.199.629-.469.649-.853.023-.4-.2-.811-.714-1.376v-.097l-.003-.003c-.17-.2-.25-.535-.338-.926-.085-.401-.182-.786-.492-1.046h-.003c-.059-.054-.123-.067-.188-.135a.357.357 0 00-.19-.064c.431-1.278.264-2.55-.173-3.694-.533-1.41-1.465-2.638-2.175-3.483-.796-1.005-1.576-1.957-1.56-3.368.026-2.152.236-6.133-3.544-6.139zm.529 3.405h.013c.213 0 .396.062.584.198.19.135.33.332.438.533.105.259.158.459.166.724 0-.02.006-.04.006-.06v.105a.086.086 0 01-.004-.021l-.004-.024a1.807 1.807 0 01-.15.706.953.953 0 01-.213.335.71.71 0 00-.088-.042c-.104-.045-.198-.064-.284-.133a1.312 1.312 0 00-.22-.066c.05-.06.146-.133.183-.198.053-.128.082-.264.088-.402v-.02a1.21 1.21 0 00-.061-.4c-.045-.134-.101-.2-.183-.333-.084-.066-.167-.132-.267-.132h-.016c-.093 0-.176.03-.262.132a.8.8 0 00-.205.334 1.18 1.18 0 00-.09.4v.019c.002.089.008.179.02.267-.193-.067-.438-.135-.607-.202a1.635 1.635 0 01-.018-.2v-.02a1.772 1.772 0 01.15-.768c.082-.22.232-.406.43-.533a.985.985 0 01.594-.2zm-2.962.059h.036c.142 0 .27.048.399.135.146.129.264.288.344.465.09.199.14.4.153.667v.004c.007.134.006.2-.002.266v.08c-.03.007-.056.018-.083.024-.152.055-.274.135-.393.2.012-.09.013-.18.003-.267v-.015c-.012-.133-.04-.2-.082-.333a.613.613 0 00-.166-.267.248.248 0 00-.183-.064h-.021c-.071.006-.13.04-.186.132a.552.552 0 00-.12.27.944.944 0 00-.023.33v.015c.012.135.037.2.08.334.046.134.098.2.166.268.01.009.02.018.034.024-.07.057-.117.07-.176.136a.304.304 0 01-.131.068 2.62 2.62 0 01-.275-.402 1.772 1.772 0 01-.155-.667 1.759 1.759 0 01.08-.668 1.43 1.43 0 01.283-.535c.128-.133.26-.2.418-.2zm1.37 1.706c.332 0 .733.065 1.216.399.293.2.523.269 1.052.468h.003c.255.136.405.266.478.399v-.131a.571.571 0 01.016.47c-.123.31-.516.643-1.063.842v.002c-.268.135-.501.333-.775.465-.276.135-.588.292-1.012.267a1.139 1.139 0 01-.448-.067 3.566 3.566 0 01-.322-.198c-.195-.135-.363-.332-.612-.465v-.005h-.005c-.4-.246-.616-.512-.686-.71-.07-.268-.005-.47.193-.6.224-.135.38-.271.483-.336.104-.074.143-.102.176-.131h.002v-.003c.169-.202.436-.47.839-.601.139-.036.294-.065.466-.065zm2.8 2.142c.358 1.417 1.196 3.475 1.735 4.473.286.534.855 1.659 1.102 3.024.156-.005.33.018.513.064.646-1.671-.546-3.467-1.089-3.966-.22-.2-.232-.335-.123-.335.59.534 1.365 1.572 1.646 2.757.13.535.16 1.104.021 1.67.067.028.135.06.205.067 1.032.534 1.413.938 1.23 1.537v-.043c-.06-.003-.12 0-.18 0h-.016c.151-.467-.182-.825-1.065-1.224-.915-.4-1.646-.336-1.77.465-.008.043-.013.066-.018.135-.068.023-.139.053-.209.064-.43.268-.662.669-.793 1.187-.13.533-.17 1.156-.205 1.869v.003c-.02.334-.17.838-.319 1.35-1.5 1.072-3.58 1.538-5.348.334a2.645 2.645 0 00-.402-.533 1.45 1.45 0 00-.275-.333c.182 0 .338-.03.465-.067a.615.615 0 00.314-.334c.108-.267 0-.697-.345-1.163-.345-.467-.931-.995-1.788-1.521-.63-.4-.986-.87-1.15-1.396-.165-.534-.143-1.085-.015-1.645.245-1.07.873-2.11 1.274-2.763.107-.065.037.135-.408.974-.396.751-1.14 2.497-.122 3.854a8.123 8.123 0 01.647-2.876c.564-1.278 1.743-3.504 1.836-5.268.048.036.217.135.289.202.218.133.38.333.59.465.21.201.477.335.876.335.039.003.075.006.11.006.412 0 .73-.134.997-.268.29-.134.52-.334.74-.4h.005c.467-.135.835-.402 1.044-.7zm2.185 8.958c.037.6.343 1.245.882 1.377.588.134 1.434-.333 1.791-.765l.211-.01c.315-.007.577.01.847.268l.003.003c.208.199.305.53.391.876.085.4.154.78.409 1.066.486.527.645.906.636 1.14l.003-.007v.018l-.003-.012c-.015.262-.185.396-.498.595-.63.401-1.746.712-2.457 1.57-.618.737-1.37 1.14-2.036 1.191-.664.053-1.237-.2-1.574-.898l-.005-.003c-.21-.4-.12-1.025.056-1.69.176-.668.428-1.344.463-1.897.037-.714.076-1.335.195-1.814.12-.465.308-.797.641-.984l.045-.022zm-10.814.049h.01c.053 0 .105.005.157.014.376.055.706.333 1.023.752l.91 1.664.003.003c.243.533.754 1.064 1.189 1.637.434.598.77 1.131.729 1.57v.006c-.057.744-.48 1.148-1.125 1.294-.645.135-1.52.002-2.395-.464-.968-.536-2.118-.469-2.857-.602-.369-.066-.61-.2-.723-.4-.11-.2-.113-.602.123-1.23v-.004l.002-.003c.117-.334.03-.752-.027-1.118-.055-.401-.083-.71.043-.94.16-.334.396-.4.69-.533.294-.135.64-.202.915-.47h.002v-.002c.256-.268.445-.601.668-.838.19-.201.38-.336.663-.336zm7.159-9.074c-.435.201-.945.535-1.488.535-.542 0-.97-.267-1.28-.466-.154-.134-.28-.268-.373-.335-.164-.134-.144-.333-.074-.333.109.016.129.134.199.2.096.066.215.2.36.333.292.2.68.467 1.167.467.485 0 1.053-.267 1.398-.466.195-.135.445-.334.648-.467.156-.136.149-.267.279-.267.128.016.034.134-.147.332a8.097 8.097 0 01-.69.468zm-1.082-1.583V5.64c-.006-.02.013-.042.029-.05.074-.043.18-.027.26.004.063 0 .16.067.15.135-.006.049-.085.066-.135.066-.055 0-.092-.043-.141-.068-.052-.018-.146-.008-.163-.065zm-.551 0c-.02.058-.113.049-.166.066-.047.025-.086.068-.14.068-.05 0-.13-.02-.136-.068-.01-.066.088-.133.15-.133.08-.031.184-.047.259-.005.019.009.036.03.03.05v.02h.003z"/></symbol>
+</svg>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Trilha de navegação">
+        <a href="/pt/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Instalação no Linux</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1><svg class="brandmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-linux"/></svg> Instalação no Linux</h1>
+
+        <p class="lede">
+          Três formatos de pacote e uma ressalva que vale ler antes de instalar
+          qualquer coisa: quem decide se a captura da área de transferência em
+          segundo plano funciona aqui é o seu compositor, não este aplicativo.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2 id="install">Instale</h2>
+        <p>Pegue o arquivo que corresponde à sua distribuição na
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/releases/latest">página de releases</a>:</p>
+        <pre><code># Debian, Ubuntu e derivadas
+sudo apt install ./RealtimeClipboard_&lt;version&gt;_amd64.deb
+
+# Fedora, RHEL e derivadas
+sudo dnf install ./RealtimeClipboard-&lt;version&gt;-1.x86_64.rpm
+
+# qualquer outro caso
+chmod +x RealtimeClipboard_&lt;version&gt;_amd64.AppImage
+./RealtimeClipboard_&lt;version&gt;_amd64.AppImage</code></pre>
+        <p>
+          <b>O AppImage precisa do <code>chmod</code>.</b> Baixar pelo navegador
+          apaga o bit de execução, e a falha que resulta disso é o gerenciador de
+          arquivos não fazer absolutamente nada no duplo clique — o que não tem
+          cara de problema de permissão.
+        </p>
+        <p>
+          <b>Piso da distribuição:</b> o aplicativo precisa do webkit2gtk 4.1, o que
+          dá mais ou menos Ubuntu 22.04 ou Fedora 36 para cima. A release é
+          compilada no runner mais antigo que tem essa versão, de propósito, para
+          manter a exigência de glibc o mais baixa possível. Em qualquer coisa mais
+          antiga, use o navegador ou
+          <a href="/pt/help/install/cli/">o cliente de linha de comando</a>.
+        </p>
+
+        <h2 id="pkg">Aqui não há gerenciador de pacotes</h2>
+        <p>
+          Sem Flathub, sem Snap, sem AUR — e sem nenhum comando nesta página
+          fingindo o contrário. Cada um deles é um repositório que alguém precisa
+          manter em dia a cada release, e um repositório que parou de ser atualizado
+          em silêncio é pior do que um que nunca existiu: ele entrega uma build
+          velha às pessoas e diz que é a atual.
+        </p>
+        <p>
+          Os três arquivos acima são a história inteira. Cada um é um artefato único
+          da release, nenhum precisa de repositório, e o AppImage em particular não
+          precisa de nada instalado — <code>chmod +x</code> e execute.
+        </p>
+
+        <h2 id="check">Confira se deu certo</h2>
+        <ul class="sq-list">
+          <li><b>Aparece um ícone na bandeja</b>, se o seu desktop mostrar uma —
+            o GNOME precisa de uma extensão só para ter ícones de bandeja, o que é
+            uma decisão do GNOME e não tem relação com este aplicativo.
+            <b>Clique nele com o botão direito para abrir o menu</b>: essa é toda a
+            interação no Linux, onde um ícone de bandeja não recebe cliques
+            próprios. <b>Open</b> e <b>Quit</b> estão os dois ali. Fechar a janela
+            não encerra o aplicativo — a janela funciona com ou sem ícone de
+            bandeja, e <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd> também.</li>
+          <li><b>A barra de status, no canto inferior direito, é a resposta de
+            verdade.</b> Ela mostra <code>T0 · watching the system clipboard</code>
+            onde a captura em segundo plano está disponível. Onde não está, ela diz
+            isso em vez de ficar sem fazer nada em silêncio.</li>
+        </ul>
+
+        <h2 id="wayland">A ressalva do Wayland, dita sem rodeios</h2>
+        <div class="tablewrap">
+          <table class="cmp">
+            <thead>
+              <tr><th>Sessão</th><th>Captura em segundo plano</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>X11, qualquer desktop</td><td class="y">Sim</td></tr>
+              <tr><td>Wayland, KDE Plasma</td><td class="y">Sim</td></tr>
+              <tr><td>Wayland, wlroots (Sway, Hyprland, river)</td><td class="y">Sim</td></tr>
+              <tr><td>Wayland, GNOME</td><td class="n">Não — captura ao ganhar foco</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          No X11, um aplicativo é avisado quando a área de transferência muda. No
+          Wayland, isso depende inteiramente do compositor: o KDE e os baseados em
+          wlroots expõem um protocolo para isso, e o GNOME não. <b>Não há como
+          nenhum aplicativo monitorar a área de transferência no GNOME Wayland</b> —
+          isso não é um recurso faltando neste aplicativo, e nenhuma outra
+          ferramenta resolveu o problema.
+        </p>
+        <p>
+          Onde não está disponível, o aplicativo passa a capturar quando você o
+          coloca em foco, exatamente como o navegador faz, e diz isso na barra de
+          status. Se a captura em segundo plano é o motivo da instalação, no GNOME a
+          resposta é usar uma sessão X11.
+        </p>
+
+        <h2 id="first">Sua primeira sincronização</h2>
+        <ol class="steps">
+          <li>Anote a chave curta no topo do aplicativo, ou digite a sua.</li>
+          <li>Abra <a href="/app.html">o aplicativo</a> em um segundo dispositivo e
+            informe a mesma chave.</li>
+          <li>Copie algo. Se a barra de status disser <code>T0</code>, você não
+            precisa trocar de janela; se não disser, clique uma vez na janela do
+            RealtimeClipboard e o conteúdo é pego assim que ela ganha foco.</li>
+        </ol>
+        <p class="honest">
+          O seletor no topo da janela vem em <b>Clipboard</b>, então tudo o que você
+          copia é compartilhado. Ele lê cada cópia que você faz enquanto está
+          rodando, e isso é algo para se saber e não para se herdar sem perceber —
+          o aplicativo avisa na primeira abertura, e <b>App</b> impede que qualquer
+          coisa saia da máquina até você colar ali dentro.
+        </p>
+
+        <h2 id="trouble">Quando não funciona</h2>
+
+        <h3>O AppImage não faz nada no duplo clique</h3>
+        <p>Dê <code>chmod +x</code> nele — veja acima. Rode pelo terminal uma vez e
+          você verá o erro de verdade, em vez do silêncio.</p>
+
+        <h3>Erro de biblioteca faltando na instalação</h3>
+        <p>
+          O <code>.deb</code> declara <code>libwebkit2gtk-4.1-0</code>,
+          <code>libgtk-3-0</code> e
+          <code>libayatana-appindicator3-1 | libappindicator3-1</code>; instalar com
+          <code>apt install ./file.deb</code> em vez de <code>dpkg -i</code> resolve
+          isso para você. O último é o que desenha o ícone da bandeja, e está escrito
+          como alternativa porque o pacote simples sumiu do Debian mais novo enquanto
+          o ayatana falta em algumas versões mais antigas — a sua distribuição terá
+          um dos dois. Numa distribuição velha demais para ter o webkit2gtk 4.1, isso
+          é o piso citado acima e não há contorno.
+        </p>
+
+        <h3>Copiar não faz nada, e a barra de status não diz T0</h3>
+        <p>Isso é a tabela do Wayland, não um defeito. Veja acima.</p>
+
+        <h3>Parado em “Connecting…”</h3>
+        <p>
+          O aplicativo tenta um WebSocket e cai para server-sent events mais POST
+          onde o upgrade é bloqueado. Se nenhum dos dois conecta, o host do
+          retransmissor está bloqueado — aponte o aplicativo para o seu próprio em
+          <b>Settings → Relay</b>.
+          <a href="/pt/help/install/relay/">Rodar um é um container.</a>
+        </p>
+
+        <h2 id="remove">Desinstalar</h2>
+        <pre><code>sudo apt remove realtimeclipboard      # or dnf remove
+yay -R realtimeclipboard-bin</code></pre>
+        <p>
+          Um AppImage é um arquivo só: apague. Nada mais fica para trás — nenhum
+          conteúdo da área de transferência é gravado em disco, e seus ajustes e o
+          histórico ficam no armazenamento do próprio navegador do aplicativo.
+        </p>
+
+        <p class="hint">
+          Pronto para instalar: <a href="/pt/download/">a página de download</a>.
+          Todas as outras plataformas: <a href="/pt/help/install/">o guia de instalação</a>.
+          Algo errado ou desatualizado aqui?
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">Abra uma issue</a>.
+        </p>
+      </div>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código aberto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/install/linux/">English</a> · <a href="/es/help/install/linux/">Español</a> · <a href="/pt/help/install/linux/">Português</a> · <a href="/ru/help/install/linux/">Русский</a> · <a href="/zh/help/install/linux/">中文</a></p>
+      <p><a href="/pt/">Início</a> · <a href="/pt/download/">Download</a> · <a href="/pt/help/">Ajuda</a> · <a href="/pt/about/">Sobre</a> · <a href="/privacy/">Privacidade</a> · <a href="/terms/">Termos</a></p>
+      <p>As sessões ficam em memória e nunca são gravadas em disco. O conteúdo da área de transferência é criptografado no seu navegador antes de ser enviado.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

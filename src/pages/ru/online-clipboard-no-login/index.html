@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+«Без регистрации» is a stronger and more common qualifier in Russian search
+  than «no login» is in English: it is attached to half the queries in this
+  category. The reader's objection is already in the query, so the page has to
+  be the one that does not ask, and to say plainly what having no учётная запись
+  costs. Yandex reads this cluster too, and IndexNow reaches it directly.
+
+  Terminology follows /ru/: буфер обмена, ключ, ретранслятор, сквозное
+  шифрование, учётная запись, регистрация. Fixed on this page: регистрация is
+  the sign-up, вход the act of logging in, учётная запись the account itself.
+  English says "no login" for all three; Russian keeps them apart, and «аккаунт»
+  is avoided throughout in favour of учётная запись.
+-->
+
+<title>Онлайн-буфер обмена без регистрации</title>
+<meta name="description" content="Онлайн-буфер обмена, которому не нужны ни регистрация, ни почта, ни установка. Один короткий ключ на обоих устройствах и сквозное шифрование.">
+<link rel="canonical" href="https://realtimeclipboard.com/ru/online-clipboard-no-login/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/online-clipboard-no-login/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/online-clipboard-no-login/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/online-clipboard-no-login/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/online-clipboard-no-login/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/online-clipboard-no-login/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/online-clipboard-no-login/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="Онлайн-буфер обмена без регистрации и без приложения">
+<meta property="og:description" content="Скопируйте на одном устройстве, вставьте на другом. Короткий ключ вместо регистрации — со сквозным шифрованием и открытым кодом.">
+<meta property="og:url" content="https://realtimeclipboard.com/ru/online-clipboard-no-login/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/ru/online-clipboard-no-login/#article",
+      "headline": "Онлайн-буфер обмена без регистрации",
+      "description": "Как работает синхронизация буфера обмена без учётной записи, что заменяет общий ключ и чего на самом деле стоит её отсутствие.",
+      "inLanguage": "ru",
+      "datePublished": "2026-08-07",
+      "dateModified": "2026-08-07",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/ru/online-clipboard-no-login/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/ru/" },
+        { "@type": "ListItem", "position": 2, "name": "Онлайн-буфер обмена без регистрации" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/faq.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/ru/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Открыть приложение</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Навигационная цепочка">
+        <a href="/ru/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Онлайн-буфер обмена без регистрации</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>Онлайн-буфер обмена без регистрации</h1>
+
+        <p class="lede">
+          <b>Чтобы синхронизировать буфер обмена, учётная запись не нужна —
+          нужен общий секрет, а учётная запись лишь один из способов его иметь.</b>
+          Откройте эту страницу на двух устройствах, введите на обоих один и тот же
+          короткий ключ, и всё, что вы скопируете на одном, окажется в буфере
+          обмена другого. Ни почты, ни пароля, ни установки, ни расширения.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <p>
+          <a class="btn" href="/app.html">Открыть буфер обмена</a>
+        </p>
+
+        <h2>Почему почти все такие сервисы требуют войти</h2>
+
+        <p>
+          Сервису синхронизации нужно ответить на один вопрос: какие два устройства
+          принадлежат друг другу? Учётная запись отвечает на него так: пусть оба
+          докажут, что они — это вы. Это работает и тянет за собой всё, чего учётная
+          запись требует, — адрес почты, пароль, сервер, который помнит, какие
+          устройства ваши, и запись о том, когда ими пользовались.
+        </p>
+
+        <p>
+          Общий ключ отвечает на тот же вопрос иначе. Оба устройства предъявляют
+          одну и ту же короткую строку, и сервис может поместить их в одну комнату,
+          так и не узнав, чьи они. Ключ — это знание, а не личность, а знание
+          набирается за пять секунд.
+        </p>
+
+        <p>
+          Одна эта замена убирает разом форму регистрации, сброс пароля,
+          подтверждение по почте и базу учётных записей. И она же означает, что
+          сервис действительно не отличит вас от кого угодно другого: ему никогда не
+          давали ничего, чем это можно было бы сделать.
+        </p>
+
+        <h2>Как это работает</h2>
+
+        <ol class="steps">
+          <li>Откройте буфер обмена на первом устройстве — он сгенерирует короткий ключ.</li>
+          <li>Введите этот ключ на втором устройстве или отсканируйте показанный QR-код.</li>
+          <li>Скопируйте что угодно на любом из двух.</li>
+          <li>Переключитесь на другое устройство и вставьте — оно уже в системном буфере обмена.</li>
+        </ol>
+
+        <p>
+          Ключ никогда не покидает браузер. До ретранслятора доходит
+          <code>SHA-256(ключ)</code> — хеш, который служит только адресом комнаты, —
+          и ваш текст, уже зашифрованный AES-GCM на ключе, выведенном из того,
+          который вы набрали. Ретранслятор пересылает шифротекст между двумя
+          соединениями и ничего не пишет на диск. Файлы обходят его вовсе и идут
+          напрямую между браузерами по WebRTC.
+        </p>
+
+        <h2>Чего на самом деле стоит отсутствие учётной записи</h2>
+
+        <p>
+          Любой сервис без регистрации чем-то за это расплачивается, и страница,
+          которая не говорит чем именно, ровно это и скрывает.
+        </p>
+
+        <div class="honest">
+          <h3>Размен, названный прямо</h3>
+          <dl class="caveats">
+            <div>
+              <dt>Ключ — единственное, что даёт доступ</dt>
+              <dd>За ним нет ни второго фактора, ни какой-либо личности. Любой, кто узнает ключ, сможет читать эту сессию, пока она открыта.</dd>
+            </div>
+            <div>
+              <dt>Ничего не хранится</dt>
+              <dd>Нет учётной записи — нет и истории на сервере. Закройте сессию, и её больше нет: так задумано, это не ограничение, которое надо обходить.</dd>
+            </div>
+            <div>
+              <dt>Восстановить нельзя</dt>
+              <dd>Забыли ключ — спросить не у кого. Сгенерируйте новый, это ничего не стоит.</dd>
+            </div>
+            <div>
+              <dt>Автоматическому чтению нужен Chromium</dt>
+              <dd>Firefox и Safari умеют отправлять и принимать вставленный текст, но сами буфер обмена не читают.</dd>
+            </div>
+          </dl>
+        </div>
+
+        <p>
+          Если в сессию должно быть труднее зайти, ключ можно закрыть PIN-кодом. Это
+          меняет саму комнату, а не добавляет проверку прав поверх неё, поэтому
+          закрытую ссылку не откроет тот, у кого есть ключ, но нет PIN-кода, — и она
+          не откатится молча в незакрытую комнату того же ключа.
+        </p>
+
+        <h2>Устанавливать тоже ничего не нужно</h2>
+
+        <p>
+          Это веб-страница: устанавливать нечего и одобрять нечего. Больше всего это
+          значит там, где решаете не вы: рабочий ноутбук с запретом на установку
+          программ, общий или библиотечный компьютер, Chromebook или телефон, куда
+          не хочется ставить ещё одно приложение.
+        </p>
+
+        <p>
+          Если хочется, чтобы это ощущалось приложением, страница ставится как PWA
+          из собственного меню браузера — без всякой учётной записи в магазине.
+          <a href="/ru/help/install/">Руководства по установке</a> охватывают каждую
+          платформу, а если ближе нативное, есть
+          <a href="/ru/download/">сборки для настольных систем и утилита командной строки</a>.
+        </p>
+
+        <h2>Безопасен ли буфер обмена без регистрации?</h2>
+
+        <p>
+          Для того, ради чего он сделан, — переносить текст между вашими
+          собственными устройствами — отсутствие учётной записи делает его
+          безопаснее, а не наоборот: взламывать нечего и утекать нечему, потому что
+          нет ни записи, ни сохранённой истории. Шифрование происходит в браузере,
+          поэтому никто, кто наблюдает за сетью, — ваш Wi-Fi, ваш провайдер — ваш
+          буфер обмена не прочитает.
+        </p>
+
+        <p>
+          Адрес комнаты, который оператор всё-таки видит, выводится через то же
+          растягивание ключа в 250 000 итераций, поэтому обратить его в ваш ключ не
+          выйдет, не заплатив эту цену за каждую попытку.
+          <a href="/docs/THREAT-MODEL.md">Модель угроз</a> приводит расчёты.
+        </p>
+
+        <p>
+          Настоящий риск — тот, что назван выше: короткий ключ достаточно короток,
+          чтобы упорный человек его подобрал, поэтому он не годится для секрета,
+          который будет важен и через год. Для всего чувствительного используйте
+          PIN-код, а к незакрытой сессии относитесь как к записке, оставленной на
+          столе.
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">Исходный код лежит на GitHub</a>
+          под лицензией MIT, и
+          <a href="/ru/help/install/relay/">ретранслятор можно поднять свой</a>, если
+          не хочется доверять чужому.
+        </p>
+
+        <p>
+          <a class="btn" href="/app.html">Открыть буфер обмена</a>
+        </p>
+      </div>
+
+      <div class="faq" id="faq">
+        <div class="faqhead">
+          <h2>Частые вопросы</h2>
+          <button type="button" class="faqall" id="faqAll"
+                  aria-expanded="false" aria-controls="faq" hidden>
+            <span class="faqall-i" aria-hidden="true"></span>
+            <span class="faqall-t">Развернуть всё</span>
+          </button>
+        </div>
+
+        <details class="qa">
+          <summary><h3>Есть ли онлайн-буфер обмена, которому не нужна учётная запись?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Есть. Сессию может определять общий короткий ключ вместо выполненного
+            входа: оба устройства просто вводят один и тот же ключ и попадают в одну
+            комнату. Ни почта, ни пароль, ни профиль нигде не участвуют, а отличить
+            одного пользователя от другого сервис не может — ему не давали ничего,
+            чем это можно было бы сделать.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Нужно ли что-то устанавливать?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Нет. Всё работает во вкладке браузера на Windows, macOS, Linux, Android,
+            iOS и ChromeOS. При желании страницу можно установить как прогрессивное
+            веб-приложение из меню самого браузера — без магазина приложений и без
+            учётной записи; а если ближе нативное, есть сборки для настольных систем и
+            утилита командной строки.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Безопасен ли буфер обмена без входа?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Текст шифруется в браузере до отправки, а к серверу обращаются по хешу
+            вашего ключа, а не по самому ключу. Отсутствие учётной записи убирает две
+            вещи, которые утекают чаще всего, — базу учётных данных и сохранённую
+            историю. Плата за это в том, что незакрытую сессию защищает только
+            короткий ключ, поэтому для всего чувствительного закрывайте её PIN-кодом.
+            <a href="/docs/THREAT-MODEL.md">Модель угроз</a> говорит об этом конкретно.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Это правда бесплатно и в чём подвох?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Бесплатно, без платных тарифов и пробного периода. Честный подвох не в
+            деньгах, а в границах: передача файлов ограничена 5&nbsp;МБ, а
+            автоматическое чтение буфера обмена требует браузера на Chromium. Проект
+            открыт под лицензией MIT, так что развернуть его у себя ничто не мешает.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Что происходит с моим текстом после закрытия вкладки?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Его больше нет. Ретранслятор держит сообщение ровно столько, сколько нужно
+            на пересылку, и ничего не пишет на диск, а без учётной записи нет и
+            привязанной к вам истории на сервере. То, что сохранено локально, лежит в
+            хранилище вашего же браузера и удаляется вместе с ним.
+            </p>
+          </div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Открытый исходный код — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/online-clipboard-no-login/">English</a> · <a href="/es/online-clipboard-no-login/">Español</a> · <a href="/pt/online-clipboard-no-login/">Português</a> · <a href="/ru/online-clipboard-no-login/">Русский</a> · <a href="/zh/online-clipboard-no-login/">中文</a></p>
+      <p><a href="/ru/">Главная</a> · <a href="/ru/download/">Загрузки</a> · <a href="/ru/help/">Помощь</a> · <a href="/ru/about/">О проекте</a> · <a href="/privacy/">Конфиденциальность</a> · <a href="/terms/">Условия</a></p>
+      <p>Сессии хранятся в памяти и никогда не пишутся на диск. Содержимое буфера обмена шифруется в вашем браузере до отправки.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

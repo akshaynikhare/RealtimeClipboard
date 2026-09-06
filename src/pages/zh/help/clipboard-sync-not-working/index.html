@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+A troubleshooting page, so the order of the checks is the content. The Windows
+  steps are ranked by how often each turns out to be the cause and that ranking
+  is kept exactly as the English has it; reordering them would quietly make the
+  page worse for the reader who works down the list.
+
+  Windows and Apple UI paths are given in their Chinese localised wording
+  (设置 › 系统 › 剪贴板, 接力, 手机连接), because a reader on a Chinese Windows
+  or iOS build will not find an English menu label.
+
+  Terminology follows /zh/: 剪贴板同步, 密钥, 端到端加密.
+-->
+
+<title>剪贴板同步不工作？Windows 与安卓的修复顺序</title>
+<meta name="description" content="剪贴板同步选项灰掉了，或者设备之间复制粘贴不工作？Windows 11、三星、安卓、Mac 和 iPhone 的排查顺序。">
+<link rel="canonical" href="https://realtimeclipboard.com/zh/help/clipboard-sync-not-working/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/clipboard-sync-not-working/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/clipboard-sync-not-working/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/clipboard-sync-not-working/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/clipboard-sync-not-working/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/clipboard-sync-not-working/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/clipboard-sync-not-working/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="剪贴板同步不工作？Windows、安卓、Mac 和 iPhone 的修复方法">
+<meta property="og:description" content="为什么“跨设备同步”开关是灰色的，以及如何在各个平台上修好设备之间的复制粘贴。">
+<meta property="og:url" content="https://realtimeclipboard.com/zh/help/clipboard-sync-not-working/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/zh/help/clipboard-sync-not-working/#article",
+      "headline": "剪贴板同步不工作？Windows、安卓、Mac 和 iPhone 的修复方法",
+      "description": "为什么 Windows 11 上的剪贴板同步开关是灰色的，以及如何修好三星、安卓、Mac 和 iPhone 上的跨设备复制粘贴。",
+      "inLanguage": "zh-Hans",
+      "datePublished": "2026-08-06",
+      "dateModified": "2026-08-06",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/zh/help/clipboard-sync-not-working/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/zh/" },
+        { "@type": "ListItem", "position": 2, "name": "剪贴板同步不工作" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/faq.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/zh/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">打开应用</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="面包屑导航">
+        <a href="/zh/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">剪贴板同步不工作</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>剪贴板同步不工作？</h1>
+
+        <p class="lede">
+          在 Windows 上，最常见的原因不是大家以为的那个：
+          <b>在剪贴板历史记录本身打开之前，“跨设备同步”开关根本不会出现</b>。
+          先把剪贴板历史记录打开，同步选项就不再是灰的了。如果打开之后它还是灰的，
+          那基本可以肯定你登录的是本地账户或者单位账户，又或者组策略把它禁掉了。
+        </p>
+      </header>
+
+      <div class="article">
+
+        <p>
+          大多数情况到这里就解决了。这一页剩下的部分按值得尝试的顺序过一遍每个
+          平台，并且不回避那些根本没得修的情况 —— 尤其是在被管控的单位电脑上，
+          这件事你往往完全改不了，点多少下都没用。
+        </p>
+
+        <h2>Windows 11 和 10：“跨设备同步”是灰的</h2>
+
+        <p>
+          按顺序往下走。每一条都是一个真正不同的原因，排序依据是它们最后被证明
+          是问题所在的频率。
+        </p>
+
+        <ol class="steps">
+          <li>
+            <b>先把剪贴板历史记录打开。</b>进入
+            <code>设置 › 系统 › 剪贴板</code>，打开页面最上面的
+            <b>剪贴板历史记录</b>。在这一项打开之前，它下面的同步开关是不响应的 ——
+            这是它看起来变灰最常见的一个原因，而大多数教程会跳过这一步，因为它们
+            默认你已经做过了。
+          </li>
+          <li>
+            <b>用微软账号登录。</b>剪贴板同步走的是微软的云，所以 Windows 本地
+            账户用不了它。去 <code>设置 › 账户</code> 里看一眼。本地账户是一道
+            硬门槛，不是故障。
+          </li>
+          <li>
+            <b>看看这台电脑是不是被管控的。</b>在单位电脑或者加域的机器上，组策略
+            可以直接禁用剪贴板历史记录和它的同步，而且这项设置盖过设置应用 ——
+            无论你怎么点，那个开关都不会有反应。2026 年年中的一次策略调整关掉了
+            一大批企业机器、还有一部分消费者机器上的剪贴板历史记录，所以这种情况
+            比过去常见得多。<b>如果你属于这一类，这份清单上没有任何一条能解决。</b>
+          </li>
+          <li>
+            <b>确认快捷键根本能不能用。</b>按
+            <kbd>Windows</kbd>+<kbd>V</kbd>。如果没有面板弹出来，说明剪贴板历史
+            记录是关着的或者被禁了，那同步无论如何都不可能工作。
+          </li>
+          <li>
+            <b>确认两台电脑用的是同一个微软账号。</b>同步只发生在同一个账号下的
+            机器之间。两个账号永远看不到对方的剪贴板，而 Windows 对此不给任何提示。
+          </li>
+        </ol>
+
+        <div class="honest">
+          <h3>没人提的那条限制</h3>
+          <p>
+            就算一切正常，Windows 剪贴板同步也只在<b>登录同一个微软账号的 Windows
+            电脑之间</b>搬运文字。它到不了你的手机、你的 Mac、你的 Linux 机器，也
+            到不了同事的电脑。如果你真正想要的是这些，那这个功能从一开始就做不到。
+          </p>
+        </div>
+
+        <h2>iPhone 和 Mac 之间复制粘贴不工作</h2>
+
+        <p>
+          苹果的通用剪贴板有五个前提条件，缺任何一个它都会悄无声息地失败。这五条
+          必须同时成立：
+        </p>
+
+        <ul class="sq-list">
+          <li>两台设备登录<b>同一个 Apple 账户</b></li>
+          <li>两台都<b>打开 Wi-Fi</b> —— 哪怕它们连的不是同一个网络</li>
+          <li>两台都<b>打开蓝牙</b>；它们靠这个找到对方</li>
+          <li>两台都在“通用”设置里<b>启用接力</b></li>
+          <li>两台设备物理上<b>离得够近</b>，在蓝牙范围内</li>
+        </ul>
+
+        <p>
+          大家漏掉的通常是蓝牙，因为复制一段文字，感觉上就该走网络。它不走：距离
+          本身就是设计的一部分。通用剪贴板还有一个很短的超时 —— 复制完等上几分钟，
+          它就不在那儿等你粘贴了。
+        </p>
+
+        <h2>三星和安卓剪贴板不同步</h2>
+
+        <p>
+          安卓没有系统级的跨设备剪贴板同步。存在的都是各家厂商自己的东西，而且只
+          在一个生态内部管用：三星自己的同步在登录同一个三星账号的三星设备之间
+          搬运剪贴板，微软的“手机连接”能在部分型号的安卓手机和 Windows 电脑之间
+          传递剪贴板内容。
+        </p>
+
+        <p>
+          所以如果你想从三星手机复制到非三星的平板，或者从安卓手机复制到 Mac，
+          就没有哪个内置功能可以修。它不是关着，是不存在。
+        </p>
+
+        <h2>Chromebook 剪贴板不同步</h2>
+
+        <p>
+          ChromeOS 通过 Phone Hub 与安卓手机同步剪贴板，前提是两台设备在同一个
+          谷歌账号下，并且都开着蓝牙。而在 Chromebook 与 Windows 电脑或 Mac 之间，
+          根本没有内置的通道。
+        </p>
+
+        <h2>为什么它们坏掉的方式都一样</h2>
+
+        <p>
+          所有内置的剪贴板同步都栽在同样的三个条件上，看出这个规律之后，排查就
+          不再神秘了：
+        </p>
+
+        <div class="tablewrap" tabindex="0" role="region"
+             aria-label="各种内置剪贴板同步分别需要什么 —— 可横向滚动">
+          <table class="cmp">
+            <caption class="sr-only">
+              Windows、苹果、三星和 ChromeOS 的内置剪贴板同步，与基于浏览器的
+              剪贴板在要求和限制上的对比。
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">内置功能</th>
+                <th scope="col">需要账号</th>
+                <th scope="col">跨品牌可用</th>
+                <th scope="col">需要设备靠近</th>
+                <th scope="col">IT 能否封禁</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Windows 剪贴板同步</th>
+                <td class="n">微软账号</td>
+                <td class="n">仅限 Windows</td>
+                <td class="y">不需要</td>
+                <td class="n">能 —— 组策略</td>
+              </tr>
+              <tr>
+                <th scope="row">苹果通用剪贴板</th>
+                <td class="n">Apple 账户</td>
+                <td class="n">仅限苹果</td>
+                <td class="n">需要 —— 蓝牙范围内</td>
+                <td class="n">能 —— MDM</td>
+              </tr>
+              <tr>
+                <th scope="row">三星剪贴板同步</th>
+                <td class="n">三星账号</td>
+                <td class="n">仅限三星</td>
+                <td class="n">通常需要</td>
+                <td class="n">能</td>
+              </tr>
+              <tr>
+                <th scope="row">ChromeOS Phone Hub</th>
+                <td class="n">谷歌账号</td>
+                <td class="n">ChromeOS + 安卓</td>
+                <td class="n">需要 —— 蓝牙</td>
+                <td class="n">能</td>
+              </tr>
+              <tr class="me">
+                <th scope="row">基于浏览器的剪贴板</th>
+                <td class="y">不需要</td>
+                <td class="y">任何浏览器</td>
+                <td class="y">不需要</td>
+                <td>只有网站本身被封时</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          有三条假设贯穿了它们全部：<b>你的设备来自同一个品牌</b>、<b>你在每一台
+          上都登录了这个品牌的账号</b>，而且常常还要求<b>这些设备在同一个房间里</b>。
+          打破其中任何一条 —— 一部安卓手机配一台单位的 Windows 笔记本、一台私人
+          Mac 配一台被管控的电脑、一台你根本没法登录的机器 —— 内置功能就什么都
+          给不了你。
+        </p>
+
+        <h2>内置同步不配合的时候该用什么</h2>
+
+        <p>
+          活在网页里的剪贴板把这三条假设一次绕开了，因为没有东西要装，也没有账号
+          要登。<a href="/zh/">RealtimeClipboard</a> 就是这么个东西：在两台设备上
+          打开同一个页面，输入同一个短密钥，你在其中一台上复制的内容，在另一台上
+          就已经可以粘贴了。
+        </p>
+
+        <ul class="sq-list">
+          <li><b>不用账号</b> —— 所以 Windows 本地账户或者被锁死的配置文件都不相干</li>
+          <li><b>不用安装</b> —— 所以在你没有管理员权限的机器上也能用</li>
+          <li><b>任意品牌之间</b> —— Windows 到安卓，Mac 到 Windows，Chromebook 到手机</li>
+          <li><b>任意网络</b> —— 家里 Wi-Fi 到移动数据；<a href="/zh/clipboard-sync-different-networks/">设备不必在同一个网络里</a>，也不必离得近</li>
+          <li><b>端到端加密</b> —— 文字在你的浏览器里加密之后才发出去，服务器什么都不存</li>
+        </ul>
+
+        <p>
+          既然这一页讲的就是东西不工作，那代价也说清楚：它还是 beta；那个短密钥
+          本身就是凭证，谁拿到它，谁就能读这个会话；还有，浏览器不能在后台读你的
+          剪贴板 —— 你切回标签页，它才把你复制的内容取走。最后这一条是所有网页
+          应用都受制的浏览器安全规则，不是缺了个功能。
+        </p>
+
+        <p>
+          <a class="btn" href="/app.html">打开剪贴板</a>
+        </p>
+      </div>
+
+      <div class="faq" id="faq">
+        <div class="faqhead">
+          <h2>常见问题</h2>
+          <button type="button" class="faqall" id="faqAll"
+                  aria-expanded="false" aria-controls="faq" hidden>
+            <span class="faqall-i" aria-hidden="true"></span>
+            <span class="faqall-t">全部展开</span>
+          </button>
+        </div>
+
+        <details class="qa">
+          <summary><h3>为什么 Windows 11 里的剪贴板同步是灰的？</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            几乎总是因为剪贴板历史记录没开 —— 在你把它上面的剪贴板历史记录
+            （<code>设置 › 系统 › 剪贴板</code>）打开之前，同步开关一直是不响应的。
+            如果打开之后它还是灰的，那就是你登录的是本地账户而不是微软账号，或者
+            这台机器被管控、组策略已经禁用了这个功能。
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Windows 剪贴板同步能和安卓或 Mac 一起用吗？</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            不能。Windows 剪贴板同步只在登录同一个微软账号的 Windows 电脑之间工作。
+            微软的“手机连接”可以在部分安卓手机和 Windows 电脑之间传递剪贴板内容，
+            但那是另一个功能，有它自己的设备要求。
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>为什么我的 iPhone 和 Mac 之间复制粘贴不工作？</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            通用剪贴板要求五个条件同时成立：同一个 Apple 账户、Wi-Fi 打开、蓝牙
+            打开、启用接力，以及两台设备在蓝牙范围内。被漏掉最多的是蓝牙，因为
+            复制一段文字，感觉上就该走网络。
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>公司能封掉剪贴板同步吗？</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            能，而且很常见。在加域或者被 MDM 管控的机器上，组策略可以彻底禁用
+            剪贴板历史记录和它的同步，而且这会盖过设置应用。用户这一侧没有绕开的
+            办法 —— 那个开关就是不会响应。只要网站本身没被封，一个网页往往是
+            剩下的唯一一条路。
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>有没有不用账号也能用的剪贴板同步？</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            有 —— 基于浏览器的剪贴板完全不需要账号，因为会话是靠你在两台设备上
+            输入的一个短密钥来标识的，而不是靠某个登录身份。
+            <a href="/zh/">RealtimeClipboard</a> 走的就是这条路，这也正是它能在
+            不同品牌之间、以及在你装不了任何东西的机器上工作的原因。
+            </p>
+          </div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>开源项目 — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/clipboard-sync-not-working/">English</a> · <a href="/es/help/clipboard-sync-not-working/">Español</a> · <a href="/pt/help/clipboard-sync-not-working/">Português</a> · <a href="/ru/help/clipboard-sync-not-working/">Русский</a> · <a href="/zh/help/clipboard-sync-not-working/">中文</a></p>
+      <p><a href="/zh/">首页</a> · <a href="/zh/download/">下载</a> · <a href="/zh/help/">帮助</a> · <a href="/zh/about/">关于</a> · <a href="/privacy/">隐私政策</a> · <a href="/terms/">使用条款</a></p>
+      <p>会话只保存在内存中，从不写入磁盘。剪贴板内容在发送前已在你的浏览器里完成加密。</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

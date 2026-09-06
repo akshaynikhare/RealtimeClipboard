@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+A diagnostic page rather than a definitional one, so it earns the click and
+  not only the citation. The table translates directly: the tools are the same
+  everywhere, and which of them crosses a subnet is a fact rather than a
+  phrasing.
+
+  "Móvil" and "portátil" throughout, which is how a Spanish reader names the
+  two devices; "datos" rather than a network generation, since the point holds
+  whichever one they are on.
+
+  Terminology follows /es/: portapapeles en línea, clave corta, servidor de
+  retransmisión, descubrimiento local, subred, difusión.
+-->
+
+<title>Sincronizar el portapapeles entre redes distintas</title>
+<meta name="description" content="La mayoría de las herramientas exigen la misma Wi-Fi, porque el descubrimiento es una difusión local. Cómo sincronizar entre redes distintas.">
+<link rel="canonical" href="https://realtimeclipboard.com/es/clipboard-sync-different-networks/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/clipboard-sync-different-networks/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/clipboard-sync-different-networks/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/clipboard-sync-different-networks/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/clipboard-sync-different-networks/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/clipboard-sync-different-networks/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/clipboard-sync-different-networks/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="es_ES">
+<meta property="og:title" content="Portapapeles entre redes distintas — sin la misma Wi-Fi">
+<meta property="og:description" content="Por qué casi todas las herramientas de portapapeles exigen una sola red Wi-Fi, y cómo sincronizar entre dispositivos que están lejos.">
+<meta property="og:url" content="https://realtimeclipboard.com/es/clipboard-sync-different-networks/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/es/clipboard-sync-different-networks/#article",
+      "headline": "Sincronización del portapapeles entre redes distintas, sin la misma Wi-Fi",
+      "description": "Por qué el descubrimiento local de dispositivos no cruza una subred, y qué herramientas de portapapeles funcionan entre dispositivos en redes distintas.",
+      "inLanguage": "es",
+      "datePublished": "2026-08-07",
+      "dateModified": "2026-08-07",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/es/clipboard-sync-different-networks/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/es/" },
+        { "@type": "ListItem", "position": 2, "name": "Entre redes distintas" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/faq.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/es/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir la aplicación</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Ruta de navegación">
+        <a href="/es/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Entre redes distintas</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>Sincronización del portapapeles entre redes distintas</h1>
+
+        <p class="lede">
+          <b>Casi ninguna herramienta de portapapeles o de compartir archivos
+          sabe hacer esto, y el motivo es que se encuentran gritando en la red
+          local.</b> Una difusión no sale de la subred, así que un móvil con datos
+          es invisible para un portátil en la Wi-Fi de casa por mucho que cambies
+          nada. Para sincronizar entre redes hace falta una herramienta que se cite
+          a medio camino, en una dirección conocida — que es lo que hace un
+          portapapeles en el navegador.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2>De dónde viene el límite de la misma Wi-Fi</h2>
+
+        <p>
+          AirDrop, LocalSend, KDE Connect y el Snapdrop original funcionan igual
+          por debajo. Al abrirlos, cada dispositivo manda un mensaje de
+          descubrimiento a todas las direcciones de su propio segmento de red —
+          mDNS, difusión UDP o Bluetooth, según la herramienta — y se queda
+          escuchando. Lo que responde, aparece en la lista.
+        </p>
+
+        <p>
+          Ese diseño es lo que les ahorra cuentas y configuración: nadie tiene que
+          enterarse de dónde está nadie. Y es exactamente lo que hace que se
+          detengan en el borde de la red. Los routers no reenvían tráfico de
+          difusión entre subredes, así que dos dispositivos en redes distintas no
+          se oyen nunca. No hay nada que arreglar, ningún puerto que abrir, ningún
+          ajuste que se te haya pasado — es el mecanismo funcionando tal y como se
+          diseñó.
+        </p>
+
+        <p>
+          Tres situaciones corrientes chocan con esto, y ninguna es un fallo:
+        </p>
+
+        <ul>
+          <li><b>Móvil con datos, portátil con Wi-Fi.</b> Redes distintas aunque los dos aparatos se estén tocando.</li>
+          <li><b>Wi-Fi de oficina o de campus con aislamiento de clientes.</b> Los dispositivos están en una misma red, pero deliberadamente separados unos de otros, que es una medida de seguridad en redes de invitados y corporativas.</li>
+          <li><b>Realmente lejos</b> — casa y trabajo, o dos ciudades distintas.</li>
+        </ul>
+
+        <h2>Qué funciona en su lugar</h2>
+
+        <p>
+          La alternativa es que ambos dispositivos se conecten hacia fuera a la
+          misma dirección conocida y se los presente allí. Ninguno tiene que
+          encontrar al otro, así que da igual si están en la misma habitación o en
+          extremos opuestos del mundo. El precio es que ahora hay algo en medio que
+          sabe que esos dos están hablando — y la pregunta que importa pasa a ser
+          <em>qué puede ver ese algo</em>.
+        </p>
+
+        <div class="tablewrap" tabindex="0" role="region"
+             aria-label="Qué herramientas cruzan redes — se desplaza en horizontal">
+          <table class="cmp">
+            <caption class="sr-only">
+              Herramientas de portapapeles y de transferencia comparadas según si
+              funcionan entre redes distintas, cómo se encuentran los dispositivos
+              y si el contenido acaba en el portapapeles del sistema.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Herramienta</th>
+                <th scope="col">Entre redes</th>
+                <th scope="col">Cómo se encuentran los dispositivos</th>
+                <th scope="col">Portapapeles del sistema</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="me">
+                <th scope="row">RealtimeClipboard</th>
+                <td class="y">Sí</td>
+                <td>Clave corta escrita en ambos</td>
+                <td class="y">Sí</td>
+              </tr>
+              <tr>
+                <th scope="row">PairDrop</th>
+                <td class="y">Sí</td>
+                <td>Código de emparejamiento de 6 dígitos</td>
+                <td class="n">El texto llega como mensaje</td>
+              </tr>
+              <tr>
+                <th scope="row">Sincronización de Windows</th>
+                <td class="y">Sí</td>
+                <td>Cuenta de Microsoft</td>
+                <td class="y">Sí, solo de Windows a Windows</td>
+              </tr>
+              <tr>
+                <th scope="row">Portapapeles Universal de Apple</th>
+                <td class="n">No</td>
+                <td>Bluetooth + Handoff, dentro del alcance</td>
+                <td class="y">Sí, solo entre dispositivos Apple</td>
+              </tr>
+              <tr>
+                <th scope="row">KDE Connect</th>
+                <td class="n">No</td>
+                <td>Descubrimiento local</td>
+                <td class="y">Sí</td>
+              </tr>
+              <tr>
+                <th scope="row">LocalSend / Snapdrop</th>
+                <td class="n">No</td>
+                <td>Descubrimiento local</td>
+                <td class="n">No</td>
+              </tr>
+              <tr>
+                <th scope="row">AirDrop</th>
+                <td class="n">No</td>
+                <td>Bluetooth + Wi-Fi punto a punto</td>
+                <td class="n">No</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          Las tres que cruzan redes piden algo a cambio. La sincronización de
+          Windows quiere una cuenta de Microsoft en las dos máquinas y solo habla
+          con otros PC con Windows. PairDrop no pide cuenta y es multiplataforma,
+          pero manda el texto como mensaje en vez de dejarlo en tu portapapeles. La
+          tercera vía es un portapapeles en el navegador, que es lo que describe el
+          resto de esta página.
+        </p>
+
+        <h2>Sincronizar sin cuenta, entre dos redes cualesquiera</h2>
+
+        <ol class="steps">
+          <li>Abre el portapapeles en el primer dispositivo. Genera una clave corta.</li>
+          <li>Escribe esa clave en el segundo dispositivo, o escanea el código QR.</li>
+          <li>Copia algo en cualquiera de los dos.</li>
+          <li>Cambia al otro y pega. Ya está en el portapapeles del sistema.</li>
+        </ol>
+
+        <p>
+          La clave es lo que sustituye al descubrimiento. Ambos dispositivos se
+          conectan hacia fuera al mismo servidor de retransmisión y piden la sala
+          que pertenece a esa clave, así que se encuentran sin que ninguno necesite
+          saber dónde está el otro. Wi-Fi de casa a datos móviles, portátil a
+          móvil, trabajo a casa — todo es el mismo caso.
+        </p>
+
+        <h2>Qué puede ver el servidor que hay en medio</h2>
+
+        <p>
+          Esta es la parte que merece la pena concretar, porque «pasa por un
+          servidor» es el coste real de cruzar redes y casi siempre se deja en
+          vago.
+        </p>
+
+        <p>
+          El texto se cifra en tu navegador con AES-GCM <em>antes</em> de
+          enviarse. El servidor de retransmisión se direcciona por
+          <code>SHA-256(clave)</code> y no por la clave, así que puede encaminar
+          tus mensajes a la sala correcta sin llegar a tener nunca la clave que
+          hace falta para leerlos. No guarda nada en disco: los mensajes existen
+          solo lo justo para reenviarse. Los archivos se lo saltan por completo y
+          van directos entre los dos navegadores por WebRTC.
+        </p>
+
+        <p>
+          Lo que sí ve es que <em>alguna</em> sala estuvo activa en algún momento,
+          y las direcciones IP de las dos conexiones. Nunca recibe tu clave, ni tu
+          texto, ni tus nombres de archivo, ni quién eres. Ese identificador de
+          sala pasa por el mismo estirado de 250.000 iteraciones que la clave de
+          cifrado, así que no se puede volver de él a tu clave a bajo coste — el
+          <a href="/docs/THREAT-MODEL.md">modelo de amenazas</a> enseña los números.
+          El <a href="https://github.com/akshaynikhare/RealtimeClipboard">código tiene licencia MIT</a>
+          y el servidor de retransmisión es un servicio en Python lo bastante
+          pequeño como para leerlo de una sentada — y si prefieres no fiarte de la
+          palabra de nadie, <a href="/es/help/install/relay/">puedes ejecutar el
+          tuyo</a> y apuntar la aplicación hacia él.
+        </p>
+
+        <div class="honest">
+          <h3>Conviene saberlo antes de depender de esto</h3>
+          <dl class="caveats">
+            <div>
+              <dt>La clave es la contraseña</dt>
+              <dd>Cualquiera que la averigüe puede leer esa sesión mientras esté abierta. Trátala como tal.</dd>
+            </div>
+            <div>
+              <dt>La captura automática necesita Chromium</dt>
+              <dd>Firefox y Safari envían y reciben el texto que pegas, pero no pueden leer el portapapeles por su cuenta.</dd>
+            </div>
+            <div>
+              <dt>La lectura en segundo plano no es posible</dt>
+              <dd>Ningún navegador puede leer el portapapeles con su pestaña en segundo plano. Vuelves a la pestaña y recoge lo que copiaste.</dd>
+            </div>
+            <div>
+              <dt>Los archivos están limitados a 5&nbsp;MB</dt>
+              <dd>Para cualquier cosa más grande, una herramienta de transferencia dedicada es la elección correcta.</dd>
+            </div>
+          </dl>
+        </div>
+
+        <p>
+          <a class="btn" href="/app.html">Abrir el portapapeles</a>
+        </p>
+      </div>
+
+      <div class="faq" id="faq">
+        <div class="faqhead">
+          <h2>Preguntas frecuentes</h2>
+          <button type="button" class="faqall" id="faqAll"
+                  aria-expanded="false" aria-controls="faq" hidden>
+            <span class="faqall-i" aria-hidden="true"></span>
+            <span class="faqall-t">Expandir todo</span>
+          </button>
+        </div>
+
+        <details class="qa">
+          <summary><h3>¿Puedo sincronizar el portapapeles entre dispositivos en redes Wi-Fi distintas?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Sí, pero no con herramientas que dependen del descubrimiento local.
+            AirDrop, LocalSend, KDE Connect y Snapdrop encuentran dispositivos por
+            difusión en la red local, y esa difusión no cruza un router. Un
+            portapapeles en el navegador funciona de otra forma: los dos
+            dispositivos se conectan hacia fuera al mismo servidor de retransmisión
+            con una clave compartida, así que las redes en las que están dejan de
+            importar.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>¿Por qué mi móvil no ve el portátil cuando va con datos?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Porque están en dos redes distintas. El descubrimiento local solo
+            alcanza dispositivos del mismo segmento de red, y un móvil con datos
+            móviles está en uno completamente aparte del portátil con Wi-Fi, aunque
+            los dos estén uno al lado del otro. Encender la Wi-Fi del móvil y entrar
+            en la misma red lo arregla para esas herramientas; para lo demás hace
+            falta algo que no dependa del descubrimiento.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>¿Funciona en la Wi-Fi de invitados o de la oficina?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Las herramientas de descubrimiento local normalmente no. Las redes de
+            invitados y las corporativas suelen activar el aislamiento de clientes,
+            que impide que los dispositivos de la misma red hablen entre sí
+            directamente — a propósito, como medida de seguridad. Un portapapeles en
+            el navegador no se ve afectado, porque cada dispositivo solo abre una
+            conexión HTTPS normal hacia fuera en lugar de intentar alcanzar al otro.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>¿Ve el servidor lo que copio?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            No. El texto se cifra en el navegador antes de enviarse, y el servidor
+            de retransmisión se direcciona por un hash de tu clave y no por la clave
+            misma, así que puede encaminar el mensaje sin poder descifrarlo. No
+            guarda nada en disco. Los archivos no pasan por él en absoluto — van
+            directos entre los dos navegadores por WebRTC.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>¿Sirve una VPN para que las herramientas de red local crucen redes?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            A veces, y da más trabajo del que parece. Una VPN en malla como
+            Tailscale o ZeroTier pone los dos dispositivos en una misma red virtual,
+            lo que puede devolver el descubrimiento local — pero algunas
+            herramientas dependen de tráfico de difusión que esas VPN no reenvían
+            por defecto, así que depende de la herramienta. Además implica instalar
+            y configurar software en los dos aparatos, que es justo lo que casi todo
+            el mundo intentaba evitar.
+            </p>
+          </div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código abierto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/clipboard-sync-different-networks/">English</a> · <a href="/es/clipboard-sync-different-networks/">Español</a> · <a href="/pt/clipboard-sync-different-networks/">Português</a> · <a href="/ru/clipboard-sync-different-networks/">Русский</a> · <a href="/zh/clipboard-sync-different-networks/">中文</a></p>
+      <p><a href="/es/">Inicio</a> · <a href="/es/download/">Descargas</a> · <a href="/es/help/">Ayuda</a> · <a href="/es/about/">Acerca de</a> · <a href="/privacy/">Privacidad</a> · <a href="/terms/">Términos</a></p>
+      <p>Las sesiones se mantienen en memoria y nunca se escriben en disco. El contenido del portapapeles se cifra en tu navegador antes de enviarse.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

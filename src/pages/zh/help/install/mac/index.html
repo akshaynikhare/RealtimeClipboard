@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Every id on this page is a deep-link target used from /help/install/ and from
+  the other platform guides (#install, #pkg, #check, #first, #trouble, #remove).
+  They are byte-identical to the English original and must stay that way.
+
+  Everything inside pre and code is left exactly as the English has it: those
+  blocks carry a copy button, and a translated command is a command that fails
+  when pasted. The two status-bar strings are in code for the same reason, and
+  because the desktop app itself is not localised.
+
+  macOS UI is given in its Chinese localised wording (应用程序, 废纸篓,
+  系统设置 → 隐私与安全性, 仍要打开), and the Gatekeeper refusal is quoted as
+  macOS phrases it in Chinese. The app's own labels stay Latin with a short
+  gloss, because that is what a reader sees on screen.
+
+  Terminology follows /zh/: 剪贴板, 密钥, 中继服务器, 安装, 卸载.
+-->
+
+<title>在 macOS 上安装 RealtimeClipboard</title>
+<meta name="description" content="Intel 和 Apple Silicon 共用一个通用版 .dmg：怎么确认菜单栏图标在运行、第一次同步，以及 Gatekeeper 会说什么。">
+<link rel="canonical" href="https://realtimeclipboard.com/zh/help/install/mac/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/install/mac/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/install/mac/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/install/mac/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/install/mac/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/install/mac/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/install/mac/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="在 macOS 上安装 RealtimeClipboard">
+<meta property="og:description" content="Intel 和 Apple Silicon 共用一个下载，装好之后应该是什么样子，以及菜单栏图标怎么用。">
+<meta property="og:url" content="https://realtimeclipboard.com/zh/help/install/mac/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/zh/help/install/mac/#article",
+      "headline": "在 macOS 上安装 RealtimeClipboard —— Intel 与 Apple Silicon",
+      "description": "一个通用版 .dmg 同时覆盖两种芯片，怎么确认菜单栏图标在运行，第一次同步怎么做，以及 Gatekeeper 第一次会说什么。",
+      "inLanguage": "zh-Hans",
+      "datePublished": "",
+      "dateModified": "",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/zh/help/install/mac/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/zh/" },
+        { "@type": "ListItem", "position": 2, "name": "在 macOS 上安装" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/copy.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/zh/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">打开应用</a>
+    </div>
+  </div>
+</header>
+
+<svg class="icons" aria-hidden="true">
+  <symbol id="i-apple" viewBox="0 0 24 24"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></symbol>
+</svg>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="面包屑导航">
+        <a href="/zh/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">在 macOS 上安装</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1><svg class="brandmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-apple"/></svg> 在 macOS 上安装</h1>
+
+        <p class="lede">
+          一个下载同时覆盖 Intel 和 Apple Silicon。macOS 读取剪贴板不需要任何
+          授权，这让安装变得毫无难度 —— 也正因为这样，应用才要在第一次启动时
+          自己把这件事说清楚。
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2 id="install">安装</h2>
+        <ol class="steps">
+          <li>从<a href="https://github.com/akshaynikhare/RealtimeClipboard/releases/latest">发布页</a>下载
+            <code>RealtimeClipboard_&lt;version&gt;_universal.dmg</code>。</li>
+          <li>打开它，把 RealtimeClipboard 拖进“应用程序”。</li>
+          <li>启动它。需要 macOS 11 或更高版本。</li>
+        </ol>
+        <p>
+          <b>下载只有一个，不是两个。</b>发布流程构建的是
+          <code>--target universal-apple-darwin</code>，所以同一个文件在两种架构上
+          都是原生运行。如果你在找单独的 Apple Silicon 版本，你手上这个就是。
+        </p>
+
+        <h2 id="pkg">或者用包管理器</h2>
+        <pre><code>brew install --cask akshaynikhare/tap/realtimeclipboard</code></pre>
+        <p>
+          这个 cask 放在
+          <a href="https://github.com/akshaynikhare/homebrew-tap">akshaynikhare/homebrew-tap</a>，
+          由 <code>tools/release/manifest.mjs</code> 从每一次发布生成，所以它的版本号
+          和校验和都来自一个真正构建出来的产物。不用先 <code>brew tap</code> ——
+          在安装命令里写明 tap 就够了。
+        </p>
+        <p>
+          它也是绕开 Gatekeeper 那道坎最省事的办法：cask 会在装完之后去掉隔离属性，
+          应用直接就能打开，不必再跑一趟“隐私与安全性”。那是 Homebrew 替你做了你
+          本来要手动做的事，不是签名 —— 这个构建仍然是未签名的。
+        </p>
+        <p>
+          命令行客户端是另一个 formula，<code>realtimeclipboard-cli</code>，和桌面
+          应用不是一回事 —— 见<a href="/zh/help/install/cli/">命令行指南</a>。
+        </p>
+
+        <h2 id="check">确认装好了</h2>
+        <ul class="sq-list">
+          <li><b>菜单栏里出现一个图标。</b>点它，菜单就打开，跟菜单栏图标本该有的
+            样子一样 —— <b>Open RealtimeClipboard</b> 是第一项，<b>Quit</b> 是最后
+            一项，这是有意为之：一个盯着你剪贴板的应用，必须有一个看得见的地方让你
+            把它停掉。用红色按钮关掉窗口并不会退出，它把应用留在菜单栏里，好让它
+            继续盯着。</li>
+          <li><b>状态栏显示 <code>T0 · watching the system clipboard</code></b>，
+            在窗口右下角。那是原生监听器在自报家门。同一台机器上的 Safari 显示的是
+            <code>T1 · paste only</code>，而这个差别正是你装它的理由。</li>
+        </ul>
+
+        <h2 id="first">第一次同步</h2>
+        <ol class="steps">
+          <li>记下应用顶部那个短密钥，或者自己输一个。</li>
+          <li>在第二台设备上打开<a href="/app.html">应用</a>，输入同一个密钥。</li>
+          <li>在 Mac 上复制点什么，不用切回 RealtimeClipboard。它会出现在另一台
+            设备上。</li>
+        </ol>
+        <p class="honest">
+          什么都没发生？看看窗口顶部那个开关是不是在 <b>Clipboard</b>（剪贴板）。
+          切到 <b>App</b>（应用）之后，你不把内容粘贴进来，就没有任何东西离开这台
+          Mac。这个开关值得你知道它在那儿：macOS 把剪贴板访问权发给任何一个正在
+          运行的程序，完全不弹提示，所以系统里没有任何东西会告诉你这个应用已经
+          开始读取你的每一次复制 —— 正因为这样，应用在第一次启动时自己把话说明白，
+          并且把同一个开关以 <b>Share what I copy</b> 的名字放进菜单栏。
+        </p>
+
+        <h2 id="trouble">不工作的时候</h2>
+
+        <h3>“无法打开‘RealtimeClipboard’，因为无法验证开发者”</h3>
+        <p>
+          这是意料之中的，不代表下载坏了。这个构建既没有签名也没有做公证，因为两者
+          都需要一个付费的 Apple Developer 账号，而这个项目目前还没有。凡是没公证的
+          东西，Gatekeeper 第一次都会拒绝。
+        </p>
+        <ol class="steps-list">
+          <li>先试着打开一次，让它被拒绝掉。</li>
+          <li>打开<b>系统设置 → 隐私与安全性</b>，往下滚：现在会多出一行写着
+            RealtimeClipboard，后面跟着一个<b>仍要打开</b>按钮。</li>
+        </ol>
+        <p>
+          在 macOS 14 及更早的版本上，右键点应用再选<b>打开</b>，一步就能做完同样的
+          事。这个捷径在 macOS 15 里被去掉了，所以这里先写长的那条路。
+        </p>
+        <p>
+          两种做法都只为这一个应用记录一条例外 —— 这比把 Gatekeeper 整体调低要窄得
+          多，后者你不该做。只对你从
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/releases/latest">官方发布页</a>
+          拿到的文件这么做；想更保险的话，把发布页上的 SHA256 和文件对一遍。
+        </p>
+
+        <h3>没有弹出任何权限请求</h3>
+        <p>
+          本来就没有可弹的。跟摄像头、麦克风或者屏幕不一样，macOS 上的剪贴板任何
+          正在运行的程序都能读，不用问谁。应用没办法给你看一个根本不存在的系统提示，
+          所以它在第一次启动时自己说清楚，就是那个提示的替代品。
+        </p>
+
+        <h3>内容能传到 Mac，却传不出去</h3>
+        <p>
+          那是 App/Clipboard 那个设置，不是 bug：接收永远是通的，发送才是你主动选的。
+        </p>
+
+        <h3>一直停在 “Connecting…”</h3>
+        <p>
+          应用先试 WebSocket，在升级被挡住的地方回退到 server-sent events 加 POST。
+          如果两条都连不上，那就是中继服务器的域名被整个封了 —— 在
+          <b>Settings → Relay</b> 里把应用指向你自己的一台。
+          <a href="/zh/help/install/relay/">自己跑一个只要一个容器。</a>
+        </p>
+
+        <h2 id="remove">卸载</h2>
+        <p>
+          从菜单栏退出它，再把它从“应用程序”拖到“废纸篓”，或者
+          <code>brew uninstall --cask realtimeclipboard</code>。
+        </p>
+        <p>
+          剪贴板内容从来不会写到磁盘上，所以事后没有什么可找、可删的。你的设置和
+          剪贴历史存在应用自己的浏览器存储里，跟着它一起走。
+        </p>
+
+        <p class="hint">
+          准备好安装了：<a href="/zh/download/">下载页</a>。其他所有平台：
+          <a href="/zh/help/install/">安装指南</a>。这里有写错或者过时的地方？
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">提一个 issue</a>。
+        </p>
+      </div>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>开源项目 — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/install/mac/">English</a> · <a href="/es/help/install/mac/">Español</a> · <a href="/pt/help/install/mac/">Português</a> · <a href="/ru/help/install/mac/">Русский</a> · <a href="/zh/help/install/mac/">中文</a></p>
+      <p><a href="/zh/">首页</a> · <a href="/zh/download/">下载</a> · <a href="/zh/help/">帮助</a> · <a href="/zh/about/">关于</a> · <a href="/privacy/">隐私政策</a> · <a href="/terms/">使用条款</a></p>
+      <p>会话只保存在内存中，从不写入磁盘。剪贴板内容在发送前已在你的浏览器里完成加密。</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

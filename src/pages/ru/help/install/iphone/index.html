@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Every id is a deep-link target used from other pages (#install, #why, #check,
+  #first, #trouble, #remove) and is byte-identical to /help/install/iphone/.
+  The #i-apple symbol in the h1 comes from the sprite the template lifts from
+  the English original.
+
+  iOS menu items use the wording Apple actually ships in Russian, because the
+  reader is hunting for that exact string on screen: Поделиться, На экран
+  «Домой», Добавить, Изменить действия, and Настройки → Safari → Дополнения →
+  Данные сайтов. Дополнения is what iOS calls Safari's Advanced section in
+  Russian. The share-sheet label matches /ru/download/.
+
+  The code span keeps T1 · paste only exactly as the English has it: it is a
+  literal status line the reader compares against their screen, and the block
+  carries a copy button.
+
+  Terminology follows /ru/: буфер обмена, ключ, сквозное шифрование, установка,
+  удаление, домашний экран.
+-->
+
+<title>RealtimeClipboard на домашнем экране iPhone</title>
+<meta name="description" content="Добавьте через меню «Поделиться» в Safari — Chrome и Firefox на iOS не умеют. Почему iOS никогда не разрешала читать буфер обмена в фоне.">
+<link rel="canonical" href="https://realtimeclipboard.com/ru/help/install/iphone/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/install/iphone/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/install/iphone/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/install/iphone/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/install/iphone/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/install/iphone/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/install/iphone/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="RealtimeClipboard на iPhone и iPad">
+<meta property="og:description" content="Меню «Поделиться» в Safari — весь механизм целиком. Почему нет приложения в App Store и почему ждать предложения установки бессмысленно.">
+<meta property="og:url" content="https://realtimeclipboard.com/ru/help/install/iphone/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/ru/help/install/iphone/#article",
+      "headline": "Добавьте RealtimeClipboard на домашний экран iPhone или iPad",
+      "description": "Добавьте через меню «Поделиться» в Safari — Chrome и Firefox на iOS этого не умеют. Почему iOS никогда не разрешала читать буфер обмена в фоне и что за баннер о вставке появляется.",
+      "inLanguage": "ru",
+      "datePublished": "",
+      "dateModified": "",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/ru/help/install/iphone/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/ru/" },
+        { "@type": "ListItem", "position": 2, "name": "Установка на iPhone" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/copy.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/ru/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Открыть приложение</a>
+    </div>
+  </div>
+</header>
+
+<svg class="icons" aria-hidden="true">
+  <symbol id="i-apple" viewBox="0 0 24 24"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></symbol>
+</svg>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Навигационная цепочка">
+        <a href="/ru/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Установка на iPhone</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1><svg class="brandmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-apple"/></svg> Установка на iPhone и iPad</h1>
+
+        <p class="lede">
+          Скачивать нечего, и есть одна деталь, на которой спотыкаются почти все:
+          браузер обязан быть Safari, а меню «Поделиться» — это весь механизм
+          целиком. Никакого предложения установки не появится, сколько ни жди.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2 id="install">Установите</h2>
+        <ol class="steps">
+          <li>Откройте <a href="/app.html">приложение</a> в <b>Safari</b>.</li>
+          <li>Нажмите <b>Поделиться</b> <span aria-hidden="true">↑</span> на панели инструментов.</li>
+          <li>Пролистайте вниз, нажмите <b>На экран «Домой»</b>, затем <b>Добавить</b>.</li>
+        </ol>
+        <p class="honest">
+          <b>Chrome и Firefox на iOS не умеют устанавливать веб-приложения.</b> Оба —
+          это движок Safari в другой оболочке, и Apple не открывает им установку на
+          домашний экран. Если пункта <b>На экран «Домой»</b> в вашем меню
+          «Поделиться» нет, это говорит о том, в каком вы браузере, — а не о
+          настройке, и странице тут менять нечего.
+        </p>
+
+        <h2 id="why">Почему нет приложения в App Store</h2>
+        <p>
+          <b>iOS никогда не позволяла приложению читать буфер обмена в фоне</b>, а с
+          iOS 16 показывает баннер каждый раз, когда любое приложение вообще читает
+          буфер обмена. И то и другое — решения Apple, они действуют на все
+          приложения платформы, и никакое разрешение их не отключает.
+        </p>
+        <p>
+          Нативное приложение RealtimeClipboard добавило бы поэтому к тому, что уже
+          умеет установленное веб-приложение, кнопку в меню «Поделиться» и карточку в
+          магазине — и больше ничего. Этого мало, чтобы просить вас довериться ещё
+          одному бинарнику.
+        </p>
+        <p>
+          Баннер о вставке, который вы увидите, — «RealtimeClipboard вставил из…» —
+          это iOS честно сообщает, что только что произошло. Он появляется потому,
+          что вы сами попросили приложение прочитать буфер обмена, и заглушить его не
+          может ни одно приложение.
+        </p>
+
+        <h2 id="check">Проверьте, что получилось</h2>
+        <ul class="sq-list">
+          <li><b>Оно открывается без панели Safari</b> — во весь экран, отдельным
+            окном в переключателе приложений.</li>
+          <li><b>В строке состояния написано <code>T1 · paste only</code></b> — на
+            iOS так и должно быть, и это потолок для любого приложения.</li>
+          <li>Оно открывается без сети и показывает вашу прежнюю историю.</li>
+        </ul>
+
+        <h2 id="first">Первая синхронизация</h2>
+        <ol class="steps">
+          <li>Откройте приложение на компьютере и запомните короткий ключ.</li>
+          <li>Введите тот же ключ на iPhone.</li>
+          <li>Скопируйте что-нибудь на компьютере. На телефоне оно появится само.</li>
+          <li>В обратную сторону: скопируйте на телефоне, откройте
+            RealtimeClipboard, нажмите на редактор и выберите <b>Вставить</b>. iOS
+            покажет свой баннер — так и должно быть.</li>
+        </ol>
+
+        <h2 id="trouble">Когда не работает</h2>
+
+        <h3>В меню «Поделиться» нет пункта «На экран „Домой“»</h3>
+        <p>
+          Либо вы не в Safari, либо пункт ниже по списку, чем кажется, — пролистайте
+          нижнюю часть. Ещё его можно вернуть через <b>Изменить действия</b>, если
+          он был скрыт.
+        </p>
+
+        <h3>Предложение установки не появилось</h3>
+        <p>
+          Его и не бывает. iOS не показывает предложение установки ни для одного
+          веб-приложения, никогда. Если вы ждёте его, то ждать надо меню
+          «Поделиться».
+        </p>
+
+        <h3>Баннер о вставке появляется снова и снова</h3>
+        <p>
+          Так iOS 16 и новее сообщает о каждом чтении буфера обмена любым
+          приложением. Изнутри приложения это не выключается, а его появление как раз
+          и значит, что чтение прошло.
+        </p>
+
+        <h3>Пока приложение закрыто, ничего не приходит</h3>
+        <p>
+          Веб-приложение не работает, пока вы на него не смотрите. Оно забирает всё,
+          что ждало, в момент открытия; ничего не теряется.
+        </p>
+
+        <h2 id="remove">Удаление</h2>
+        <p>
+          Нажмите на значок и удерживайте, затем удалите его. Хранилище уходит вместе
+          с ним. Собственную копию данных сайта в Safari можно очистить в разделе
+          <b>Настройки → Safari → Дополнения → Данные сайтов</b>.
+        </p>
+
+        <p class="hint">
+          Все остальные платформы: <a href="/ru/help/install/">руководство по
+          установке</a>. Если вам на самом деле нужна синхронизация буфера обмена
+          между iPhone и Mac,
+          <a href="/ru/help/clipboard-sync-not-working/">это другая функция, и она
+          описана здесь</a>. Что-то не так или устарело?
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">Откройте issue</a>.
+        </p>
+      </div>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Открытый исходный код — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/install/iphone/">English</a> · <a href="/es/help/install/iphone/">Español</a> · <a href="/pt/help/install/iphone/">Português</a> · <a href="/ru/help/install/iphone/">Русский</a> · <a href="/zh/help/install/iphone/">中文</a></p>
+      <p><a href="/ru/">Главная</a> · <a href="/ru/download/">Загрузки</a> · <a href="/ru/help/">Помощь</a> · <a href="/ru/about/">О проекте</a> · <a href="/privacy/">Конфиденциальность</a> · <a href="/terms/">Условия</a></p>
+      <p>Сессии хранятся в памяти и никогда не пишутся на диск. Содержимое буфера обмена шифруется в вашем браузере до отправки.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

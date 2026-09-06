@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+A diagnostic page rather than a definitional one, so it earns the click and
+  not only the citation. The table translates directly: the tools are the same
+  everywhere, and which of them crosses a subnet is a fact rather than a
+  phrasing.
+
+  "Мобильный интернет" replaces "mobile data" throughout, which is what a
+  Russian reader actually calls it; "сеть Wi-Fi" rather than a bare "Wi-Fi"
+  wherever the sentence needs a gender.
+
+  Terminology follows /ru/: буфер обмена, ключ, ретранслятор, локальное
+  обнаружение, подсеть, широковещание.
+-->
+
+<title>Синхронизация буфера обмена между разными сетями</title>
+<meta name="description" content="Почти всем инструментам нужна общая сеть Wi-Fi, потому что обнаружение — это локальное широковещание. Как синхронизировать между разными сетями.">
+<link rel="canonical" href="https://realtimeclipboard.com/ru/clipboard-sync-different-networks/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/clipboard-sync-different-networks/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/clipboard-sync-different-networks/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/clipboard-sync-different-networks/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/clipboard-sync-different-networks/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/clipboard-sync-different-networks/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/clipboard-sync-different-networks/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="Буфер обмена между разными сетями — без общей сети Wi-Fi">
+<meta property="og:description" content="Почему почти всем инструментам нужна одна сеть Wi-Fi и как синхронизировать между устройствами, которые далеко друг от друга.">
+<meta property="og:url" content="https://realtimeclipboard.com/ru/clipboard-sync-different-networks/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/ru/clipboard-sync-different-networks/#article",
+      "headline": "Синхронизация буфера обмена между разными сетями, без общей сети Wi-Fi",
+      "description": "Почему локальное обнаружение устройств не выходит за пределы подсети и какие инструменты для буфера обмена работают между устройствами в разных сетях.",
+      "inLanguage": "ru",
+      "datePublished": "2026-08-07",
+      "dateModified": "2026-08-07",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/ru/clipboard-sync-different-networks/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/ru/" },
+        { "@type": "ListItem", "position": 2, "name": "Между разными сетями" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/faq.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/ru/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Открыть приложение</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Навигационная цепочка">
+        <a href="/ru/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Между разными сетями</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>Синхронизация буфера обмена между разными сетями</h1>
+
+        <p class="lede">
+          <b>Почти ни один инструмент для буфера обмена или обмена файлами так не
+          умеет, и причина в том, что устройства находят друг друга криком по
+          локальной сети.</b> Широковещание не выходит за пределы подсети, поэтому
+          телефон на мобильном интернете невидим для ноутбука в домашней сети
+          Wi-Fi, что бы вы ни меняли. Чтобы синхронизировать между сетями, нужен
+          инструмент, который вместо этого встречается посередине, по известному
+          адресу — так и работает буфер обмена в браузере.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2>Откуда взялось ограничение «одна и та же Wi-Fi»</h2>
+
+        <p>
+          AirDrop, LocalSend, KDE Connect и первый Snapdrop внутри устроены
+          одинаково. Когда вы их открываете, каждое устройство рассылает сообщение
+          об обнаружении на все адреса своего сегмента сети — mDNS,
+          широковещание UDP или Bluetooth, смотря какой инструмент, — и слушает
+          ответы. Кто откликнулся, тот и появляется в списке.
+        </p>
+
+        <p>
+          Именно этот подход избавляет их от учётных записей и настройки: никому
+          не нужно объяснять, где кто находится. И ровно он же останавливает их на
+          границе сети. Маршрутизаторы не пропускают широковещательный трафик
+          между подсетями, поэтому два устройства в разных сетях друг друга просто
+          не слышат. Чинить нечего, порт открывать не нужно, никакой настройки вы
+          не пропустили — механизм работает ровно так, как задуман.
+        </p>
+
+        <p>
+          На это натыкаются три обычные ситуации, и ни одна из них не поломка:
+        </p>
+
+        <ul>
+          <li><b>Телефон на мобильном интернете, ноутбук в Wi-Fi.</b> Разные сети, даже когда устройства лежат вплотную.</li>
+          <li><b>Офисная или университетская сеть Wi-Fi с изоляцией клиентов.</b> Устройства в одной сети, но намеренно отгорожены друг от друга, и в гостевых и корпоративных сетях это мера безопасности.</li>
+          <li><b>Действительно далеко</b> — дом и работа или два разных города.</li>
+        </ul>
+
+        <h2>Что работает вместо этого</h2>
+
+        <p>
+          Другой путь — оба устройства соединяются наружу с одним и тем же
+          известным адресом, и там их знакомят. Ни одному не нужно искать другое,
+          поэтому нет никакой разницы, стоят они в одной комнате или на
+          противоположных концах света. Плата за это в том, что теперь посередине
+          есть нечто, знающее, что эти двое разговаривают, — и главным становится
+          вопрос, <em>что это нечто видит</em>.
+        </p>
+
+        <div class="tablewrap" tabindex="0" role="region"
+             aria-label="Какие инструменты работают между сетями — прокручивается по горизонтали">
+          <table class="cmp">
+            <caption class="sr-only">
+              Инструменты для буфера обмена и передачи файлов в сравнении:
+              работают ли они между разными сетями, как устройства находят друг
+              друга и попадает ли содержимое в системный буфер обмена.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Инструмент</th>
+                <th scope="col">Между сетями</th>
+                <th scope="col">Как устройства находят друг друга</th>
+                <th scope="col">Системный буфер обмена</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="me">
+                <th scope="row">RealtimeClipboard</th>
+                <td class="y">Да</td>
+                <td>Короткий ключ, введённый на обоих</td>
+                <td class="y">Да</td>
+              </tr>
+              <tr>
+                <th scope="row">PairDrop</th>
+                <td class="y">Да</td>
+                <td>Код связывания из 6 цифр</td>
+                <td class="n">Текст приходит сообщением</td>
+              </tr>
+              <tr>
+                <th scope="row">Синхронизация Windows</th>
+                <td class="y">Да</td>
+                <td>Учётная запись Microsoft</td>
+                <td class="y">Да, только между Windows</td>
+              </tr>
+              <tr>
+                <th scope="row">Универсальный буфер обмена Apple</th>
+                <td class="n">Нет</td>
+                <td>Bluetooth + Handoff, в радиусе действия</td>
+                <td class="y">Да, только устройства Apple</td>
+              </tr>
+              <tr>
+                <th scope="row">KDE Connect</th>
+                <td class="n">Нет</td>
+                <td>Локальное обнаружение</td>
+                <td class="y">Да</td>
+              </tr>
+              <tr>
+                <th scope="row">LocalSend / Snapdrop</th>
+                <td class="n">Нет</td>
+                <td>Локальное обнаружение</td>
+                <td class="n">Нет</td>
+              </tr>
+              <tr>
+                <th scope="row">AirDrop</th>
+                <td class="n">Нет</td>
+                <td>Bluetooth + прямое соединение по Wi-Fi</td>
+                <td class="n">Нет</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          Все три, что работают между сетями, просят что-то взамен.
+          Синхронизация Windows требует учётной записи Microsoft на обеих машинах
+          и говорит только с другими компьютерами на Windows. PairDrop обходится
+          без учётной записи и работает на любой платформе, но присылает текст
+          сообщением, а не кладёт его в ваш буфер обмена. Третий путь — буфер
+          обмена в браузере, и о нём вся остальная часть этой страницы.
+        </p>
+
+        <h2>Синхронизация без учётной записи, между любыми двумя сетями</h2>
+
+        <ol class="steps">
+          <li>Откройте буфер обмена на первом устройстве. Он выдаст короткий ключ.</li>
+          <li>Введите этот ключ на втором устройстве или отсканируйте QR-код.</li>
+          <li>Скопируйте что-нибудь на любом из двух.</li>
+          <li>Перейдите на другое и вставьте. Оно уже в системном буфере обмена.</li>
+        </ol>
+
+        <p>
+          Обнаружение заменяет именно ключ. Оба устройства соединяются наружу с
+          одним и тем же ретранслятором и просят комнату, которой принадлежит этот
+          ключ, — и находят друг друга, при этом ни одному не нужно знать, где
+          другое. Домашняя сеть Wi-Fi и мобильный интернет, ноутбук и телефон,
+          работа и дом — всё это один и тот же случай.
+        </p>
+
+        <h2>Что видит сервер посередине</h2>
+
+        <p>
+          Об этом стоит сказать конкретно, потому что «это идёт через сервер» и
+          есть настоящая цена работы между сетями, а её обычно оставляют в тумане.
+        </p>
+
+        <p>
+          Текст шифруется в вашем браузере алгоритмом AES-GCM <em>до</em>
+          отправки. Ретранслятор адресуется по <code>SHA-256(ключ)</code>, а не по
+          самому ключу, поэтому он может доставить ваши сообщения в нужную
+          комнату, ни разу не получив ключа, которым их читают. На диске он не
+          хранит ничего: сообщения живут ровно столько, сколько нужно, чтобы их
+          переслать. Файлы обходят его целиком и идут напрямую между двумя
+          браузерами по WebRTC.
+        </p>
+
+        <p>
+          Видит он вот что: <em>какая-то</em> комната была активна в какой-то
+          момент, и IP-адреса двух соединений. Ему никогда не достаются ни ваш
+          ключ, ни ваш текст, ни имена ваших файлов, ни то, кто вы такой.
+          Идентификатор комнаты растягивается теми же 250 000 итерациями, что и
+          ключ шифрования, так что дёшево вывести из него ваш ключ не выйдет —
+          цифры показывает <a href="/docs/THREAT-MODEL.md">модель угроз</a>.
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">Код под лицензией MIT</a>,
+          а ретранслятор — небольшой сервис на Python, который читается за один
+          присест; и если верить кому-то на слово не хочется,
+          <a href="/ru/help/install/relay/">можно поднять свой</a> и направить
+          приложение на него.
+        </p>
+
+        <div class="honest">
+          <h3>Что стоит знать, прежде чем на это полагаться</h3>
+          <dl class="caveats">
+            <div>
+              <dt>Ключ и есть пароль</dt>
+              <dd>Кто его узнал, тот прочитает эту сессию, пока она открыта. Относитесь к нему как к паролю.</dd>
+            </div>
+            <div>
+              <dt>Автоматический захват требует Chromium</dt>
+              <dd>Firefox и Safari умеют отправлять и принимать вставленный текст, но сами буфер обмена не читают.</dd>
+            </div>
+            <div>
+              <dt>Чтение в фоне невозможно</dt>
+              <dd>Ни один браузер не читает буфер обмена, пока его вкладка в фоне. Вы переключаетесь на вкладку, и она забирает то, что вы скопировали.</dd>
+            </div>
+            <div>
+              <dt>Файлы ограничены 5&nbsp;МБ</dt>
+              <dd>Для чего-то большего правильный выбор — отдельный инструмент для передачи файлов.</dd>
+            </div>
+          </dl>
+        </div>
+
+        <p>
+          <a class="btn" href="/app.html">Открыть буфер обмена</a>
+        </p>
+      </div>
+
+      <div class="faq" id="faq">
+        <div class="faqhead">
+          <h2>Частые вопросы</h2>
+          <button type="button" class="faqall" id="faqAll"
+                  aria-expanded="false" aria-controls="faq" hidden>
+            <span class="faqall-i" aria-hidden="true"></span>
+            <span class="faqall-t">Развернуть всё</span>
+          </button>
+        </div>
+
+        <details class="qa">
+          <summary><h3>Можно ли синхронизировать буфер обмена между устройствами в разных сетях Wi-Fi?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Да, но не инструментами, которые полагаются на локальное обнаружение.
+            AirDrop, LocalSend, KDE Connect и Snapdrop находят устройства
+            широковещанием по локальной сети, а оно не проходит через
+            маршрутизатор. Буфер обмена в браузере работает иначе: оба устройства
+            соединяются наружу с одним и тем же ретранслятором по общему ключу, и
+            то, в каких они сетях, перестаёт иметь значение.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Почему телефон не видит ноутбук на мобильном интернете?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Потому что они в двух разных сетях. Локальное обнаружение достаёт
+            только до устройств того же сегмента сети, а телефон на сотовой связи
+            находится в совершенно отдельном от ноутбука в Wi-Fi, даже если они
+            лежат рядом. Включить на телефоне Wi-Fi и подключиться к той же сети —
+            для тех инструментов это и есть решение; во всех остальных случаях
+            нужен инструмент, который на обнаружение не полагается вовсе.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Работает ли это в гостевой или офисной сети Wi-Fi?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Инструменты с локальным обнаружением обычно нет. В гостевых и
+            корпоративных сетях часто включена изоляция клиентов: она не даёт
+            устройствам одной сети общаться напрямую — намеренно, как мера
+            безопасности. Буферу обмена в браузере это не мешает, потому что
+            каждое устройство лишь открывает обычное исходящее соединение по
+            HTTPS, а не пытается дотянуться до другого устройства.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Видит ли сервер то, что я копирую?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Нет. Текст шифруется в браузере до отправки, а ретранслятор адресуется
+            хешем вашего ключа, а не самим ключом, поэтому он может переслать
+            сообщение, но не может его расшифровать. На диск он ничего не пишет.
+            Файлы через него вообще не проходят — они идут напрямую между двумя
+            браузерами по WebRTC.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Поможет ли VPN заставить локальные инструменты работать между сетями?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Иногда, и возни с этим больше, чем кажется. Ячеистая VPN вроде
+            Tailscale или ZeroTier помещает оба устройства в одну виртуальную
+            сеть, и локальное обнаружение может ожить — но некоторые инструменты
+            рассчитывают на широковещательный трафик, который такие VPN по
+            умолчанию не пересылают, так что всё зависит от инструмента. К тому же
+            придётся ставить и настраивать программу на обоих устройствах, а
+            именно этого большинство и хотело избежать.
+            </p>
+          </div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Открытый исходный код — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/clipboard-sync-different-networks/">English</a> · <a href="/es/clipboard-sync-different-networks/">Español</a> · <a href="/pt/clipboard-sync-different-networks/">Português</a> · <a href="/ru/clipboard-sync-different-networks/">Русский</a> · <a href="/zh/clipboard-sync-different-networks/">中文</a></p>
+      <p><a href="/ru/">Главная</a> · <a href="/ru/download/">Загрузки</a> · <a href="/ru/help/">Помощь</a> · <a href="/ru/about/">О проекте</a> · <a href="/privacy/">Конфиденциальность</a> · <a href="/terms/">Условия</a></p>
+      <p>Сессии хранятся в памяти и никогда не пишутся на диск. Содержимое буфера обмена шифруется в вашем браузере до отправки.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

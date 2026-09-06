@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Every id is a deep-link target used from other pages (#install, #why, #check,
+  #first, #trouble, #remove) and is byte-identical to /help/install/iphone/.
+  The #i-apple symbol in the h1 comes from the sprite the template lifts from
+  the English original.
+
+  iOS menu items use the wording Apple actually ships in Spanish, because the
+  reader is hunting for that exact string on screen: Compartir, Añadir a
+  pantalla de inicio, Añadir, Editar acciones, and Ajustes → Safari → Avanzado →
+  Datos de sitios web. Ajustes rather than Configuración is what iOS calls its
+  settings app. The share-sheet label matches /es/download/.
+
+  The code span keeps T1 · paste only exactly as the English has it: it is a
+  literal status line the reader compares against their screen, and the block
+  carries a copy button.
+
+  "Móvil" and "ordenador" throughout, as in the other es pages.
+
+  Terminology follows /es/: portapapeles en línea, clave corta, cifrado de
+  extremo a extremo, instalación, desinstalar, pantalla de inicio.
+-->
+
+<title>Añade RealtimeClipboard a la pantalla de inicio del iPhone</title>
+<meta name="description" content="Añádelo desde el menú Compartir de Safari — Chrome y Firefox en iOS no pueden. Por qué iOS nunca ha permitido leer el portapapeles en segundo plano.">
+<link rel="canonical" href="https://realtimeclipboard.com/es/help/install/iphone/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/install/iphone/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/install/iphone/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/install/iphone/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/install/iphone/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/install/iphone/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/install/iphone/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="es_ES">
+<meta property="og:title" content="RealtimeClipboard en iPhone y iPad">
+<meta property="og:description" content="El menú Compartir de Safari es todo el mecanismo. Por qué no hay aplicación en la App Store ni aviso de instalación que esperar.">
+<meta property="og:url" content="https://realtimeclipboard.com/es/help/install/iphone/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/es/help/install/iphone/#article",
+      "headline": "Añade RealtimeClipboard a la pantalla de inicio del iPhone o del iPad",
+      "description": "Añádelo desde el menú Compartir de Safari — Chrome y Firefox en iOS no pueden. Por qué iOS nunca ha permitido leer el portapapeles en segundo plano, y qué es el aviso de pegado.",
+      "inLanguage": "es",
+      "datePublished": "",
+      "dateModified": "",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/es/help/install/iphone/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/es/" },
+        { "@type": "ListItem", "position": 2, "name": "Instalación en iPhone" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/copy.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/es/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir la aplicación</a>
+    </div>
+  </div>
+</header>
+
+<svg class="icons" aria-hidden="true">
+  <symbol id="i-apple" viewBox="0 0 24 24"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></symbol>
+</svg>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Ruta de navegación">
+        <a href="/es/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Instalación en iPhone</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1><svg class="brandmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-apple"/></svg> Instalación en iPhone y iPad</h1>
+
+        <p class="lede">
+          Nada que descargar, y un detalle que pilla a casi todo el mundo: tiene
+          que ser Safari, y el menú Compartir es todo el mecanismo. No va a aparecer
+          ningún aviso, por mucho que esperes.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2 id="install">Instálalo</h2>
+        <ol class="steps">
+          <li>Abre <a href="/app.html">la aplicación</a> en <b>Safari</b>.</li>
+          <li>Toca <b>Compartir</b> <span aria-hidden="true">↑</span> en la barra de herramientas.</li>
+          <li>Baja y toca <b>Añadir a pantalla de inicio</b>, y luego <b>Añadir</b>.</li>
+        </ol>
+        <p class="honest">
+          <b>Chrome y Firefox en iOS no pueden instalar una aplicación web.</b> Los
+          dos son el motor de Safari con otra carcasa, y Apple no les expone la
+          instalación en la pantalla de inicio. Si <b>Añadir a pantalla de inicio</b>
+          no está en tu menú de compartir, eso indica en qué navegador estás — no es
+          un ajuste, ni algo que la página pueda cambiar.
+        </p>
+
+        <h2 id="why">Por qué no hay aplicación en la App Store</h2>
+        <p>
+          <b>iOS no ha permitido nunca que una aplicación lea el portapapeles en
+          segundo plano</b> y, desde iOS 16, enseña un aviso cada vez que cualquier
+          aplicación lo lee. Las dos cosas son decisiones de Apple, se aplican a
+          todas las aplicaciones de la plataforma, y no hay permiso que las
+          desactive.
+        </p>
+        <p>
+          Una aplicación nativa de RealtimeClipboard añadiría, por tanto, un botón en
+          el menú de compartir y una ficha en la tienda a lo que la aplicación web
+          instalada ya hace, y nada más. Eso no basta para justificar pedirte que
+          confíes en un segundo binario.
+        </p>
+        <p>
+          El aviso de pegado que verás — «RealtimeClipboard pegó de…» — es iOS
+          contándote la verdad sobre lo que acaba de pasar. Sale porque le has pedido
+          a la aplicación que lea el portapapeles, y ninguna aplicación puede
+          silenciarlo.
+        </p>
+
+        <h2 id="check">Comprueba que ha funcionado</h2>
+        <ul class="sq-list">
+          <li><b>Se abre sin la barra de Safari</b> — a pantalla completa, con su
+            propia ventana en el selector de aplicaciones.</li>
+          <li><b>La barra de estado pone <code>T1 · paste only</code></b>, que es lo
+            correcto en iOS y es el techo para cualquier aplicación.</li>
+          <li>Se abre sin conexión de red, mostrando tu historial ya existente.</li>
+        </ul>
+
+        <h2 id="first">Tu primera sincronización</h2>
+        <ol class="steps">
+          <li>Abre la aplicación en el ordenador y apunta la clave corta.</li>
+          <li>Escribe la misma clave en el iPhone.</li>
+          <li>Copia algo en el ordenador. Aparece en el móvil sin hacer nada más.</li>
+          <li>En el otro sentido: copia en el móvil, abre RealtimeClipboard, toca el
+            editor y elige <b>Pegar</b>. iOS enseñará su aviso; es lo esperado.</li>
+        </ol>
+
+        <h2 id="trouble">Cuando no funciona</h2>
+
+        <h3>«Añadir a pantalla de inicio» no está en el menú de compartir</h3>
+        <p>
+          O no estás en Safari, o la opción está más abajo en la lista de lo que
+          parece — desplaza la sección de abajo. También puedes recuperarla desde
+          <b>Editar acciones</b> si la has ocultado.
+        </p>
+
+        <h3>No ha aparecido ningún aviso de instalación</h3>
+        <p>
+          No hay ninguno. iOS no enseña aviso de instalación para ninguna aplicación
+          web, nunca. Si estás esperando uno, el menú Compartir es lo que estás
+          esperando.
+        </p>
+
+        <h3>No deja de salir el aviso de pegado</h3>
+        <p>
+          Es iOS 16 y posteriores informando de cada lectura del portapapeles, la
+          haga la aplicación que la haga. No se puede apagar desde dentro de una
+          aplicación, y que salga significa que la lectura ha funcionado.
+        </p>
+
+        <h3>No llega nada con la aplicación cerrada</h3>
+        <p>
+          Una aplicación web no está en marcha mientras no la estás mirando. Recoge
+          lo que hay esperando en cuanto la abres; no se pierde nada.
+        </p>
+
+        <h2 id="remove">Desinstalar</h2>
+        <p>
+          Mantén pulsado el icono y bórrala. Su almacenamiento se va con ella. La
+          copia propia de los datos del sitio que guarda Safari se limpia en
+          <b>Ajustes → Safari → Avanzado → Datos de sitios web</b>.
+        </p>
+
+        <p class="hint">
+          Todas las demás plataformas: <a href="/es/help/install/">la guía de
+          instalación</a>. Si lo que buscabas en realidad era sincronizar el
+          portapapeles entre el iPhone y el Mac,
+          <a href="/es/help/clipboard-sync-not-working/">eso es otra cosa y está
+          aquí</a>. ¿Algo mal o desactualizado?
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">Abre una issue</a>.
+        </p>
+      </div>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código abierto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/install/iphone/">English</a> · <a href="/es/help/install/iphone/">Español</a> · <a href="/pt/help/install/iphone/">Português</a> · <a href="/ru/help/install/iphone/">Русский</a> · <a href="/zh/help/install/iphone/">中文</a></p>
+      <p><a href="/es/">Inicio</a> · <a href="/es/download/">Descargas</a> · <a href="/es/help/">Ayuda</a> · <a href="/es/about/">Acerca de</a> · <a href="/privacy/">Privacidad</a> · <a href="/terms/">Términos</a></p>
+      <p>Las sesiones se mantienen en memoria y nunca se escriben en disco. El contenido del portapapeles se cifra en tu navegador antes de enviarse.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+The Russian reader arrives at this query with the same complaint as the
+  English one: something about Snapdrop changed. The page therefore keeps the
+  English running order — what happened first, the replacement list second —
+  because leading with our own product to someone in that state reads as the
+  thing that ruined it. PairDrop stays recommended above us for file transfer,
+  honestly, since it is better at that job and takes thirty seconds to verify.
+
+  Terminology follows /ru/: буфер обмена, ключ, ретранслятор, сквозное
+  шифрование, локальное обнаружение, подсеть, одноранговый. Fixed on this page:
+  P2P is одноранговый rather than the Latin acronym, and подсеть replaces the
+  looser «локальная сеть» in the one sentence explaining why the local tools
+  cannot cross — that is the distinction the reader is actually asking about.
+-->
+
+<title>Альтернатива Snapdrop — 5 рабочих вариантов</title>
+<meta name="description" content="Snapdrop уже не тот. PairDrop, LocalSend и RealtimeClipboard в сравнении: учётная запись, установка, разные сети и буфер обмена. Всё бесплатно.">
+<link rel="canonical" href="https://realtimeclipboard.com/ru/snapdrop-alternative/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/snapdrop-alternative/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/snapdrop-alternative/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/snapdrop-alternative/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/snapdrop-alternative/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/snapdrop-alternative/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/snapdrop-alternative/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="Альтернатива Snapdrop — 5 рабочих вариантов в 2026 году">
+<meta property="og:description" content="Что случилось со Snapdrop и какие открытые проекты его заменяют — сравнение по учётной записи, установке, работе между сетями и буферу обмена.">
+<meta property="og:url" content="https://realtimeclipboard.com/ru/snapdrop-alternative/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/ru/snapdrop-alternative/#article",
+      "headline": "Альтернативы Snapdrop, которые работают в 2026 году",
+      "description": "Что изменилось в Snapdrop и чем его заменить: открытые проекты в сравнении по учётной записи, установке, работе между разными сетями и работе с буфером обмена.",
+      "inLanguage": "ru",
+      "datePublished": "2026-08-07",
+      "dateModified": "2026-08-07",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/ru/snapdrop-alternative/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/ru/" },
+        { "@type": "ListItem", "position": 2, "name": "Альтернатива Snapdrop" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/faq.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/ru/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Открыть приложение</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Навигационная цепочка">
+        <a href="/ru/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Альтернатива Snapdrop</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>Альтернативы Snapdrop, которые всё ещё работают</h1>
+
+        <p class="lede">
+          <b>Прямая замена — <a href="https://pairdrop.net/">PairDrop</a></b>:
+          это форк исходного кода самого Snapdrop, сделанный сообществом. Он
+          работает так же, как работал Snapdrop, и, в отличие от оригинала,
+          связывает устройства даже <b>в разных сетях</b>. А если вам на самом деле
+          нужно копировать и вставлять, а не отправлять файлы, браузерный буфер
+          обмена вроде этого подойдёт лучше, чем оба.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2>Что случилось со Snapdrop</h2>
+
+        <p>
+          Snapdrop был одностраничным сайтом Робина Линуса: открываете его на двух
+          устройствах в одной сети Wi-Fi, они видят друг друга, вы перетаскиваете
+          файл. Ни учётной записи, ни приложения, ни настройки. Он работал
+          настолько хорошо, что годами оставался ответом по умолчанию.
+        </p>
+
+        <p>
+          Исходный проект по-прежнему лежит на GitHub под открытой лицензией, но
+          домен <code>snapdrop.net</code> сменил владельца, и сайт, который отвечает
+          там сейчас, ведут коммерчески, а не силами автора. Давние пользователи
+          заметили перемену в поведении раньше, чем смену владельца, — поэтому на
+          эту страницу почти все приходят с описанием симптома, а не причины.
+        </p>
+
+        <p>
+          Впрочем, ничего дальше от этой истории не зависит. Каждый вариант ниже
+          бесплатен и открыт, и любое утверждение можно проверить по его
+          собственному репозиторию — а это как раз то, что важно, когда инструмент,
+          на который вы полагаетесь, тихо становится другим инструментом.
+        </p>
+
+        <h2>Альтернативы в сравнении</h2>
+
+        <div class="tablewrap" tabindex="0" role="region"
+             aria-label="Сравнение альтернатив Snapdrop — прокручивается по горизонтали">
+          <table class="cmp">
+            <caption class="sr-only">
+              PairDrop, LocalSend, RealtimeClipboard, Wormhole и KDE Connect в
+              сравнении: нужна ли учётная запись, нужна ли установка, работают ли
+              между разными сетями, берут ли на себя системный буфер обмена и каков
+              предел размера файла.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Инструмент</th>
+                <th scope="col">Учётная запись</th>
+                <th scope="col">Установка</th>
+                <th scope="col">Между сетями</th>
+                <th scope="col">Буфер обмена</th>
+                <th scope="col">Файлы</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">PairDrop</th>
+                <td class="y">Не нужна</td>
+                <td class="y">Не нужна — браузер</td>
+                <td class="y">Да — код из 6 цифр</td>
+                <td class="n">Текст приходит сообщением</td>
+                <td class="y">Одноранговый, без жёсткого предела</td>
+              </tr>
+              <tr>
+                <th scope="row">LocalSend</th>
+                <td class="y">Не нужна</td>
+                <td class="n">Приложение на каждом устройстве</td>
+                <td class="n">Только одна сеть</td>
+                <td class="n">Нет</td>
+                <td class="y">Напрямую, без предела</td>
+              </tr>
+              <tr class="me">
+                <th scope="row">RealtimeClipboard</th>
+                <td class="y">Не нужна</td>
+                <td class="y">Не нужна — браузер</td>
+                <td class="y">Да — короткий ключ</td>
+                <td class="y">Попадает в системный буфер обмена</td>
+                <td>Одноранговый, 5&nbsp;МБ</td>
+              </tr>
+              <tr>
+                <th scope="row">Wormhole</th>
+                <td class="y">Не нужна</td>
+                <td class="y">Не нужна — браузер</td>
+                <td class="y">Да — ссылка</td>
+                <td class="n">Нет</td>
+                <td>До 5&nbsp;ГБ</td>
+              </tr>
+              <tr>
+                <th scope="row">KDE Connect</th>
+                <td class="y">Не нужна</td>
+                <td class="n">Приложение на каждом устройстве</td>
+                <td class="n">Только одна сеть</td>
+                <td class="y">Да</td>
+                <td class="y">Напрямую, без предела</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Что выбрать</h2>
+
+        <p>
+          <b>Передать большой файл тому, кто сидит рядом</b> — LocalSend. Это
+          нативное приложение, а не веб-страница, поэтому браузерные ограничения ему
+          не мешают, и в локальной сети он самый надёжный из всех.
+        </p>
+
+        <p>
+          <b>Тот же порядок действий, что у Snapdrop, и прямо в браузере</b> —
+          PairDrop. Интерфейс той же родословной, по-прежнему бесплатно, а код
+          сопряжения из шести цифр означает, что двум устройствам больше не нужно
+          быть в одной сети Wi-Fi. Это прямая замена.
+        </p>
+
+        <p>
+          <b>Перекладывать текст, ссылки, коды и пароли между своими же
+          устройствами</b> — вот здесь все файловые инструменты становятся
+          неудобными. PairDrop умеет отправлять текст, но приходит он сообщением,
+          которое ещё нужно выделить и скопировать руками. Большинству же нужно,
+          чтобы на той стороне текст уже был <em>в буфере обмена</em> и его
+          оставалось только вставить.
+        </p>
+
+        <div class="honest">
+          <h3>Где RealtimeClipboard уместен, а где нет</h3>
+          <dl class="caveats">
+            <div>
+              <dt>Это буфер обмена, а не сообщение</dt>
+              <dd>Скопировали на одном устройстве, перешли на другое, вставили. Выделять нечего.</dd>
+            </div>
+            <div>
+              <dt>Разные сети не помеха</dt>
+              <dd>Из домашнего Wi-Fi в мобильный интернет работает. Устройствам не нужно быть рядом.</dd>
+            </div>
+            <div>
+              <dt>Файлы ограничены 5&nbsp;МБ</dt>
+              <dd>Если вы переносите видео, возьмите LocalSend или PairDrop. Это не тот инструмент.</dd>
+            </div>
+            <div>
+              <dt>Автоматический захват требует Chromium</dt>
+              <dd>Firefox и Safari умеют отправлять и принимать вставленный текст, но сами буфер обмена не читают.</dd>
+            </div>
+            <div>
+              <dt>Ключ и есть пароль</dt>
+              <dd>Кто его узнал, тот прочитает эту сессию. Для чувствительного закройте её PIN-кодом.</dd>
+            </div>
+          </dl>
+        </div>
+
+        <h2>Как это работает, в три шага</h2>
+
+        <ol class="steps">
+          <li>Откройте на первом устройстве. Оно выдаст короткий ключ.</li>
+          <li>Введите этот ключ на втором устройстве или отсканируйте QR-код.</li>
+          <li>Скопируйте что угодно. Перейдите на другое устройство и вставьте — текст уже там.</li>
+        </ol>
+
+        <p>
+          Текст шифруется в вашем браузере алгоритмом AES-GCM ещё до отправки, а
+          ретранслятор маршрутизирует по хешу ключа, а не по самому ключу, так что у
+          сервера никогда нет ничего читаемого и он не хранит вообще ничего: это
+          настоящее сквозное шифрование. Файлы идут напрямую между двумя браузерами
+          по WebRTC, минуя его. Если вам привычнее прочитать код, чем поверить на
+          слово, —
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">исходники на GitHub</a>
+          под лицензией MIT.
+        </p>
+
+        <p>
+          <a class="btn" href="/app.html">Открыть буфер обмена</a>
+        </p>
+      </div>
+
+      <div class="faq" id="faq">
+        <div class="faqhead">
+          <h2>Частые вопросы</h2>
+          <button type="button" class="faqall" id="faqAll"
+                  aria-expanded="false" aria-controls="faq" hidden>
+            <span class="faqall-i" aria-hidden="true"></span>
+            <span class="faqall-t">Развернуть всё</span>
+          </button>
+        </div>
+
+        <details class="qa">
+          <summary><h3>Безопасно ли до сих пор пользоваться Snapdrop?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Исходный открытый код не изменился, и развернуть его у себя по-прежнему
+            можно. Вопросы вызывает размещённый сайт на старом домене: сейчас его
+            ведут коммерчески, и не тот, кто его написал. Если нужно прежнее
+            поведение и живой проект сообщества за спиной, берите форк PairDrop.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>PairDrop и Snapdrop — это одно и то же?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            PairDrop начинался как форк Snapdrop и сохраняет ту же основную мысль:
+            открыть страницу на двух устройствах и передавать между ними без учётной
+            записи. К этому добавлены сопряжение по коду из шести цифр и публичные
+            комнаты — именно они позволяют работать между устройствами в разных
+            сетях. Сам Snapdrop всегда полагался только на локальное обнаружение.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Какая альтернатива Snapdrop лучше для текста, а не для файлов?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Онлайн-буфер обмена, а не инструмент передачи файлов. Разница в том, где
+            текст оказывается в итоге: инструмент передачи отдаёт его сообщением,
+            которое приходится копировать вручную, а онлайн-буфер обмена кладёт его
+            в системный буфер обмена принимающего устройства, и вы вставляете текст
+            прямо туда, где работали. Это и делает
+            <a href="/ru/">RealtimeClipboard</a>.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Работает ли что-нибудь из этого между разными сетями Wi-Fi?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            PairDrop, Wormhole и RealtimeClipboard работают. LocalSend, KDE Connect и
+            оригинальный Snapdrop по замыслу ограничены устройствами в одной
+            локальной сети — они находят друг друга широковещательными запросами
+            внутри общей подсети. Подробнее об этом —
+            <a href="/ru/clipboard-sync-different-networks/">синхронизация буфера
+            обмена между разными сетями</a>.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Всё это бесплатно и нужна ли учётная запись?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Каждый инструмент из таблицы выше бесплатен и не требует учётной записи.
+            PairDrop, LocalSend, KDE Connect и RealtimeClipboard открыты, так что при
+            желании их можно поднять у себя и не зависеть от того, останется ли чужой
+            сервер прежним.
+            </p>
+          </div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Открытый исходный код — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/snapdrop-alternative/">English</a> · <a href="/es/snapdrop-alternative/">Español</a> · <a href="/pt/snapdrop-alternative/">Português</a> · <a href="/ru/snapdrop-alternative/">Русский</a> · <a href="/zh/snapdrop-alternative/">中文</a></p>
+      <p><a href="/ru/">Главная</a> · <a href="/ru/download/">Загрузки</a> · <a href="/ru/help/">Помощь</a> · <a href="/ru/about/">О проекте</a> · <a href="/privacy/">Конфиденциальность</a> · <a href="/terms/">Условия</a></p>
+      <p>Сессии хранятся в памяти и никогда не пишутся на диск. Содержимое буфера обмена шифруется в вашем браузере до отправки.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

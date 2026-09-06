@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+A diagnostic page rather than a definitional one, so it earns the click and
+  not only the citation. The table translates directly: the tools are the same
+  everywhere, and which of them crosses a subnet is a fact rather than a
+  phrasing.
+
+  "4G" replaces "mobile data" throughout, which is how a Brazilian reader
+  actually names it.
+
+  Terminology follows /pt/: área de transferência, chave curta, retransmissor,
+  descoberta local, sub-rede.
+-->
+
+<title>Sincronizar a área de transferência entre redes diferentes</title>
+<meta name="description" content="Quase toda ferramenta exige um mesmo Wi-Fi, porque a descoberta é um broadcast local. Como sincronizar entre dispositivos em redes diferentes.">
+<link rel="canonical" href="https://realtimeclipboard.com/pt/clipboard-sync-different-networks/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/clipboard-sync-different-networks/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/clipboard-sync-different-networks/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/clipboard-sync-different-networks/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/clipboard-sync-different-networks/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/clipboard-sync-different-networks/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/clipboard-sync-different-networks/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="Área de transferência entre redes diferentes — sem o mesmo Wi-Fi">
+<meta property="og:description" content="Por que quase toda ferramenta de área de transferência exige uma única rede Wi-Fi, e como sincronizar entre dispositivos que estão longe um do outro.">
+<meta property="og:url" content="https://realtimeclipboard.com/pt/clipboard-sync-different-networks/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/pt/clipboard-sync-different-networks/#article",
+      "headline": "Sincronização da área de transferência entre redes diferentes, sem o mesmo Wi-Fi",
+      "description": "Por que a descoberta local de dispositivos não atravessa uma sub-rede, e quais ferramentas de área de transferência funcionam entre dispositivos em redes diferentes.",
+      "inLanguage": "pt-BR",
+      "datePublished": "2026-08-07",
+      "dateModified": "2026-08-07",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/pt/clipboard-sync-different-networks/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/pt/" },
+        { "@type": "ListItem", "position": 2, "name": "Entre redes diferentes" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/faq.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/pt/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir o aplicativo</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Trilha de navegação">
+        <a href="/pt/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Entre redes diferentes</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>Sincronização da área de transferência entre redes diferentes</h1>
+
+        <p class="lede">
+          <b>Quase nenhuma ferramenta de área de transferência ou de
+          compartilhamento consegue fazer isso, e o motivo é que elas se encontram
+          gritando na rede local.</b> Um broadcast não sai da sub-rede, então um
+          celular no 4G é invisível para um notebook no Wi-Fi de casa, não importa
+          o que você mude. Para sincronizar entre redes você precisa de uma
+          ferramenta que se encontre no meio do caminho, num endereço conhecido —
+          que é o que uma área de transferência no navegador faz.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2>De onde vem o limite do mesmo Wi-Fi</h2>
+
+        <p>
+          AirDrop, LocalSend, KDE Connect e o Snapdrop original funcionam do mesmo
+          jeito por baixo. Quando você os abre, cada dispositivo manda uma mensagem
+          de descoberta para todos os endereços do seu próprio segmento de rede —
+          mDNS, broadcast UDP ou Bluetooth, conforme a ferramenta — e fica ouvindo
+          as respostas. O que responder, aparece na lista.
+        </p>
+
+        <p>
+          É esse desenho que dispensa conta e configuração: ninguém precisa ser
+          avisado de onde alguém está. E é exatamente ele que faz tudo parar na
+          borda da rede. Roteadores não encaminham tráfego de broadcast entre
+          sub-redes, então dois dispositivos em redes diferentes nunca ouvem um ao
+          outro. Não há nada para consertar, nenhuma porta para abrir, nenhum
+          ajuste que você tenha deixado passar — é o mecanismo funcionando como foi
+          projetado.
+        </p>
+
+        <p>
+          Três situações comuns esbarram nisso, e nenhuma delas é defeito:
+        </p>
+
+        <ul>
+          <li><b>Celular no 4G, notebook no Wi-Fi.</b> Redes diferentes mesmo com os aparelhos encostados um no outro.</li>
+          <li><b>Wi-Fi de escritório ou de campus com isolamento de clientes.</b> Os dispositivos estão numa rede só, mas deliberadamente separados uns dos outros, o que é uma medida de segurança em redes de visitantes e corporativas.</li>
+          <li><b>Realmente distantes</b> — casa e trabalho, ou duas cidades diferentes.</li>
+        </ul>
+
+        <h2>O que funciona no lugar disso</h2>
+
+        <p>
+          A alternativa é os dois dispositivos se conectarem para fora, ao mesmo
+          endereço conhecido, e serem apresentados ali. Nenhum precisa encontrar o
+          outro, então tanto faz se estão na mesma sala ou em lados opostos do
+          mundo. A troca é que agora existe algo no meio sabendo que os dois estão
+          conversando — e a pergunta que importa passa a ser <em>o que esse meio
+          consegue ver</em>.
+        </p>
+
+        <div class="tablewrap" tabindex="0" role="region"
+             aria-label="Quais ferramentas atravessam redes — rola na horizontal">
+          <table class="cmp">
+            <caption class="sr-only">
+              Ferramentas de área de transferência e de transferência comparadas
+              por funcionarem ou não entre redes diferentes, por como os
+              dispositivos se encontram e por o conteúdo cair ou não na área de
+              transferência do sistema.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Ferramenta</th>
+                <th scope="col">Entre redes</th>
+                <th scope="col">Como os dispositivos se encontram</th>
+                <th scope="col">Área de transferência do sistema</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="me">
+                <th scope="row">RealtimeClipboard</th>
+                <td class="y">Sim</td>
+                <td>Chave curta digitada nos dois</td>
+                <td class="y">Sim</td>
+              </tr>
+              <tr>
+                <th scope="row">PairDrop</th>
+                <td class="y">Sim</td>
+                <td>Código de pareamento de 6 dígitos</td>
+                <td class="n">O texto chega como mensagem</td>
+              </tr>
+              <tr>
+                <th scope="row">Sincronização do Windows</th>
+                <td class="y">Sim</td>
+                <td>Conta Microsoft</td>
+                <td class="y">Sim, só de Windows para Windows</td>
+              </tr>
+              <tr>
+                <th scope="row">Área de Transferência Universal da Apple</th>
+                <td class="n">Não</td>
+                <td>Bluetooth + Handoff, dentro do alcance</td>
+                <td class="y">Sim, só entre dispositivos Apple</td>
+              </tr>
+              <tr>
+                <th scope="row">KDE Connect</th>
+                <td class="n">Não</td>
+                <td>Descoberta na rede local</td>
+                <td class="y">Sim</td>
+              </tr>
+              <tr>
+                <th scope="row">LocalSend / Snapdrop</th>
+                <td class="n">Não</td>
+                <td>Descoberta na rede local</td>
+                <td class="n">Não</td>
+              </tr>
+              <tr>
+                <th scope="row">AirDrop</th>
+                <td class="n">Não</td>
+                <td>Bluetooth + Wi-Fi ponto a ponto</td>
+                <td class="n">Não</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          As três que atravessam redes cobram algo em troca. A sincronização do
+          Windows quer uma conta Microsoft nas duas máquinas e só conversa com
+          outros PCs com Windows. O PairDrop dispensa conta e é multiplataforma,
+          mas manda o texto como mensagem em vez de colocá-lo na sua área de
+          transferência. O terceiro caminho é uma área de transferência no
+          navegador, que é o que o resto desta página descreve.
+        </p>
+
+        <h2>Sincronizar sem conta, entre quaisquer duas redes</h2>
+
+        <ol class="steps">
+          <li>Abra a área de transferência no primeiro dispositivo. Ela gera uma chave curta.</li>
+          <li>Digite essa chave no segundo dispositivo, ou leia o QR code.</li>
+          <li>Copie alguma coisa em qualquer um dos dois.</li>
+          <li>Vá para o outro e cole. Já está na área de transferência do sistema.</li>
+        </ol>
+
+        <p>
+          A chave é o que substitui a descoberta. Os dois dispositivos se conectam
+          para fora, ao mesmo retransmissor, e pedem a sala que pertence àquela
+          chave, então se encontram sem que nenhum precise saber onde o outro está.
+          Wi-Fi de casa para 4G, notebook para celular, trabalho para casa — tudo o
+          mesmo caso.
+        </p>
+
+        <h2>O que o servidor no meio consegue ver</h2>
+
+        <p>
+          Esta é a parte que vale detalhar, porque "passa por um servidor" é o
+          custo real de atravessar redes e costuma ficar no vago.
+        </p>
+
+        <p>
+          O texto é criptografado no seu navegador com AES-GCM <em>antes</em> de
+          ser enviado. O retransmissor é endereçado por <code>SHA-256(chave)</code>
+          e não pela chave, então consegue encaminhar suas mensagens para a sala
+          certa sem nunca ter a chave necessária para lê-las. Ele não guarda nada em
+          disco: as mensagens existem só o tempo de serem repassadas. Arquivos
+          pulam o servidor inteiramente e vão direto entre os dois navegadores por
+          WebRTC.
+        </p>
+
+        <p>
+          O que ele vê é que <em>alguma</em> sala esteve ativa em algum momento, e
+          os endereços IP das duas conexões. Ele nunca recebe sua chave, seu texto,
+          seus nomes de arquivo nem quem você é. Esse identificador de sala passa
+          pelo mesmo alongamento de 250.000 iterações que a chave de criptografia,
+          então não dá para voltar dele até sua chave de forma barata — o
+          <a href="/docs/THREAT-MODEL.md">modelo de ameaças</a> mostra os números. O
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">código tem licença MIT</a>
+          e o retransmissor é um serviço em Python pequeno o bastante para ler de
+          uma sentada — e, se você prefere não acreditar na palavra de ninguém,
+          <a href="/pt/help/install/relay/">pode rodar o seu</a> e apontar o
+          aplicativo para ele.
+        </p>
+
+        <div class="honest">
+          <h3>Vale saber antes de depender disso</h3>
+          <dl class="caveats">
+            <div>
+              <dt>A chave é a senha</dt>
+              <dd>Quem descobrir a chave consegue ler aquela sessão enquanto ela estiver aberta. Trate-a como uma senha.</dd>
+            </div>
+            <div>
+              <dt>A captura automática exige Chromium</dt>
+              <dd>Firefox e Safari enviam e recebem o texto que você cola, mas não conseguem ler a área de transferência por conta própria.</dd>
+            </div>
+            <div>
+              <dt>Leitura em segundo plano não é possível</dt>
+              <dd>Nenhum navegador lê a área de transferência com a aba em segundo plano. Você volta para a aba e ela pega o que você copiou.</dd>
+            </div>
+            <div>
+              <dt>Arquivos são limitados a 5&nbsp;MB</dt>
+              <dd>Para qualquer coisa maior, uma ferramenta de transferência dedicada é a escolha certa.</dd>
+            </div>
+          </dl>
+        </div>
+
+        <p>
+          <a class="btn" href="/app.html">Abrir a área de transferência</a>
+        </p>
+      </div>
+
+      <div class="faq" id="faq">
+        <div class="faqhead">
+          <h2>Perguntas frequentes</h2>
+          <button type="button" class="faqall" id="faqAll"
+                  aria-expanded="false" aria-controls="faq" hidden>
+            <span class="faqall-i" aria-hidden="true"></span>
+            <span class="faqall-t">Expandir tudo</span>
+          </button>
+        </div>
+
+        <details class="qa">
+          <summary><h3>Dá para sincronizar entre dispositivos em redes Wi-Fi diferentes?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Dá, mas não com ferramentas que dependem de descoberta local. AirDrop,
+            LocalSend, KDE Connect e Snapdrop encontram dispositivos por broadcast
+            na rede local, e esse broadcast não atravessa um roteador. Uma área de
+            transferência no navegador funciona de outro jeito: os dois dispositivos
+            se conectam para fora, ao mesmo retransmissor, usando uma chave
+            compartilhada, então as redes em que estão deixam de importar.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Por que meu celular não enxerga o notebook quando está no 4G?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Porque estão em duas redes diferentes. A descoberta local só alcança
+            dispositivos no mesmo segmento de rede, e um celular no 4G está num
+            segmento completamente separado do notebook no Wi-Fi, mesmo com os dois
+            lado a lado. Ligar o Wi-Fi do celular e entrar na mesma rede resolve para
+            aquelas ferramentas; fora isso, é preciso algo que não dependa de
+            descoberta.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Funciona no Wi-Fi de visitantes ou do escritório?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Ferramentas de descoberta local costumam não funcionar. Redes de
+            visitantes e corporativas normalmente ativam o isolamento de clientes,
+            que impede dispositivos da mesma rede de falarem diretamente entre si —
+            de propósito, como medida de segurança. Uma área de transferência no
+            navegador não é afetada, porque cada dispositivo apenas abre uma conexão
+            HTTPS comum para fora, em vez de tentar alcançar o outro.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>O servidor vê o que eu copio?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Não. O texto é criptografado no navegador antes de ser enviado, e o
+            retransmissor é endereçado por um hash da sua chave, e não pela chave em
+            si, então consegue encaminhar a mensagem sem conseguir descriptografá-la.
+            Ele não guarda nada em disco. Arquivos não passam por ele — vão direto
+            entre os dois navegadores por WebRTC.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Uma VPN faz ferramentas de rede local funcionarem entre redes?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Às vezes, e dá mais trabalho do que parece. Uma VPN em malha como
+            Tailscale ou ZeroTier coloca os dois dispositivos numa mesma rede
+            virtual, o que pode devolver a descoberta local — mas algumas
+            ferramentas dependem de tráfego de broadcast que essas VPNs não
+            encaminham por padrão, então depende da ferramenta. Também significa
+            instalar e configurar software nos dois aparelhos, que era justamente o
+            que a maioria queria evitar.
+            </p>
+          </div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código aberto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/clipboard-sync-different-networks/">English</a> · <a href="/es/clipboard-sync-different-networks/">Español</a> · <a href="/pt/clipboard-sync-different-networks/">Português</a> · <a href="/ru/clipboard-sync-different-networks/">Русский</a> · <a href="/zh/clipboard-sync-different-networks/">中文</a></p>
+      <p><a href="/pt/">Início</a> · <a href="/pt/download/">Download</a> · <a href="/pt/help/">Ajuda</a> · <a href="/pt/about/">Sobre</a> · <a href="/privacy/">Privacidade</a> · <a href="/terms/">Termos</a></p>
+      <p>As sessões ficam em memória e nunca são gravadas em disco. O conteúdo da área de transferência é criptografado no seu navegador antes de ser enviado.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+The help hub, and it has two jobs pulling in different directions. For a
+  reader it is a contents page: short, and quick to leave. For a crawler it is
+  what makes every help page reachable in two hops from the homepage, which is
+  why it is a real page rather than a row of footer links.
+
+  Each entry carries a one line summary rather than a bare title, because the
+  summary is what tells a reader which page answers their question without
+  opening all of them. Keep the summaries; a list of bare titles here is a
+  directory, not a structure.
+
+  The last entry points at pages that sit at the site root, not under help:
+  they answer "which tool do I want" rather than "mine is broken". They are
+  listed anyway, because a page nothing links to is a page nothing crawls.
+
+  Terminology follows /pt/: área de transferência, chave curta, retransmissor,
+  criptografia de ponta a ponta, extensão, instalação.
+-->
+
+<title>Ajuda — guias e correções de sincronização</title>
+<meta name="description" content="Guias para a área de transferência funcionar entre seus dispositivos: por que a sincronização fica cinza no Windows e como copiar e colar no Android.">
+<link rel="canonical" href="https://realtimeclipboard.com/pt/help/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="Ajuda — guias e correções de sincronização">
+<meta property="og:description" content="Por que a sincronização da área de transferência fica cinza, e como copiar e colar entre dois dispositivos quaisquer.">
+<meta property="og:url" content="https://realtimeclipboard.com/pt/help/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/pt/help/#article",
+      "headline": "Ajuda — guias e correções de sincronização da área de transferência",
+      "description": "Guias para fazer a área de transferência funcionar entre os seus dispositivos.",
+      "inLanguage": "pt-BR",
+      "datePublished": "2026-08-07",
+      "dateModified": "",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/pt/help/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/pt/" },
+        { "@type": "ListItem", "position": 2, "name": "Ajuda" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/pt/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir o aplicativo</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Trilha de navegação">
+        <a href="/pt/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Ajuda</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>Ajuda</h1>
+
+        <p class="lede">
+          Fazer a área de transferência atravessar de uma máquina para outra é mais
+          trabalhoso do que deveria, e a maior parte dos motivos não é óbvia. Estas
+          páginas primeiro consertam os recursos nativos, e dizem sem rodeios onde
+          não há conserto.
+        </p>
+      </header>
+
+
+        <ul class="hublist">
+          <li>
+            <a href="/pt/help/install/">Instalar o RealtimeClipboard em qualquer dispositivo</a>
+            <p>
+              Windows, macOS, Linux, Android, iPhone e a linha de comando — o que
+              instalar em cada um, e quais deles conseguem observar a área de
+              transferência em segundo plano. Dois não conseguem, e o motivo não é
+              este aplicativo.
+            </p>
+            <p>
+              Por plataforma:
+              <a href="/pt/help/install/windows/">Windows</a> ·
+              <a href="/pt/help/install/mac/">macOS</a> ·
+              <a href="/pt/help/install/linux/">Linux</a> ·
+              <a href="/pt/help/install/android/">Android</a> ·
+              <a href="/pt/help/install/iphone/">iPhone</a> ·
+              <a href="/pt/help/install/cli/">linha de comando</a> ·
+              <a href="/pt/help/install/relay/">seu próprio retransmissor</a>
+            </p>
+          </li>
+          <li>
+            <a href="/pt/help/clipboard-sync-not-working/">A sincronização não está funcionando?</a>
+            <p>
+              Por que “Sincronizar entre dispositivos” fica cinza no Windows 11 — a
+              causa que quase todo guia pula — mais as soluções para Samsung,
+              Android, Mac e iPhone, e o que a sua empresa pode bloquear.
+            </p>
+          </li>
+          <li>
+            <a href="/pt/what-is-an-online-clipboard/">O que é uma área de transferência online?</a>
+            <p>
+              A definição, e as três ferramentas com que ela vive sendo confundida —
+              um gerenciador de área de transferência, um pastebin e um enviador de
+              arquivos resolvem, cada um, um problema diferente.
+            </p>
+            <p>
+              Veja também:
+              <a href="/pt/live-clipboard/">o que torna uma área de transferência ao vivo</a> ·
+              <a href="/pt/clipboard-sync-different-networks/">sincronizar entre redes diferentes</a> ·
+              <a href="/pt/online-clipboard-no-login/">sem login</a> ·
+              <a href="/pt/snapdrop-alternative/">alternativas ao Snapdrop</a>
+            </p>
+          </li>
+        </ul>
+
+        <p class="hint">
+          Mais guias estão a caminho. Se alguma coisa aqui estiver errada ou
+          desatualizada,
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">abra uma issue</a>.
+        </p>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código aberto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/">English</a> · <a href="/es/help/">Español</a> · <a href="/pt/help/">Português</a> · <a href="/ru/help/">Русский</a> · <a href="/zh/help/">中文</a></p>
+      <p><a href="/pt/">Início</a> · <a href="/pt/download/">Download</a> · <a href="/pt/help/">Ajuda</a> · <a href="/pt/about/">Sobre</a> · <a href="/privacy/">Privacidade</a> · <a href="/terms/">Termos</a></p>
+      <p>As sessões ficam em memória e nunca são gravadas em disco. O conteúdo da área de transferência é criptografado no seu navegador antes de ser enviado.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

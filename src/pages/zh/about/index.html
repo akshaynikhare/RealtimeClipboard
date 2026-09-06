@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+发布方身份页，不是 SEO 页，也不是推销。广告审核方、安全研究者和第一次来的
+  访客想知道的是同样三件事：谁在运营、钱从哪来、粘贴进去的东西被怎么处理。
+  内容必须具体：一个能套在任何产品上的页面，等于什么也没说，而对资金含糊其辞
+  正是这个页面要消除的东西。
+
+  Terminology follows /zh/: 在线剪贴板, 密钥, 中继服务器, 端到端加密, 开源.
+  Names, the MIT licence, CadNative and the email address stay as written.
+-->
+
+<title>关于 RealtimeClipboard：谁在做，如何维持</title>
+<meta name="description" content="免费、端到端加密的在线剪贴板，由 Akshay Nikhare 在 CadNative 开发。谁在做，它刻意不做什么，以及靠什么维持运营。">
+<link rel="canonical" href="https://realtimeclipboard.com/zh/about/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/about/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/about/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/about/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/about/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/about/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/about/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="关于 RealtimeClipboard">
+<meta property="og:description" content="谁在做 RealtimeClipboard，加密如何工作，它刻意不做什么，以及一个不设账号的免费服务如何支付服务器账单。">
+<meta property="og:url" content="https://realtimeclipboard.com/zh/about/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/zh/about/#article",
+      "headline": "关于 RealtimeClipboard",
+      "description": "谁在做 RealtimeClipboard，它如何工作，它刻意不做什么，以及它靠什么维持。",
+      "inLanguage": "zh-Hans",
+      "datePublished": "2026-09-04",
+      "dateModified": "2026-09-04",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/zh/about/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/zh/" },
+        { "@type": "ListItem", "position": 2, "name": "关于" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/zh/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">打开应用</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="面包屑导航">
+        <a href="/zh/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">关于</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>关于 RealtimeClipboard</h1>
+
+        <p class="lede">
+          <b>RealtimeClipboard 是一个免费的在线剪贴板，不需要账号，就能在你自己的
+          设备之间搬运文字和文件。</b>它由 Akshay Nikhare 在 CadNative 开发和运营，
+          源代码以 MIT 许可证公开，运营开销由编辑器下方的那一个广告位承担。这个页面
+          讲的就是这三件事，外加它刻意拒绝去做的那些。
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2>它为什么存在</h2>
+
+        <p>
+          把一段文字从工作用的笔记本挪到私人手机上，只有在两台设备恰好属于同一个
+          生态时才算已经解决。苹果设备有"通用剪贴板"，而它止步于苹果的边界。
+          Snapdrop 这类本地工具要求两台机器在同一个 Wi-Fi 下，这就排除了用移动数据的
+          手机、管得很严的办公网络，以及两个国家之外的一台机器。剩下的办法都是同一个
+          变通：把东西发邮件给自己，或者粘进跟自己的聊天窗口，然后让一家你并没有挑选过
+          的公司永久保存一份副本。
+        </p>
+
+        <p>
+          RealtimeClipboard 就是针对这件事的一个很窄的回答。你在两台设备上打开同一个
+          短密钥，它们就共享一块剪贴板。没有账号要注册，没有东西要安装，除了两台设备
+          都在线之外没有别的网络要求，关掉标签页之后也不会有副本留下。
+        </p>
+
+        <h2>它是怎么工作的</h2>
+
+        <p>
+          你复制的内容在离开这台机器之前，就已经在浏览器里用 AES-GCM 加密好了，加密
+          用的密钥由你输入的那个短会话密钥派生而来。<b>这个会话密钥从不被传输。</b>
+          服务器收到的是它的 SHA-256 哈希 —— 这足以知道该把消息转发到哪个房间，却
+          不足以打开其中任何一个 —— 外加它无从读取的密文。
+        </p>
+
+        <p>
+          中继服务器只在转交消息的那一瞬间把它放在内存里，不向磁盘写任何东西。文件
+          完全绕开服务器：它们通过 WebRTC 在你的设备之间直接传输，所以一次大文件传输
+          不花这个服务一分钱，也从来不曾存在于中间的任何地方。会话可以用 PIN 码锁上，
+          这个 PIN 同样从不被传输。
+        </p>
+
+        <p>
+          这些都不需要你去相信一段描述。
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">完整源代码</a>
+          是公开的，通信协议和威胁模型都写在仓库里，而中继服务器是一个独立的服务，
+          与浏览器端不共享任何代码 —— 只共享那份写明的协议。
+        </p>
+
+        <h2>它不会做什么</h2>
+
+        <p>
+          一份简短的清单，因为一个产品拒绝做什么，比它承诺做什么更能说明问题：
+        </p>
+
+        <p>
+          <b>它不会合并两个人同时的输入。</b>无冲突协同编辑是一项实打实的、分量很重
+          的工程，而这里是一块剪贴板。当两台设备同时打字时，你会看到对方的光标以它
+          自己的颜色出现；一段到达的剪贴内容会先提示给你，而不是无声地盖掉你正在写
+          的东西。
+        </p>
+
+        <p>
+          <b>它不会记住你。</b>没有账号，没有邮箱，没有个人资料，服务器上也没有历史
+          记录。设置和剪贴板历史存在你自己的浏览器存储里，从不上传。这也是这个设计
+          诚实的代价：丢了密钥就没有重置链接，因为服务器上根本没有任何东西知道那个
+          会话是你的。
+        </p>
+
+        <p>
+          <b>它不会把密钥说得比它本身更重。</b>共享密钥是一种持有即可用的凭证 ——
+          任何拿到它的人都能读这个会话，而这恰恰是一个五位字符、无需登录的密钥之所以
+          可能的原因。这个取舍被写了出来，而不是藏起来；当它是错误的取舍时，PIN 锁
+          就是为此准备的。
+        </p>
+
+        <p>
+          <b>它不会拿你粘贴的东西去卖。</b>它做不到：内容在发出之前已经加密，而服务器
+          没有密钥。
+        </p>
+
+        <h2>它靠什么维持</h2>
+
+        <p>
+          中继服务器是一台租来的服务器，每个月有一张真实的账单；这里没有订阅，没有
+          付费档位，也没有账号可以把订阅挂上去。编辑器下方的一个广告位，由 Google
+          AdSense 投放，就是覆盖这笔开销的东西。
+        </p>
+
+        <p>
+          这件事的含义值得说清楚，因为两个说法就挨在一起。广告代码是运行在页面里的
+          第三方代码，而在应用里，那个页面正是显示你解密后文字的页面 —— 所以 Google
+          的脚本运行在这些内容可见的地方，和任何页面上的任何脚本一样。它拿不到的是你
+          的会话密钥：应用会先把密钥从地址栏里清除，之后才允许广告代码加载。无论如何，
+          你的设备与中继服务器之间的加密都不受影响。<a href="/privacy/">隐私政策</a>
+          把这件事完整写了出来，包括 Google Analytics 能看到什么。
+        </p>
+
+        <h2>谁在做它</h2>
+
+        <p>
+          RealtimeClipboard 由软件工程师 <b>Akshay Nikhare</b> 制作，并由
+          <b>CadNative</b> 发布。它不是一家拿风险投资的公司，背后也没有团队 ——
+          只有一个维护者，这既是它的范围一直这么窄的原因，也是一份缺陷报告会被那个
+          能修它的人读到的原因。
+        </p>
+
+        <p>
+          项目以 MIT 许可证开源。同一套代码库交付四样东西：网页应用、这个站点、一个
+          Node 命令行客户端，以及面向 Windows、macOS 和 Linux 的桌面版。欢迎贡献代码、
+          报告缺陷和披露安全问题 —— 代码是怎么组织的、规则是什么，都写在
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">这个仓库</a>里。
+        </p>
+
+        <h2>怎么联系</h2>
+
+        <p>
+          疑问、纠错、媒体与商务事宜都请发到
+          <a href="mailto:info@realtimeclipboard.com">info@realtimeclipboard.com</a>。缺陷和
+          功能建议更适合作为
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">GitHub issue</a>
+          提出，安全问题则有<a href="/zh/contact/">自己的私密通道</a>。
+          <a href="/zh/contact/">联系页面</a>写了细节，包括该期待什么，以及大概要多久。
+        </p>
+
+        <p>
+          如果这个站点上有什么写错了，请说出来。它会被改正，而这次改动会留在公开的
+          提交历史里。
+        </p>
+      </div>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>开源项目 — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/about/">English</a> · <a href="/es/about/">Español</a> · <a href="/pt/about/">Português</a> · <a href="/ru/about/">Русский</a> · <a href="/zh/about/">中文</a></p>
+      <p><a href="/zh/">首页</a> · <a href="/zh/download/">下载</a> · <a href="/zh/help/">帮助</a> · <a href="/zh/about/">关于</a> · <a href="/privacy/">隐私政策</a> · <a href="/terms/">使用条款</a></p>
+      <p>会话只保存在内存中，从不写入磁盘。剪贴板内容在发送前已在你的浏览器里完成加密。</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

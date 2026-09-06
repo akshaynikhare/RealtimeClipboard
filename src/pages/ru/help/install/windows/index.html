@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Every id here is a deep-link target other pages point at
+  (/help/install/windows/#install, #pkg, #check, #first, #trouble, #remove), so
+  the ids stay byte-identical to the English original and only the heading text
+  is translated.
+
+  Everything inside pre and code is the English original unchanged: file names,
+  winget commands and the status-bar strings the app actually shows. Those blocks
+  carry a copy button, and the app itself is not localised, so a translated
+  command or status string would send the reader looking for text that is not on
+  their screen.
+
+  Windows UI paths use the shipped Russian wording (Параметры › Приложения ›
+  Установленные приложения, «Синхронизация между устройствами»), because an
+  English menu label is no use on a localised build.
+
+  Terminology follows /ru/: буфер обмена, ключ, ретранслятор, сквозное шифрование,
+  удаление.
+-->
+
+<title>Установка RealtimeClipboard в Windows 10 и 11</title>
+<meta name="description" content="Запустите установщик, убедитесь, что значок в области уведомлений следит за буфером обмена, синхронизируйте первый фрагмент и почините SmartScreen.">
+<link rel="canonical" href="https://realtimeclipboard.com/ru/help/install/windows/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/install/windows/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/install/windows/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/install/windows/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/install/windows/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/install/windows/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/install/windows/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="Установка RealtimeClipboard в Windows">
+<meta property="og:description" content="Файл .msi, как выглядит рабочая установка, первая синхронизация и три вещи, которые ей мешают.">
+<meta property="og:url" content="https://realtimeclipboard.com/ru/help/install/windows/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/ru/help/install/windows/#article",
+      "headline": "Установка RealtimeClipboard в Windows 10 и 11",
+      "description": "Запустите установщик, убедитесь, что значок в области уведомлений следит за буфером обмена, синхронизируйте первый фрагмент и почините проблемы со SmartScreen, рабочим компьютером и брандмауэром.",
+      "inLanguage": "ru",
+      "datePublished": "2026-08-07",
+      "dateModified": "",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/ru/help/install/windows/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/ru/" },
+        { "@type": "ListItem", "position": 2, "name": "Windows" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/copy.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/ru/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Открыть приложение</a>
+    </div>
+  </div>
+</header>
+
+<svg class="icons" aria-hidden="true">
+  <symbol id="i-windows" viewBox="0 0 24 24"><path d="M3 3h8.2v8.2H3zM12.8 3H21v8.2h-8.2zM3 12.8h8.2V21H3zM12.8 12.8H21V21h-8.2z"/></symbol>
+</svg>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Навигационная цепочка">
+        <a href="/ru/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Windows</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1><svg class="brandmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-windows"/></svg> Установка в Windows</h1>
+
+        <p class="lede">
+          Windows — платформа, на которой это приложение полезнее всего ставить:
+          именно здесь фоновый захват буфера обмена работает без оговорок и без
+          запроса разрешений. Копируете в любой программе — и текст уже на других
+          ваших устройствах.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2 id="install">Установите</h2>
+        <ol class="steps">
+          <li>Скачайте <code>RealtimeClipboard_&lt;version&gt;_x64_en-US.msi</code> со
+            <a href="https://github.com/akshaynikhare/RealtimeClipboard/releases/latest">страницы релизов</a>
+            или нажмите кнопку на <a href="/ru/download/">странице загрузок</a> — она
+            подберёт файл за вас.</li>
+          <li>Запустите его. Запроса администратора нет, выбирать тоже нечего — ставится
+            на компьютер целиком, не регистрирует ни службу, ни драйвер.</li>
+          <li>Приложение откроет окно и поставит значок в область уведомлений.</li>
+        </ol>
+        <p>
+          В том же релизе есть и <code>-setup.exe</code>. Это установщик NSIS из той же
+          самой сборки; берите <code>.msi</code>, если только ваши средства
+          развёртывания не требуют второй вариант.
+        </p>
+
+        <h2 id="pkg">Или через менеджер пакетов</h2>
+        <pre><code>winget install AkshayNikhare.RealtimeClipboard</code></pre>
+        <p>
+          <b>На рассмотрении.</b> Манифест версии 0.3.0
+          <a href="https://github.com/microsoft/winget-pkgs/pull/413661">отправлен</a>
+          и ждёт рецензентов Microsoft — людей, которые не работают над этим проектом,
+          — поэтому между релизом и моментом, когда эта команда заработает, проходят
+          дни. Пока манифест не влит, берите <code>.msi</code> выше: это тот же файл,
+          который загрузил бы winget, и его SHA256 закреплён в том же манифесте.
+        </p>
+        <p>
+          Строки <code>scoop</code> здесь нет намеренно. Bucket для Scoop — это
+          репозиторий, который кто-то должен подтягивать к каждому релизу, а один
+          по-настоящему поддерживаемый канал для Windows лучше двух расходящихся.
+          <code>.msi</code> выше — в любом случае та же сборка.
+        </p>
+
+        <h2 id="check">Проверьте, что получилось</h2>
+        <p>
+          Приложение — это окно вокруг той же страницы, которую отдаёт сайт, поэтому
+          почти всё, что вы видите, и есть веб-приложение. О том, что работает
+          <i>нативная</i> половина, говорят две вещи:
+        </p>
+        <ul class="sq-list">
+          <li><b>Значок в области уведомлений</b>, рядом с часами — возможно, придётся
+            развернуть скрытые значки, чтобы его увидеть. <b>Двойной щелчок</b>
+            возвращает окно, <b>правая кнопка</b> открывает меню. <b>Выход</b> лежит в
+            этом меню намеренно: у приложения, которое следит за буфером обмена, должен
+            быть видимый способ это прекратить.</li>
+          <li><b>В строке состояния написано <code>T0 · watching the system clipboard</code></b>,
+            справа внизу. Эта строка и есть вся разница между настольным приложением и
+            вкладкой браузера. В браузере то же поле в лучшем случае показывает
+            <code>T3 · auto-capture</code>, а в худшем — <code>T1 · paste only</code>.</li>
+        </ul>
+        <p>
+          Левее — состояние соединения: <b>Подключено</b>, как только ответил
+          ретранслятор. <b>Подключение…</b>, которое никак не завершается, — это
+          проблема сети, а не установки; смотрите ниже.
+        </p>
+
+        <h2 id="first">Первая синхронизация</h2>
+        <ol class="steps">
+          <li>В приложении запомните ключ вверху окна или введите свой. Установленное
+            приложение делает ключи из десяти символов, сайт — из шести, и оба варианта
+            работают в обоих местах.</li>
+          <li>На втором устройстве — сойдёт и браузер телефона — откройте
+            <a href="/app.html">приложение</a> и введите тот же ключ.</li>
+          <li>Скопируйте что-нибудь в Windows. Не переключайтесь на RealtimeClipboard:
+            смысл как раз в том, что это не нужно. Текст появится на другом устройстве.</li>
+        </ol>
+        <p class="honest">
+          Если не появился, посмотрите на переключатель вверху окна. В положении
+          <b>Буфер обмена</b> — по умолчанию — отправляется всё, что вы копируете. В
+          положении <b>Приложение</b> ничего не уходит с машины, пока вы сами не
+          вставите это внутрь. Про <b>Приложение</b> стоит знать: пока программа
+          запущена, она читает каждое ваше копирование, включая пароли, скопированные
+          совсем по другому поводу. Памятка при первом запуске об этом говорит, и тот
+          же переключатель есть в меню значка как <b>Делиться тем, что я копирую</b>.
+        </p>
+
+        <h2 id="trouble">Когда не работает</h2>
+
+        <h3>SmartScreen предупреждает об установщике</h3>
+        <p>
+          Для нового издателя это ожидаемо, и относиться к таким предупреждениям вообще
+          стоит серьёзно, а не проходить их по привычке. Проверьте, что файл взят со
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/releases/latest">страницы официальных релизов</a>
+          и что издатель совпадает. Предупреждение уходит по мере накопления репутации
+          сертификата, а не потому, что в сборке что-то изменилось.
+        </p>
+
+        <h3>Это рабочий компьютер</h3>
+        <p>
+          Приложению не нужны права администратора, оно не ставит ни драйвер, ни службу.
+          Исходящие соединения идут по 443 к одному имени хоста — ровно такую форму
+          ИТ-отделы вносят в список разрешённых. Если у вас её всё-таки блокируют,
+          браузерной версии не нужно вообще ничего; а если заблокирована и она, это
+          решение политики, а не то, что стоит обходить.
+        </p>
+
+        <h3>У Windows есть своя «Синхронизация между устройствами», и она неактивна</h3>
+        <p>
+          Это другая функция, принадлежащая Windows, а не этому приложению, и у её
+          недоступности свой собственный набор причин.
+          <a href="/ru/help/clipboard-sync-not-working/">Эта страница здесь</a>.
+          На RealtimeClipboard она никак не влияет: он её не использует.
+        </p>
+
+        <h3>Застряло на «Подключение…»</h3>
+        <p>
+          Приложение сначала открывает WebSocket и переходит на server-sent events плюс
+          POST, когда это заблокировано, так что прокси, запрещающий апгрейд протокола,
+          всё равно работает — просто медленнее. Если не подключается ни то ни другое,
+          имя хоста ретранслятора заблокировано целиком. Вы можете указать приложению
+          свой ретранслятор в разделе <b>Настройки → Ретранслятор</b>;
+          <a href="/ru/help/install/relay/">поднять его — это один контейнер</a>.
+        </p>
+
+        <h2 id="remove">Удаление</h2>
+        <p>
+          Параметры → Приложения → Установленные приложения → RealtimeClipboard →
+          Удалить, либо <code>winget uninstall AkshayNikhare.RealtimeClipboard</code>,
+          если он пришёл именно так.
+        </p>
+        <p>
+          Подчищать после этого нечего. Ни приложение, ни ретранслятор не пишут
+          содержимое буфера обмена на диск, так что после удаления остаются только ваши
+          настройки и история фрагментов, а они живут в браузерном хранилище самого
+          приложения и уходят вместе с ним.
+        </p>
+
+        <p class="hint">
+          Готовы ставить: <a href="/ru/download/">страница загрузок</a>. Все остальные
+          платформы: <a href="/ru/help/install/">руководство по установке</a>.
+          Здесь что-то неверно или устарело?
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">Откройте issue</a>.
+        </p>
+      </div>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Открытый исходный код — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/install/windows/">English</a> · <a href="/es/help/install/windows/">Español</a> · <a href="/pt/help/install/windows/">Português</a> · <a href="/ru/help/install/windows/">Русский</a> · <a href="/zh/help/install/windows/">中文</a></p>
+      <p><a href="/ru/">Главная</a> · <a href="/ru/download/">Загрузки</a> · <a href="/ru/help/">Помощь</a> · <a href="/ru/about/">О проекте</a> · <a href="/privacy/">Конфиденциальность</a> · <a href="/terms/">Условия</a></p>
+      <p>Сессии хранятся в памяти и никогда не пишутся на диск. Содержимое буфера обмена шифруется в вашем браузере до отправки.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

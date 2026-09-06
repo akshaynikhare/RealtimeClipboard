@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+A troubleshooting page, so the order of the checks is the content. The Windows
+  steps are ranked by how often each turns out to be the cause, and that ranking
+  is kept exactly as the English has it.
+
+  Windows menu paths use the Russian localised wording
+  (Параметры › Система › Буфер обмена, журнал буфера обмена, групповая
+  политика), because a reader on a Russian Windows build will not find an
+  English label. Handoff and Phone Link stay Latin, as the product names.
+
+  "Мобильный интернет" replaces "mobile data", as in the other ru pages.
+
+  Terminology follows /ru/: буфер обмена, ключ, сквозное шифрование.
+-->
+
+<title>Буфер обмена не синхронизируется? Что проверить</title>
+<meta name="description" content="Переключатель синхронизации буфера обмена неактивен или копирование между устройствами не работает? Порядок проверки для Windows, Android и Mac.">
+<link rel="canonical" href="https://realtimeclipboard.com/ru/help/clipboard-sync-not-working/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/clipboard-sync-not-working/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/clipboard-sync-not-working/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/clipboard-sync-not-working/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/clipboard-sync-not-working/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/clipboard-sync-not-working/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/clipboard-sync-not-working/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="Буфер обмена не синхронизируется? Решения для Windows, Android, Mac и iPhone">
+<meta property="og:description" content="Почему переключатель «Синхронизация между устройствами» неактивен и как починить копирование между устройствами на каждой платформе.">
+<meta property="og:url" content="https://realtimeclipboard.com/ru/help/clipboard-sync-not-working/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/ru/help/clipboard-sync-not-working/#article",
+      "headline": "Буфер обмена не синхронизируется? Решения для Windows, Android, Mac и iPhone",
+      "description": "Почему переключатель синхронизации буфера обмена неактивен в Windows 11 и как починить копирование между устройствами на Samsung, Android, Mac и iPhone.",
+      "inLanguage": "ru",
+      "datePublished": "2026-08-06",
+      "dateModified": "2026-08-06",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/ru/help/clipboard-sync-not-working/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/ru/" },
+        { "@type": "ListItem", "position": 2, "name": "Буфер обмена не синхронизируется" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/faq.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/ru/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Открыть приложение</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Навигационная цепочка">
+        <a href="/ru/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Буфер обмена не синхронизируется</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>Буфер обмена не синхронизируется?</h1>
+
+        <p class="lede">
+          В Windows самая частая причина не та, о которой думают:
+          <b>переключатель «Синхронизация между устройствами» вообще не появляется,
+          пока не включён сам журнал буфера обмена</b>. Включите сначала журнал — и
+          пункт синхронизации перестанет быть неактивным. Если он остался серым и
+          после этого, вы почти наверняка вошли под локальной или рабочей учётной
+          записью либо функцию отключила групповая политика.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <p>
+          Этим закрывается большинство случаев. Остальная часть страницы проходит
+          по платформам в том порядке, в каком их стоит проверять, и честно
+          говорит о ситуациях, где починить нечего — на управляемом рабочем
+          ноутбуке, в частности, изменить это часто нельзя вообще, и сколько ни
+          щёлкай, толку не будет.
+        </p>
+
+        <h2>Windows 11 и 10: «Синхронизация между устройствами» неактивна</h2>
+
+        <p>
+          Идите по порядку. Каждый шаг — это по-настоящему отдельная причина, а
+          выстроены они по тому, как часто именно эта причина и оказывается
+          виноватой.
+        </p>
+
+        <ol class="steps">
+          <li>
+            <b>Сначала включите журнал буфера обмена.</b> Откройте
+            <code>Параметры › Система › Буфер обмена</code> и включите
+            <b>Журнал буфера обмена</b> вверху страницы. Переключатель
+            синхронизации под ним не реагирует, пока это не сделано, — это самая
+            частая причина, по которой он выглядит серым, и большинство инструкций
+            этот шаг пропускают, считая, что вы его уже сделали.
+          </li>
+          <li>
+            <b>Войдите с учётной записью Microsoft.</b> Синхронизация идёт через
+            облако Microsoft, поэтому локальной учётной записи Windows она
+            недоступна. Проверьте в разделе
+            <code>Параметры › Учётные записи</code>. Локальная учётная запись —
+            это жёсткое ограничение, а не сбой.
+          </li>
+          <li>
+            <b>Выясните, управляемый ли это компьютер.</b> На рабочей или введённой
+            в домен машине групповая политика может отключить журнал буфера обмена
+            вместе с его синхронизацией, и эта настройка перекрывает приложение
+            «Параметры» — переключатель не отзовётся, что бы вы ни делали. В
+            середине 2026 года изменение политики отключило журнал на целой волне
+            корпоративных и части домашних машин, так что случай стал куда более
+            частым, чем раньше. <b>Если это ваш случай, ничто из этого списка не
+            поможет.</b>
+          </li>
+          <li>
+            <b>Проверьте, работает ли сочетание клавиш вообще.</b> Нажмите
+            <kbd>Windows</kbd>+<kbd>V</kbd>. Если панель не появляется, журнал
+            буфера обмена выключен или заблокирован, и синхронизация в любом случае
+            работать не может.
+          </li>
+          <li>
+            <b>Убедитесь, что на обоих компьютерах одна учётная запись
+            Microsoft.</b> Синхронизация происходит между машинами внутри одной
+            записи. Две разные записи никогда не увидят буфер обмена друг друга, и
+            Windows об этом никак не предупреждает.
+          </li>
+        </ol>
+
+        <div class="honest">
+          <h3>Ограничение, о котором никто не говорит</h3>
+          <p>
+            Даже когда всё работает как надо, синхронизация Windows переносит текст
+            только <b>между компьютерами с Windows под одной учётной записью
+            Microsoft</b>. Она не дотянется ни до вашего телефона, ни до Mac, ни до
+            машины с Linux, ни до компьютера коллеги. Если вам нужно было именно
+            это, функция этого и не умела с самого начала.
+          </p>
+        </div>
+
+        <h2>Копирование между iPhone и Mac не работает</h2>
+
+        <p>
+          У универсального буфера обмена Apple пять условий, и он молча перестаёт
+          работать, стоит пропасть любому из них. Все пять должны выполняться
+          одновременно:
+        </p>
+
+        <ul class="sq-list">
+          <li>Оба устройства под <b>одной учётной записью Apple</b></li>
+          <li><b>Wi-Fi включён</b> на обоих — даже если они в разных сетях</li>
+          <li><b>Bluetooth включён</b> на обоих; именно так они находят друг друга</li>
+          <li><b>Handoff включён</b> на обоих, в основных настройках</li>
+          <li>Устройства физически <b>рядом</b>, в радиусе действия Bluetooth</li>
+        </ul>
+
+        <p>
+          Пропускают обычно Bluetooth, потому что копирование текста ощущается как
+          то, что должно идти по сети. Оно не идёт: близость заложена в саму
+          конструкцию. Ещё у универсального буфера обмена короткий срок жизни —
+          скопируйте что-нибудь, подождите несколько минут, и вставлять будет уже
+          нечего.
+        </p>
+
+        <h2>Буфер обмена Samsung и Android не синхронизируется</h2>
+
+        <p>
+          В Android нет общесистемной синхронизации буфера обмена между
+          устройствами. Есть только решения производителей, и работают они внутри
+          одной экосистемы: собственная синхронизация Samsung переносит буфер
+          обмена между устройствами Samsung под одной учётной записью Samsung, а
+          Phone Link от Microsoft умеет передавать содержимое между телефоном на
+          Android и компьютером с Windows на поддерживаемых моделях.
+        </p>
+
+        <p>
+          Так что если вы пытаетесь скопировать с телефона Samsung на планшет
+          другой марки или с телефона на Android на Mac, чинить попросту нечего.
+          Такой встроенной функции не существует, её нельзя включить.
+        </p>
+
+        <h2>Буфер обмена Chromebook не синхронизируется</h2>
+
+        <p>
+          ChromeOS синхронизирует буфер обмена с телефоном на Android через Phone
+          Hub, а для этого нужны одна учётная запись Google на обоих устройствах и
+          включённый Bluetooth. Между Chromebook и компьютером с Windows или Mac
+          встроенного пути нет вовсе.
+        </p>
+
+        <h2>Почему все они ломаются одинаково</h2>
+
+        <p>
+          Любая встроенная синхронизация буфера обмена спотыкается об одни и те же
+          три условия, и как только видишь закономерность, разбирательство
+          перестаёт быть загадкой:
+        </p>
+
+        <div class="tablewrap" tabindex="0" role="region"
+             aria-label="Что требует каждая встроенная синхронизация буфера обмена — прокручивается по горизонтали">
+          <table class="cmp">
+            <caption class="sr-only">
+              Требования и ограничения встроенной синхронизации буфера обмена в
+              Windows, у Apple, у Samsung и в ChromeOS в сравнении с буфером
+              обмена в браузере.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Встроенная функция</th>
+                <th scope="col">Нужна учётная запись</th>
+                <th scope="col">Работает между брендами</th>
+                <th scope="col">Нужна близость устройств</th>
+                <th scope="col">Может заблокировать ИТ-отдел</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Синхронизация Windows</th>
+                <td class="n">Учётная запись Microsoft</td>
+                <td class="n">Только Windows</td>
+                <td class="y">Нет</td>
+                <td class="n">Да — групповая политика</td>
+              </tr>
+              <tr>
+                <th scope="row">Универсальный буфер обмена Apple</th>
+                <td class="n">Учётная запись Apple</td>
+                <td class="n">Только Apple</td>
+                <td class="n">Да — в радиусе Bluetooth</td>
+                <td class="n">Да — MDM</td>
+              </tr>
+              <tr>
+                <th scope="row">Синхронизация Samsung</th>
+                <td class="n">Учётная запись Samsung</td>
+                <td class="n">Только Samsung</td>
+                <td class="n">Обычно да</td>
+                <td class="n">Да</td>
+              </tr>
+              <tr>
+                <th scope="row">Phone Hub в ChromeOS</th>
+                <td class="n">Учётная запись Google</td>
+                <td class="n">ChromeOS + Android</td>
+                <td class="n">Да — Bluetooth</td>
+                <td class="n">Да</td>
+              </tr>
+              <tr class="me">
+                <th scope="row">Буфер обмена в браузере</th>
+                <td class="y">Не нужна</td>
+                <td class="y">Любой браузер</td>
+                <td class="y">Нет</td>
+                <td>Только если заблокирован сам сайт</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          Сквозь все три проходят одни и те же допущения: <b>устройства у вас от
+          одного бренда</b>, <b>вы вошли в учётную запись этого бренда на каждом из
+          них</b> и нередко <b>устройства стоят в одной комнате</b>. Нарушьте любое
+          — телефон на Android и рабочий ноутбук с Windows, личный Mac и
+          управляемый компьютер, машина, куда вы не можете войти под своей записью,
+          — и встроенной функции нечего вам предложить.
+        </p>
+
+        <h2>Чем пользоваться, когда встроенная синхронизация не идёт навстречу</h2>
+
+        <p>
+          Буфер обмена, живущий на веб-странице, обходит все три допущения сразу,
+          потому что ставить нечего и входить некуда. Это и есть
+          <a href="/ru/">RealtimeClipboard</a>: откройте одну и ту же страницу на
+          обоих устройствах, введите один и тот же короткий ключ — и то, что вы
+          скопировали на одном, готово к вставке на другом.
+        </p>
+
+        <ul class="sq-list">
+          <li><b>Без учётной записи</b> — поэтому локальная запись Windows или урезанный профиль ни на что не влияют</li>
+          <li><b>Без установки</b> — поэтому работает и на машине, где у вас нет прав администратора</li>
+          <li><b>Между любыми брендами</b> — Windows и Android, Mac и Windows, Chromebook и телефон</li>
+          <li><b>В любой сети</b> — от домашнего Wi-Fi до мобильного интернета; <a href="/ru/clipboard-sync-different-networks/">устройствам не нужно быть в одной сети</a> и не нужно быть рядом</li>
+          <li><b>Сквозное шифрование</b> — текст шифруется в вашем браузере до отправки, а сервер не хранит ничего</li>
+        </ul>
+
+        <p>
+          Честные оговорки, раз уж страница про то, что не работает: это бета,
+          короткий ключ сам по себе даёт доступ, поэтому прочитать сессию сможет
+          любой, кто его узнал, и браузер не читает буфер обмена в фоне — вы
+          переключаетесь на вкладку, и она забирает скопированное. Последнее —
+          правило безопасности браузеров, общее для всех веб-приложений, а не
+          недостающая возможность.
+        </p>
+
+        <p>
+          <a class="btn" href="/app.html">Открыть буфер обмена</a>
+        </p>
+      </div>
+
+      <div class="faq" id="faq">
+        <div class="faqhead">
+          <h2>Частые вопросы</h2>
+          <button type="button" class="faqall" id="faqAll"
+                  aria-expanded="false" aria-controls="faq" hidden>
+            <span class="faqall-i" aria-hidden="true"></span>
+            <span class="faqall-t">Развернуть всё</span>
+          </button>
+        </div>
+
+        <details class="qa">
+          <summary><h3>Почему синхронизация буфера обмена неактивна в Windows 11?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Почти всегда потому, что выключен журнал буфера обмена — переключатель
+            синхронизации не реагирует, пока вы не включите журнал выше него в
+            разделе <code>Параметры › Система › Буфер обмена</code>. Если он всё
+            равно серый, значит вы вошли под локальной учётной записью, а не под
+            учётной записью Microsoft, либо машина управляемая и функцию отключила
+            групповая политика.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Работает ли синхронизация Windows с Android или Mac?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Нет. Синхронизация буфера обмена Windows работает только между
+            компьютерами с Windows под одной учётной записью Microsoft. Phone Link
+            от Microsoft умеет передавать содержимое буфера обмена между некоторыми
+            телефонами на Android и компьютером с Windows, но это отдельная функция
+            со своими требованиями к устройствам.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Почему копирование между iPhone и Mac не работает?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Универсальному буферу обмена нужны все пять условий сразу: одна учётная
+            запись Apple, включённый Wi-Fi, включённый Bluetooth, включённый Handoff
+            и устройства в радиусе действия Bluetooth. Чаще всего упускают именно
+            Bluetooth, потому что копирование текста ощущается как то, что должно
+            идти по сети.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Может ли работодатель заблокировать синхронизацию буфера обмена?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Может, и это обычное дело. На введённой в домен или управляемой через
+            MDM машине групповая политика отключает журнал буфера обмена вместе с
+            синхронизацией целиком, и это перекрывает приложение «Параметры».
+            Обходного пути со стороны пользователя нет — переключатель не
+            отзовётся. Веб-страница часто оказывается единственной оставшейся
+            дорогой, если сам сайт не заблокирован.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Есть ли синхронизация буфера обмена без учётной записи?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Есть — буферу обмена в браузере учётная запись не нужна вовсе, потому
+            что сессия опознаётся коротким ключом, который вы вводите на обоих
+            устройствах, а не вашей учётной записью. Именно так устроен
+            <a href="/ru/">RealtimeClipboard</a>, и поэтому он работает между
+            разными брендами и на машинах, куда вы ничего не можете установить.
+            </p>
+          </div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Открытый исходный код — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/clipboard-sync-not-working/">English</a> · <a href="/es/help/clipboard-sync-not-working/">Español</a> · <a href="/pt/help/clipboard-sync-not-working/">Português</a> · <a href="/ru/help/clipboard-sync-not-working/">Русский</a> · <a href="/zh/help/clipboard-sync-not-working/">中文</a></p>
+      <p><a href="/ru/">Главная</a> · <a href="/ru/download/">Загрузки</a> · <a href="/ru/help/">Помощь</a> · <a href="/ru/about/">О проекте</a> · <a href="/privacy/">Конфиденциальность</a> · <a href="/terms/">Условия</a></p>
+      <p>Сессии хранятся в памяти и никогда не пишутся на диск. Содержимое буфера обмена шифруется в вашем браузере до отправки.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

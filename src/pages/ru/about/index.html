@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Страница об издателе, а не SEO-страница и не реклама: рекламная сеть,
+  исследователь безопасности и человек, зашедший впервые, хотят одних и тех же
+  трёх фактов — кто это ведёт, на какие деньги и что сервис делает с тем, что вы
+  в него вставили.
+
+  Конкретность обязательна. Страница, которая подошла бы любому продукту, не
+  описывает ни одного, а расплывчатость про деньги — ровно то, что эта страница
+  и создана убрать.
+
+  Terminology follows /ru/: буфер обмена, ключ, ретранслятор, сквозное шифрование,
+  открытый исходный код. Names, the MIT licence, CadNative and the email address
+  stay as written.
+-->
+
+<title>О RealtimeClipboard: кто делает и на что живёт</title>
+<meta name="description" content="Бесплатный онлайн-буфер обмена со сквозным шифрованием, который делает Akshay Nikhare в CadNative. Кто за ним стоит, чего он не делает и на что живёт.">
+<link rel="canonical" href="https://realtimeclipboard.com/ru/about/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/about/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/about/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/about/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/about/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/about/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/about/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="О проекте RealtimeClipboard">
+<meta property="og:description" content="Кто делает RealtimeClipboard, как устроено шифрование, чего он намеренно не делает и на что живёт бесплатный сервис без учётных записей.">
+<meta property="og:url" content="https://realtimeclipboard.com/ru/about/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/ru/about/#article",
+      "headline": "О проекте RealtimeClipboard",
+      "description": "Кто делает RealtimeClipboard, как он работает, чего намеренно не делает и на какие деньги существует.",
+      "inLanguage": "ru",
+      "datePublished": "2026-09-04",
+      "dateModified": "2026-09-04",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/ru/about/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/ru/" },
+        { "@type": "ListItem", "position": 2, "name": "О проекте" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/ru/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Открыть приложение</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Навигационная цепочка">
+        <a href="/ru/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">О проекте</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>О проекте RealtimeClipboard</h1>
+
+        <p class="lede">
+          <b>RealtimeClipboard — бесплатный онлайн-буфер обмена, который переносит
+          текст и файлы между вашими собственными устройствами без учётной
+          записи.</b> Его делает и поддерживает Akshay Nikhare в CadNative, исходный
+          код открыт под лицензией MIT, а платит за всё это один рекламный блок под
+          редактором. Эта страница про все три пункта и про то, что сервис
+          намеренно делать отказывается.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2>Зачем он нужен</h2>
+
+        <p>
+          Перенести абзац с рабочего ноутбука на личный телефон — задача решённая
+          только в том случае, если оба устройства случайно оказались в одной
+          экосистеме. У устройств Apple есть «Универсальный буфер обмена», и он
+          заканчивается на границе Apple. Локальным инструментам вроде Snapdrop
+          нужны обе машины в одной сети Wi-Fi, а это исключает телефон на мобильном
+          интернете, закрытую офисную сеть и машину за два государства отсюда. Всё
+          остальное сводится к одному и тому же обходному пути: отправить письмо
+          самому себе или вставить текст в переписку с самим собой — и позволить
+          компании, которую вы не выбирали, хранить копию вечно.
+        </p>
+
+        <p>
+          RealtimeClipboard — узкий ответ именно на это. Вы открываете один и тот же
+          короткий ключ на двух устройствах, и буфер обмена у них общий. Нет учётной
+          записи, которую надо заводить, нечего устанавливать, нет требований к сети
+          кроме того, чтобы оба устройства были в сети, и не остаётся копии, когда вы
+          закрываете вкладку.
+        </p>
+
+        <h2>Как это устроено</h2>
+
+        <p>
+          То, что вы копируете, шифруется в браузере алгоритмом AES-GCM ещё до того,
+          как покинет машину, — на ключе, выведенном из короткого ключа сессии,
+          который вы набираете. <b>Сам ключ сессии никогда не передаётся.</b> Сервер
+          получает его хеш SHA-256: этого достаточно, чтобы понять, в какую комнату
+          переслать сообщение, и недостаточно, чтобы хоть одну открыть, — плюс
+          шифротекст, который он никак не прочитает.
+        </p>
+
+        <p>
+          Ретранслятор держит сообщения в памяти ровно то мгновение, которое нужно
+          на пересылку, и ничего не пишет на диск. Файлы обходят сервер целиком: они
+          идут напрямую между вашими устройствами по WebRTC, поэтому большая передача
+          не стоит сервису ничего и нигде посередине не существует. Сессию можно
+          закрыть PIN-кодом, который тоже никогда не передаётся.
+        </p>
+
+        <p>
+          Ничего из этого не требует верить описанию на слово.
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">Весь исходный код</a>
+          открыт, сетевой протокол и модель угроз записаны в репозитории, а
+          ретранслятор — отдельный сервис, не разделяющий с браузером ни строчки
+          кода, только документированный протокол.
+        </p>
+
+        <h2>Чего он делать не станет</h2>
+
+        <p>
+          Короткий список — потому что то, от чего продукт отказывается, говорит
+          больше, чем то, что он обещает:
+        </p>
+
+        <p>
+          <b>Он не станет сводить воедино двух людей, печатающих одновременно.</b>
+          Бесконфликтное совместное редактирование — настоящая и тяжёлая инженерная
+          работа, а здесь буфер обмена. Когда два устройства печатают вместе, вы
+          видите чужой курсор в его собственном цвете, а пришедший фрагмент вам
+          предлагают, а не молча накладывают поверх вашей работы.
+        </p>
+
+        <p>
+          <b>Он не станет вас запоминать.</b> Ни учётной записи, ни почты, ни
+          профиля, ни истории на сервере. Настройки и история буфера обмена лежат в
+          хранилище вашего же браузера и никуда не отправляются. В этом же и честная
+          цена такой конструкции: потеряли ключ — ссылки на восстановление нет,
+          потому что на сервере нет ничего, что знало бы, что сессия была ваша.
+        </p>
+
+        <p>
+          <b>Он не станет выдавать ключ за нечто большее, чем он есть.</b> Общий ключ
+          — предъявительский: читать сессию может любой, у кого он есть, и ровно это
+          делает возможным ключ из пяти символов без всякого входа. Этот размен
+          записан, а не спрятан, а PIN-код существует для случаев, когда размен
+          неверный.
+        </p>
+
+        <p>
+          <b>Он не станет продавать то, что вы вставляете.</b> Он и не смог бы:
+          содержимое шифруется до отправки, а ключа у сервера нет.
+        </p>
+
+        <h2>На что он живёт</h2>
+
+        <p>
+          Ретранслятор — арендованный сервер с настоящим ежемесячным счётом, при этом
+          нет ни подписки, ни платного тарифа, ни учётной записи, к которой их можно
+          было бы привязать. Счёт покрывает один рекламный блок под редактором,
+          который показывает Google AdSense.
+        </p>
+
+        <p>
+          Тут стоит быть точным, потому что два утверждения стоят рядом. Рекламный
+          тег — сторонний код, работающий внутри страницы, а в приложении эта
+          страница как раз та, где виден ваш расшифрованный текст, — значит, скрипт
+          Google выполняется там, где это содержимое видно, как любой скрипт на любой
+          странице. Чего он не получает, так это вашего ключа сессии: приложение
+          убирает ключ из адресной строки прежде, чем рекламному тегу вообще
+          разрешено загрузиться. Шифрование между вашими устройствами и
+          ретранслятором в любом случае не меняется.
+          <a href="/privacy/">Политика конфиденциальности</a> излагает всё целиком,
+          включая то, что видит Google Analytics.
+        </p>
+
+        <h2>Кто его делает</h2>
+
+        <p>
+          RealtimeClipboard делает <b>Akshay Nikhare</b>, инженер-программист, а
+          издаёт <b>CadNative</b>. Это не компания с венчурными деньгами, и команды
+          за ней нет — есть один сопровождающий, и именно поэтому рамки проекта
+          остаются такими узкими, а сообщение об ошибке читает тот, кто может её
+          исправить.
+        </p>
+
+        <p>
+          Проект открыт под лицензией MIT. Из одной кодовой базы выходят четыре
+          вещи: веб-приложение, этот сайт, консольный клиент на Node и настольная
+          сборка для Windows, macOS и Linux. Патчи, сообщения об ошибках и сообщения
+          об уязвимостях одинаково приветствуются — как устроен код и какие в нём
+          правила, написано в
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">репозитории</a>.
+        </p>
+
+        <h2>Как связаться</h2>
+
+        <p>
+          Вопросы, поправки, пресса и деловые предложения — всё на
+          <a href="mailto:info@realtimeclipboard.com">info@realtimeclipboard.com</a>. Ошибки
+          и пожелания лучше оформлять как
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">issue на GitHub</a>,
+          а у проблем безопасности есть <a href="/ru/contact/">свой закрытый путь</a>.
+          На <a href="/ru/contact/">странице контактов</a> есть подробности, включая
+          то, чего ждать и сколько это занимает.
+        </p>
+
+        <p>
+          Если что-то на этом сайте неверно, скажите. Это будет исправлено, и правка
+          останется в открытой истории изменений.
+        </p>
+      </div>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Открытый исходный код — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/about/">English</a> · <a href="/es/about/">Español</a> · <a href="/pt/about/">Português</a> · <a href="/ru/about/">Русский</a> · <a href="/zh/about/">中文</a></p>
+      <p><a href="/ru/">Главная</a> · <a href="/ru/download/">Загрузки</a> · <a href="/ru/help/">Помощь</a> · <a href="/ru/about/">О проекте</a> · <a href="/privacy/">Конфиденциальность</a> · <a href="/terms/">Условия</a></p>
+      <p>Сессии хранятся в памяти и никогда не пишутся на диск. Содержимое буфера обмена шифруется в вашем браузере до отправки.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

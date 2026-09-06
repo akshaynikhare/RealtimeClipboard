@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+The help hub, and it has two jobs pulling in different directions. For a
+  reader it is a contents page: short, and quick to leave. For a crawler it is
+  what makes every help page reachable in two hops from the homepage, which is
+  why it is a real page rather than a row of footer links.
+
+  Each entry carries a one line summary rather than a bare title, because the
+  summary is what tells a reader which page answers their question without
+  opening all of them. Keep the summaries; a list of bare titles here is a
+  directory, not a structure.
+
+  The last entry points at pages that sit at the site root, not under help:
+  they answer "which tool do I want" rather than "mine is broken". They are
+  listed anyway, because a page nothing links to is a page nothing crawls.
+
+  Terminology follows /es/: portapapeles en línea, clave corta, servidor de
+  retransmisión, cifrado de extremo a extremo, extensión, instalación.
+-->
+
+<title>Ayuda — guías y arreglos del portapapeles</title>
+<meta name="description" content="Guías para que el portapapeles funcione entre tus dispositivos: por qué la sincronización sale en gris en Windows y cómo copiar y pegar en Android y Mac.">
+<link rel="canonical" href="https://realtimeclipboard.com/es/help/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="es_ES">
+<meta property="og:title" content="Ayuda — guías y arreglos del portapapeles">
+<meta property="og:description" content="Por qué la sincronización del portapapeles sale en gris, y cómo copiar y pegar entre dos dispositivos cualesquiera.">
+<meta property="og:url" content="https://realtimeclipboard.com/es/help/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/es/help/#article",
+      "headline": "Ayuda — guías y arreglos de la sincronización del portapapeles",
+      "description": "Guías para que el portapapeles funcione entre tus dispositivos.",
+      "inLanguage": "es",
+      "datePublished": "2026-08-07",
+      "dateModified": "",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/es/help/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/es/" },
+        { "@type": "ListItem", "position": 2, "name": "Ayuda" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/es/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir la aplicación</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Ruta de navegación">
+        <a href="/es/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Ayuda</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>Ayuda</h1>
+
+        <p class="lede">
+          Conseguir que el portapapeles pase de una máquina a otra da más guerra de
+          la que debería, y la mayoría de los motivos no son evidentes. Estas páginas
+          arreglan primero las funciones que ya trae el sistema, y dicen sin rodeos
+          dónde no hay arreglo.
+        </p>
+      </header>
+
+
+        <ul class="hublist">
+          <li>
+            <a href="/es/help/install/">Instalar RealtimeClipboard en cualquier dispositivo</a>
+            <p>
+              Windows, macOS, Linux, Android, iPhone y la línea de comandos — qué
+              instalar en cada uno, y cuáles pueden vigilar el portapapeles en
+              segundo plano. Dos no pueden, y el motivo no es esta aplicación.
+            </p>
+            <p>
+              Por plataforma:
+              <a href="/es/help/install/windows/">Windows</a> ·
+              <a href="/es/help/install/mac/">macOS</a> ·
+              <a href="/es/help/install/linux/">Linux</a> ·
+              <a href="/es/help/install/android/">Android</a> ·
+              <a href="/es/help/install/iphone/">iPhone</a> ·
+              <a href="/es/help/install/cli/">línea de comandos</a> ·
+              <a href="/es/help/install/relay/">tu propio servidor de retransmisión</a>
+            </p>
+          </li>
+          <li>
+            <a href="/es/help/clipboard-sync-not-working/">¿La sincronización del portapapeles no funciona?</a>
+            <p>
+              Por qué «Sincronizar entre dispositivos» sale en gris en Windows 11 —
+              la causa que casi todas las guías se saltan — más las soluciones para
+              Samsung, Android, Mac y iPhone, y lo que puede bloquear tu empresa.
+            </p>
+          </li>
+          <li>
+            <a href="/es/what-is-an-online-clipboard/">¿Qué es un portapapeles en línea?</a>
+            <p>
+              La definición, y las tres herramientas con las que no para de
+              confundirse — un gestor de portapapeles, un pastebin y un enviador de
+              archivos resuelven cada uno un problema distinto.
+            </p>
+            <p>
+              También:
+              <a href="/es/live-clipboard/">qué hace que un portapapeles esté en vivo</a> ·
+              <a href="/es/clipboard-sync-different-networks/">sincronizar entre redes distintas</a> ·
+              <a href="/es/online-clipboard-no-login/">sin iniciar sesión</a> ·
+              <a href="/es/snapdrop-alternative/">alternativas a Snapdrop</a>
+            </p>
+          </li>
+        </ul>
+
+        <p class="hint">
+          Vienen más guías. Si algo de aquí está mal o se ha quedado anticuado,
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">abre una incidencia</a>.
+        </p>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código abierto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/">English</a> · <a href="/es/help/">Español</a> · <a href="/pt/help/">Português</a> · <a href="/ru/help/">Русский</a> · <a href="/zh/help/">中文</a></p>
+      <p><a href="/es/">Inicio</a> · <a href="/es/download/">Descargas</a> · <a href="/es/help/">Ayuda</a> · <a href="/es/about/">Acerca de</a> · <a href="/privacy/">Privacidad</a> · <a href="/terms/">Términos</a></p>
+      <p>Las sesiones se mantienen en memoria y nunca se escriben en disco. El contenido del portapapeles se cifra en tu navegador antes de enviarse.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

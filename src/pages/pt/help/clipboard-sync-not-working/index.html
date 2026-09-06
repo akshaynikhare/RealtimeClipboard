@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+A troubleshooting page, so the order of the checks is the content. The Windows
+  steps are ranked by how often each turns out to be the cause, and that ranking
+  is kept exactly as the English has it.
+
+  Windows menu paths are given in their pt-BR localised wording
+  (Configurações › Sistema › Área de transferência), because a reader on a
+  Brazilian Windows build will not find an English label. Apple keeps Handoff
+  and Conta Apple, which are the names shown on the device.
+
+  "4G" replaces "mobile data", as in the other pt pages.
+
+  Terminology follows /pt/: área de transferência, chave curta,
+  criptografia de ponta a ponta.
+-->
+
+<title>Área de transferência não sincroniza? Como resolver</title>
+<meta name="description" content="A opção de sincronizar a área de transferência está esmaecida, ou copiar e colar entre dispositivos não funciona? A ordem certa de verificação.">
+<link rel="canonical" href="https://realtimeclipboard.com/pt/help/clipboard-sync-not-working/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/clipboard-sync-not-working/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/clipboard-sync-not-working/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/clipboard-sync-not-working/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/clipboard-sync-not-working/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/clipboard-sync-not-working/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/clipboard-sync-not-working/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="Área de transferência não sincroniza? Soluções para Windows, Android, Mac e iPhone">
+<meta property="og:description" content="Por que a opção “Sincronizar entre seus dispositivos” fica esmaecida, e como resolver o copiar e colar entre dispositivos em cada plataforma.">
+<meta property="og:url" content="https://realtimeclipboard.com/pt/help/clipboard-sync-not-working/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/pt/help/clipboard-sync-not-working/#article",
+      "headline": "A área de transferência não sincroniza? Soluções para Windows, Android, Mac e iPhone",
+      "description": "Por que a opção de sincronizar a área de transferência fica esmaecida no Windows 11, e como resolver o copiar e colar entre dispositivos no Samsung, no Android, no Mac e no iPhone.",
+      "inLanguage": "pt-BR",
+      "datePublished": "2026-08-06",
+      "dateModified": "2026-08-06",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/pt/help/clipboard-sync-not-working/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/pt/" },
+        { "@type": "ListItem", "position": 2, "name": "A área de transferência não sincroniza" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/faq.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/pt/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir o aplicativo</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Trilha de navegação">
+        <a href="/pt/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">A área de transferência não sincroniza</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>A área de transferência não sincroniza?</h1>
+
+        <p class="lede">
+          No Windows, a causa mais comum não é a que as pessoas esperam: a
+          <b>opção “Sincronizar entre seus dispositivos” nem aparece enquanto o
+          histórico da área de transferência não estiver ligado</b>. Ligue o
+          histórico primeiro e a opção de sincronizar deixa de ficar esmaecida. Se
+          continuar esmaecida depois disso, é quase certo que você está com uma
+          conta local ou corporativa, ou que a Política de Grupo desativou o
+          recurso.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <p>
+          Isso resolve a maioria dos casos. O resto desta página percorre cada
+          plataforma na ordem que vale a pena tentar, e é honesto sobre as
+          situações em que não há solução — num notebook de trabalho gerenciado,
+          em especial, muitas vezes você não tem como mudar nada, e nenhuma
+          quantidade de cliques vai ajudar.
+        </p>
+
+        <h2>Windows 11 e 10: “Sincronizar entre seus dispositivos” esmaecida</h2>
+
+        <p>
+          Siga na ordem. Cada passo é uma causa realmente diferente, e a ordem é
+          a da frequência com que cada uma acaba sendo o problema.
+        </p>
+
+        <ol class="steps">
+          <li>
+            <b>Ligue o histórico da área de transferência primeiro.</b> Vá em
+            <code>Configurações › Sistema › Área de transferência</code> e ative o
+            <b>Histórico da área de transferência</b> no topo da página. A opção de
+            sincronizar logo abaixo fica inerte até isso estar ligado — é de longe
+            o motivo mais comum de ela parecer esmaecida, e quase todo guia pula
+            esse passo por supor que você já fez.
+          </li>
+          <li>
+            <b>Entre com uma conta Microsoft.</b> A sincronização passa pela nuvem
+            da Microsoft, então uma conta local do Windows não consegue usá-la.
+            Confira em <code>Configurações › Contas</code>. Uma conta local é um
+            impedimento definitivo, não um defeito.
+          </li>
+          <li>
+            <b>Veja se o PC é gerenciado.</b> Numa máquina de trabalho ou
+            ingressada no domínio, a Política de Grupo pode desativar o histórico e
+            a sincronização de uma vez, e essa configuração se sobrepõe ao
+            aplicativo Configurações — a opção não vai responder, faça o que fizer.
+            Em meados de 2026 uma mudança de política desativou o histórico numa
+            leva de máquinas corporativas e em algumas domésticas, então isso ficou
+            muito mais comum do que era. <b>Se esse é o seu caso, nada nesta lista
+            vai resolver.</b>
+          </li>
+          <li>
+            <b>Confirme que o atalho funciona.</b> Pressione
+            <kbd>Windows</kbd>+<kbd>V</kbd>. Se nenhum painel aparecer, o histórico
+            está desligado ou bloqueado, e a sincronização não tem como funcionar
+            de jeito nenhum.
+          </li>
+          <li>
+            <b>Confirme que os dois PCs usam a mesma conta Microsoft.</b> A
+            sincronização acontece entre máquinas de uma conta só. Duas contas
+            nunca vão enxergar a área de transferência uma da outra, e o Windows
+            não avisa nada sobre isso.
+          </li>
+        </ol>
+
+        <div class="honest">
+          <h3>A limitação que ninguém menciona</h3>
+          <p>
+            Mesmo funcionando perfeitamente, a sincronização do Windows só move
+            texto entre <b>PCs com Windows conectados à mesma conta Microsoft</b>.
+            Ela não chega ao seu celular, ao seu Mac, à sua máquina Linux nem ao
+            computador de um colega. Se era isso que você queria, o recurso nunca
+            ia dar conta.
+          </p>
+        </div>
+
+        <h2>Copiar e colar entre iPhone e Mac não funciona</h2>
+
+        <p>
+          A Área de Transferência Universal da Apple tem cinco requisitos e falha
+          em silêncio quando falta qualquer um deles. Os cinco precisam ser
+          verdadeiros ao mesmo tempo:
+        </p>
+
+        <ul class="sq-list">
+          <li>Os dois aparelhos na <b>mesma Conta Apple</b></li>
+          <li><b>Wi-Fi ligado</b> nos dois — mesmo que estejam em redes diferentes</li>
+          <li><b>Bluetooth ligado</b> nos dois; é assim que eles se encontram</li>
+          <li><b>Handoff ativado</b> nos dois, nos ajustes Gerais</li>
+          <li>Os aparelhos fisicamente <b>perto um do outro</b>, no alcance do Bluetooth</li>
+        </ul>
+
+        <p>
+          O Bluetooth é o que passa despercebido, porque copiar um texto dá a
+          sensação de que deveria viajar pela rede. Não viaja: a proximidade faz
+          parte do projeto. A Área de Transferência Universal também tem um tempo
+          limite curto — copie algo, espere alguns minutos, e não estará mais lá
+          para colar.
+        </p>
+
+        <h2>Área de transferência da Samsung e do Android não sincroniza</h2>
+
+        <p>
+          O Android não tem sincronização de área de transferência entre
+          dispositivos no nível do sistema. O que existe é coisa de fabricante e só
+          funciona dentro de um ecossistema: a sincronização da própria Samsung
+          move a área de transferência entre aparelhos Samsung na mesma conta
+          Samsung, e o Phone Link da Microsoft consegue levar o conteúdo entre um
+          celular Android e um PC com Windows nos modelos compatíveis.
+        </p>
+
+        <p>
+          Ou seja, se você está tentando copiar de um celular Samsung para um
+          tablet de outra marca, ou de um Android para um Mac, não há recurso
+          nativo a consertar. Ele não existe para ser ligado.
+        </p>
+
+        <h2>Área de transferência do Chromebook não sincroniza</h2>
+
+        <p>
+          O ChromeOS sincroniza a área de transferência com um celular Android
+          pelo Phone Hub, que exige os dois aparelhos na mesma conta Google e o
+          Bluetooth ligado. Entre um Chromebook e um PC com Windows ou um Mac, não
+          existe caminho nativo nenhum.
+        </p>
+
+        <h2>Por que todos falham do mesmo jeito</h2>
+
+        <p>
+          Toda sincronização nativa de área de transferência falha nas mesmas três
+          condições, e quando você enxerga o padrão o diagnóstico deixa de ser um
+          mistério:
+        </p>
+
+        <div class="tablewrap" tabindex="0" role="region"
+             aria-label="O que cada sincronização nativa exige — rola na horizontal">
+          <table class="cmp">
+            <caption class="sr-only">
+              Requisitos e limites da sincronização nativa de área de transferência
+              do Windows, da Apple, da Samsung e do ChromeOS, comparados com uma
+              área de transferência no navegador.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Recurso nativo</th>
+                <th scope="col">Exige conta</th>
+                <th scope="col">Funciona entre marcas</th>
+                <th scope="col">Exige aparelhos por perto</th>
+                <th scope="col">Bloqueável pelo TI</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Sincronização do Windows</th>
+                <td class="n">Conta Microsoft</td>
+                <td class="n">Só Windows</td>
+                <td class="y">Não</td>
+                <td class="n">Sim — Política de Grupo</td>
+              </tr>
+              <tr>
+                <th scope="row">Área de Transferência Universal da Apple</th>
+                <td class="n">Conta Apple</td>
+                <td class="n">Só Apple</td>
+                <td class="n">Sim — alcance do Bluetooth</td>
+                <td class="n">Sim — MDM</td>
+              </tr>
+              <tr>
+                <th scope="row">Sincronização da Samsung</th>
+                <td class="n">Conta Samsung</td>
+                <td class="n">Só Samsung</td>
+                <td class="n">Geralmente</td>
+                <td class="n">Sim</td>
+              </tr>
+              <tr>
+                <th scope="row">Phone Hub do ChromeOS</th>
+                <td class="n">Conta Google</td>
+                <td class="n">ChromeOS + Android</td>
+                <td class="n">Sim — Bluetooth</td>
+                <td class="n">Sim</td>
+              </tr>
+              <tr class="me">
+                <th scope="row">Área de transferência no navegador</th>
+                <td class="y">Nenhuma</td>
+                <td class="y">Qualquer navegador</td>
+                <td class="y">Não</td>
+                <td>Só se o site estiver bloqueado</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          Três suposições atravessam todos eles: <b>você tem aparelhos de uma marca
+          só</b>, <b>você está conectado à conta dessa marca em todos eles</b> e,
+          muitas vezes, <b>os aparelhos estão na mesma sala</b>. Quebre qualquer
+          uma — um celular Android e um notebook de trabalho com Windows, um Mac
+          pessoal e um PC gerenciado, uma máquina onde você não pode entrar com sua
+          conta — e o recurso nativo não tem nada a oferecer.
+        </p>
+
+        <h2>O que usar quando a sincronização nativa não colabora</h2>
+
+        <p>
+          Uma área de transferência que vive numa página web contorna as três
+          suposições, porque não há nada para instalar nem conta em que entrar. É
+          isso que o <a href="/pt/">RealtimeClipboard</a> é: abra a mesma página
+          nos dois aparelhos, digite a mesma chave curta, e o que você copia num
+          está pronto para colar no outro.
+        </p>
+
+        <ul class="sq-list">
+          <li><b>Sem conta</b> — então uma conta local do Windows ou um perfil travado não importam</li>
+          <li><b>Sem instalar nada</b> — então funciona numa máquina onde você não tem direitos de administrador</li>
+          <li><b>De qualquer marca para qualquer marca</b> — Windows para Android, Mac para Windows, Chromebook para celular</li>
+          <li><b>Em qualquer rede</b> — do Wi-Fi de casa para o 4G; <a href="/pt/clipboard-sync-different-networks/">os aparelhos não precisam estar na mesma rede</a> nem perto um do outro</li>
+          <li><b>Criptografia de ponta a ponta</b> — o texto é criptografado no seu navegador antes de sair, e o servidor não guarda nada</li>
+        </ul>
+
+        <p>
+          As ressalvas honestas, já que esta página é sobre coisas que não
+          funcionam: está em beta, a chave curta vale por si só, então quem
+          descobrir a chave consegue ler aquela sessão, e um navegador não lê sua
+          área de transferência em segundo plano — você volta para a aba e ela pega
+          o que você copiou. Essa última é uma regra de segurança dos navegadores
+          que vale para todo aplicativo web, não um recurso faltando.
+        </p>
+
+        <p>
+          <a class="btn" href="/app.html">Abrir a área de transferência</a>
+        </p>
+      </div>
+
+      <div class="faq" id="faq">
+        <div class="faqhead">
+          <h2>Perguntas frequentes</h2>
+          <button type="button" class="faqall" id="faqAll"
+                  aria-expanded="false" aria-controls="faq" hidden>
+            <span class="faqall-i" aria-hidden="true"></span>
+            <span class="faqall-t">Expandir tudo</span>
+          </button>
+        </div>
+
+        <details class="qa">
+          <summary><h3>Por que a sincronização da área de transferência fica esmaecida no Windows 11?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Quase sempre porque o histórico da área de transferência está
+            desligado — a opção de sincronizar continua inerte até você ativar o
+            histórico logo acima dela, em
+            <code>Configurações › Sistema › Área de transferência</code>. Se ainda
+            assim ficar esmaecida, você está com uma conta local em vez de uma
+            conta Microsoft, ou a máquina é gerenciada e a Política de Grupo
+            desativou o recurso.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>A sincronização do Windows funciona com Android ou Mac?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Não. A sincronização da área de transferência do Windows só funciona
+            entre PCs com Windows conectados à mesma conta Microsoft. O Phone Link
+            da Microsoft consegue levar o conteúdo entre alguns celulares Android e
+            um PC com Windows, mas é outro recurso, com requisitos próprios de
+            aparelho.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Por que copiar e colar entre meu iPhone e meu Mac não funciona?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            A Área de Transferência Universal precisa das cinco condições ao mesmo
+            tempo: a mesma Conta Apple, Wi-Fi ligado, Bluetooth ligado, Handoff
+            ativado e os aparelhos dentro do alcance do Bluetooth. O Bluetooth é o
+            mais esquecido, porque copiar um texto dá a sensação de que deveria
+            viajar pela rede.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Minha empresa pode bloquear a sincronização da área de transferência?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Pode, e isso é comum. Numa máquina ingressada no domínio ou gerenciada
+            por MDM, a Política de Grupo desativa o histórico e a sincronização por
+            completo, e isso se sobrepõe ao aplicativo Configurações. Não existe
+            contorno do lado do usuário — a opção não responde. Uma página web
+            costuma ser o único caminho restante, desde que o site em si não esteja
+            bloqueado.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Existe sincronização de área de transferência sem conta?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Existe — uma área de transferência no navegador não precisa de conta
+            nenhuma, porque a sessão é identificada por uma chave curta que você
+            digita nos dois aparelhos, e não por uma identidade conectada. É a
+            abordagem do <a href="/pt/">RealtimeClipboard</a>, e é por isso que ele
+            funciona entre marcas diferentes e em máquinas onde você não pode
+            instalar nada.
+            </p>
+          </div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código aberto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/clipboard-sync-not-working/">English</a> · <a href="/es/help/clipboard-sync-not-working/">Español</a> · <a href="/pt/help/clipboard-sync-not-working/">Português</a> · <a href="/ru/help/clipboard-sync-not-working/">Русский</a> · <a href="/zh/help/clipboard-sync-not-working/">中文</a></p>
+      <p><a href="/pt/">Início</a> · <a href="/pt/download/">Download</a> · <a href="/pt/help/">Ajuda</a> · <a href="/pt/about/">Sobre</a> · <a href="/privacy/">Privacidade</a> · <a href="/terms/">Termos</a></p>
+      <p>As sessões ficam em memória e nunca são gravadas em disco. O conteúdo da área de transferência é criptografado no seu navegador antes de ser enviado.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

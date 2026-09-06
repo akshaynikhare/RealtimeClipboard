@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Every id on this page is a deep-link target used from /help/install/ and from
+  the other platform guides (#install, #pkg, #check, #first, #trouble, #remove).
+  They are byte-identical to the English original and must stay that way.
+
+  Everything inside pre and code is left exactly as the English has it: those
+  blocks carry a copy button, and a translated command is a command that fails
+  when pasted. The two status-bar strings sit in code for the same reason, and
+  because the desktop app itself is not localised.
+
+  macOS UI uses the Russian wording shown on the device («Программы», «Корзина»,
+  Системные настройки, Конфиденциальность и безопасность, Все равно открыть),
+  and the Gatekeeper refusal is quoted as macOS in Russian phrases it. The app's
+  own labels stay Latin, which is what the reader sees on screen.
+
+  Terminology follows /ru/: буфер обмена, ключ, ретранслятор, установка,
+  удаление.
+-->
+
+<title>Установка RealtimeClipboard на macOS</title>
+<meta name="description" content="Один универсальный .dmg для Intel и Apple Silicon, как убедиться, что значок в строке меню работает, первая синхронизация и что скажет Gatekeeper.">
+<link rel="canonical" href="https://realtimeclipboard.com/ru/help/install/mac/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/install/mac/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/install/mac/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/install/mac/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/install/mac/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/install/mac/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/install/mac/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="Установка RealtimeClipboard на macOS">
+<meta property="og:description" content="Одна загрузка для Intel и Apple Silicon, как выглядит рабочая установка и как устроен значок в строке меню.">
+<meta property="og:url" content="https://realtimeclipboard.com/ru/help/install/mac/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/ru/help/install/mac/#article",
+      "headline": "Установка RealtimeClipboard на macOS — Intel и Apple Silicon",
+      "description": "Один универсальный .dmg для обоих чипов, как убедиться, что значок в строке меню работает, первая синхронизация и что Gatekeeper скажет в первый раз.",
+      "inLanguage": "ru",
+      "datePublished": "",
+      "dateModified": "",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/ru/help/install/mac/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/ru/" },
+        { "@type": "ListItem", "position": 2, "name": "Установка на macOS" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/copy.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/ru/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Открыть приложение</a>
+    </div>
+  </div>
+</header>
+
+<svg class="icons" aria-hidden="true">
+  <symbol id="i-apple" viewBox="0 0 24 24"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></symbol>
+</svg>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Навигационная цепочка">
+        <a href="/ru/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Установка на macOS</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1><svg class="brandmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-apple"/></svg> Установка на macOS</h1>
+
+        <p class="lede">
+          Одна загрузка закрывает и Intel, и Apple Silicon. macOS не спрашивает
+          разрешения на чтение буфера обмена — из-за этого установка проходит без
+          единой заминки, и ровно поэтому программа объясняется сама при первом
+          запуске.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2 id="install">Установите</h2>
+        <ol class="steps">
+          <li>Скачайте <code>RealtimeClipboard_&lt;version&gt;_universal.dmg</code> со
+            <a href="https://github.com/akshaynikhare/RealtimeClipboard/releases/latest">страницы релизов</a>.</li>
+          <li>Откройте образ и перетащите RealtimeClipboard в «Программы».</li>
+          <li>Запустите. Нужна macOS 11 или новее.</li>
+        </ol>
+        <p>
+          <b>Загрузка одна, а не две.</b> Релизная сборка собирается с
+          <code>--target universal-apple-darwin</code>, поэтому один и тот же файл
+          работает нативно на обеих архитектурах. Если вы ищете отдельную сборку
+          для Apple Silicon — она уже у вас в руках.
+        </p>
+
+        <h2 id="pkg">Или через менеджер пакетов</h2>
+        <pre><code>brew install --cask akshaynikhare/tap/realtimeclipboard</code></pre>
+        <p>
+          Cask лежит в
+          <a href="https://github.com/akshaynikhare/homebrew-tap">akshaynikhare/homebrew-tap</a>
+          и генерируется из каждого релиза скриптом
+          <code>tools/release/manifest.mjs</code>, так что версия и контрольная
+          сумма берутся из артефакта, который действительно собрали. Отдельный
+          <code>brew tap</code> заранее не нужен — достаточно назвать tap прямо в
+          команде установки.
+        </p>
+        <p>
+          Это же и самый простой способ обойти историю с Gatekeeper: cask снимает
+          атрибут карантина после установки, и программа открывается без похода в
+          «Конфиденциальность и безопасность». Homebrew делает за вас то, что вы
+          иначе сделали бы руками, — подписи это не заменяет: сборка по-прежнему
+          неподписанная.
+        </p>
+        <p>
+          Клиент командной строки — отдельная формула,
+          <code>realtimeclipboard-cli</code>, и это не то же самое, что программа
+          для рабочего стола: см.
+          <a href="/ru/help/install/cli/">руководство по командной строке</a>.
+        </p>
+
+        <h2 id="check">Проверьте, что всё получилось</h2>
+        <ul class="sq-list">
+          <li><b>В строке меню появляется значок.</b> Нажмите на него — меню
+            открывается так, как и положено значку в строке меню:
+            <b>Open RealtimeClipboard</b> стоит первым пунктом, а <b>Quit</b> —
+            последним, и это сделано намеренно. У программы, которая следит за
+            вашим буфером обмена, должен быть видимый способ её остановить.
+            Закрытие окна красной кнопкой не завершает работу: программа остаётся
+            в строке меню и продолжает следить.</li>
+          <li><b>В строке состояния написано <code>T0 · watching the system clipboard</code></b>
+            — справа внизу окна. Так нативный наблюдатель подтверждает себя. Safari
+            на той же машине показывает <code>T1 · paste only</code>, и разница
+            между этими двумя строками и есть то, ради чего вы это ставили.</li>
+        </ul>
+
+        <h2 id="first">Первая синхронизация</h2>
+        <ol class="steps">
+          <li>Запомните короткий ключ вверху окна или введите свой.</li>
+          <li>Откройте <a href="/app.html">приложение</a> на втором устройстве и
+            введите тот же ключ.</li>
+          <li>Скопируйте что-нибудь на Mac, не переключаясь в RealtimeClipboard.
+            Скопированное появится на втором устройстве.</li>
+        </ol>
+        <p class="honest">
+          Ничего не произошло? Проверьте, что переключатель вверху окна стоит в
+          положении <b>Clipboard</b>. В положении <b>App</b> с Mac не уходит ничего,
+          пока вы сами не вставите текст в окно. Об этом переключателе стоит знать:
+          macOS отдаёт доступ к буферу обмена любой запущенной программе вообще без
+          запроса, поэтому система никак не сообщила бы вам, что программа начала
+          читать каждое ваше копирование, — именно поэтому она говорит это сама при
+          первом запуске и выносит тот же переключатель в строку меню под названием
+          <b>Share what I copy</b>.
+        </p>
+
+        <h2 id="trouble">Когда это не работает</h2>
+
+        <h3>«Не удается открыть RealtimeClipboard, так как не удалось проверить разработчика»</h3>
+        <p>
+          Так и должно быть, и это не признак битой загрузки. Сборка не подписана и
+          не нотаризована, потому что для того и другого нужна платная учётная
+          запись Apple Developer, которой у проекта пока нет. Всё ненотаризованное
+          Gatekeeper в первый раз отклоняет.
+        </p>
+        <ol class="steps-list">
+          <li>Попробуйте открыть программу один раз и дайте ей получить отказ.</li>
+          <li><b>Системные настройки → Конфиденциальность и безопасность</b>,
+            прокрутите вниз: там появилась строка с именем RealtimeClipboard и
+            кнопкой <b>Все равно открыть</b>.</li>
+        </ol>
+        <p>
+          На macOS 14 и старше правый клик по программе и пункт <b>Открыть</b>
+          делают то же самое в один шаг. В macOS 15 этот способ убрали, поэтому
+          длинный путь описан первым.
+        </p>
+        <p>
+          Оба варианта заносят исключение только для этой программы — это заметно
+          уже, чем ослаблять Gatekeeper целиком, чего делать не стоит. Делайте это
+          только для файла, полученного со
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/releases/latest">страницы официальных релизов</a>,
+          и, если хотите полной уверенности, сверьте SHA256 из релиза с файлом.
+        </p>
+
+        <h3>Запрос разрешения так и не появился</h3>
+        <p>
+          Его и не должно быть. В отличие от камеры, микрофона или экрана, буфер
+          обмена на macOS доступен для чтения любой запущенной программе без всяких
+          вопросов. Показать системный запрос, которого не существует, программа не
+          может — поэтому она сама говорит об этом при первом запуске, и это и есть
+          замена такому запросу.
+        </p>
+
+        <h3>На Mac приходит, но с него не уходит</h3>
+        <p>
+          Это настройка App/Clipboard, а не ошибка: приём работает всегда, а
+          отправку вы включаете сами.
+        </p>
+
+        <h3>Зависает на «Connecting…»</h3>
+        <p>
+          Программа сначала пробует WebSocket, а там, где апгрейд соединения
+          блокируют, переходит на server-sent events плюс POST. Если не проходит ни
+          то ни другое, узел ретранслятора заблокирован целиком — укажите программе
+          свой собственный в <b>Settings → Relay</b>.
+          <a href="/ru/help/install/relay/">Поднять его — это один контейнер.</a>
+        </p>
+
+        <h2 id="remove">Удаление</h2>
+        <p>
+          Завершите программу из строки меню и перетащите её из «Программ» в
+          «Корзину» либо выполните
+          <code>brew uninstall --cask realtimeclipboard</code>.
+        </p>
+        <p>
+          Содержимое буфера обмена никогда не пишется на диск, так что искать и
+          удалять потом нечего. Настройки и история хранятся в собственном браузерном
+          хранилище программы и уходят вместе с ней.
+        </p>
+
+        <p class="hint">
+          Готовы ставить: <a href="/ru/download/">страница загрузок</a>. Все
+          остальные платформы: <a href="/ru/help/install/">руководство по установке</a>.
+          Здесь что-то неверно или устарело?
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">Откройте issue</a>.
+        </p>
+      </div>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Открытый исходный код — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/install/mac/">English</a> · <a href="/es/help/install/mac/">Español</a> · <a href="/pt/help/install/mac/">Português</a> · <a href="/ru/help/install/mac/">Русский</a> · <a href="/zh/help/install/mac/">中文</a></p>
+      <p><a href="/ru/">Главная</a> · <a href="/ru/download/">Загрузки</a> · <a href="/ru/help/">Помощь</a> · <a href="/ru/about/">О проекте</a> · <a href="/privacy/">Конфиденциальность</a> · <a href="/terms/">Условия</a></p>
+      <p>Сессии хранятся в памяти и никогда не пишутся на диск. Содержимое буфера обмена шифруется в вашем браузере до отправки.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

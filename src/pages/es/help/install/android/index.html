@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Every id is a deep-link target used from other pages (#install, #why, #check,
+  #first, #trouble, #remove) and is byte-identical to /help/install/android/.
+  The #i-android symbol in the h1 comes from the sprite the template lifts from
+  the English original.
+
+  Browser menu items are given in the wording each browser actually ships in
+  Spanish, because the reader is hunting for that exact string on screen: Chrome
+  Añadir a pantalla de inicio, Firefox Instalar, Samsung Internet Añadir página
+  a → Pantalla de inicio, and Chrome's Configuración → Configuración de sitios
+  web. These match the labels already used on /es/download/.
+
+  The code span keeps T1 · paste only exactly as the English has it: it is a
+  literal status line the reader compares against their screen, and the block
+  carries a copy button.
+
+  "Móvil" and "ordenador" throughout, as in the other es pages.
+
+  Terminology follows /es/: portapapeles en línea, clave corta, servidor de
+  retransmisión, cifrado de extremo a extremo, instalación, desinstalar,
+  pantalla de inicio.
+-->
+
+<title>Añade RealtimeClipboard a la pantalla de inicio de Android</title>
+<meta name="description" content="No hay aplicación que instalar: añade la web desde Chrome en dos toques. Por qué Android no deja que nada lea el portapapeles en segundo plano.">
+<link rel="canonical" href="https://realtimeclipboard.com/es/help/install/android/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/install/android/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/install/android/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/install/android/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/install/android/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/install/android/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/install/android/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="es_ES">
+<meta property="og:title" content="RealtimeClipboard en Android y ChromeOS">
+<meta property="og:description" content="Añádelo a la pantalla de inicio desde Chrome. Por qué no hay aplicación en Google Play, y por qué eso es una decisión y no un hueco.">
+<meta property="og:url" content="https://realtimeclipboard.com/es/help/install/android/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/es/help/install/android/#article",
+      "headline": "Añade RealtimeClipboard a la pantalla de inicio de Android",
+      "description": "No hay aplicación que instalar — añade la aplicación web desde Chrome en dos toques. Por qué Android no deja que ninguna aplicación lea el portapapeles en segundo plano, y qué hacer en su lugar.",
+      "inLanguage": "es",
+      "datePublished": "",
+      "dateModified": "",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/es/help/install/android/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/es/" },
+        { "@type": "ListItem", "position": 2, "name": "Instalación en Android" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/copy.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/es/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir la aplicación</a>
+    </div>
+  </div>
+</header>
+
+<svg class="icons" aria-hidden="true">
+  <symbol id="i-android" viewBox="0 0 24 24"><path d="M18.4395 5.5586c-.675 1.1664-1.352 2.3318-2.0274 3.498-.0366-.0155-.0742-.0286-.1113-.043-1.8249-.6957-3.484-.8-4.42-.787-1.8551.0185-3.3544.4643-4.2597.8203-.084-.1494-1.7526-3.021-2.0215-3.4864a1.1451 1.1451 0 0 0-.1406-.1914c-.3312-.364-.9054-.4859-1.379-.203-.475.282-.7136.9361-.3886 1.5019 1.9466 3.3696-.0966-.2158 1.9473 3.3593.0172.031-.4946.2642-1.3926 1.0177C2.8987 12.176.452 14.772 0 18.9902h24c-.119-1.1108-.3686-2.099-.7461-3.0683-.7438-1.9118-1.8435-3.2928-2.7402-4.1836a12.1048 12.1048 0 0 0-2.1309-1.6875c.6594-1.122 1.312-2.2559 1.9649-3.3848.2077-.3615.1886-.7956-.0079-1.1191a1.1001 1.1001 0 0 0-.8515-.5332c-.5225-.0536-.9392.3128-1.0488.5449zm-.0391 8.461c.3944.5926.324 1.3306-.1563 1.6503-.4799.3197-1.188.0985-1.582-.4941-.3944-.5927-.324-1.3307.1563-1.6504.4727-.315 1.1812-.1086 1.582.4941zM7.207 13.5273c.4803.3197.5506 1.0577.1563 1.6504-.394.5926-1.1038.8138-1.584.4941-.48-.3197-.5503-1.0577-.1563-1.6504.4008-.6021 1.1087-.8106 1.584-.4941z"/></symbol>
+</svg>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Ruta de navegación">
+        <a href="/es/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Instalación en Android</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1><svg class="brandmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-android"/></svg> Instalación en Android y ChromeOS</h1>
+
+        <p class="lede">
+          No hay nada que descargar. Añade la aplicación web a la pantalla de
+          inicio y tendrá su propio icono y su propia ventana, y funcionará sin
+          conexión — que es toda la capacidad que habría tenido una aplicación de
+          Google Play, por motivos que son de Android y no nuestros.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2 id="install">Instálalo</h2>
+        <ol class="steps">
+          <li>Abre <a href="/app.html">la aplicación</a> en Chrome.</li>
+          <li>Toca el menú <span aria-hidden="true">⋮</span> y luego
+            <b>Añadir a pantalla de inicio</b> — o toca el aviso de instalación si
+            Chrome te ofrece uno.</li>
+          <li>Confirma. El icono aparece en tu pantalla de inicio.</li>
+        </ol>
+        <p>
+          En ChromeOS es el mismo camino, desde el mismo menú. Firefox y Samsung
+          Internet también saben hacerlo, aunque llaman a la opción de otra forma —
+          Firefox la llama <b>Instalar</b>, y Samsung Internet,
+          <b>Añadir página a</b> → <b>Pantalla de inicio</b>.
+        </p>
+
+        <h2 id="why">Por qué no hay aplicación en Google Play</h2>
+        <p>
+          <b>Desde Android 10, solo la aplicación que estás usando en ese momento, el
+          teclado activo o un servicio de accesibilidad pueden leer el
+          portapapeles.</b> Esa regla existe porque una aplicación capaz de leer tu
+          portapapeles en silencio se llevaría todas las contraseñas y todos los
+          códigos de un solo uso que copias, y se aplica a todas las aplicaciones de
+          la plataforma sin excepción.
+        </p>
+        <p>
+          Así que una aplicación nativa de RealtimeClipboard podría ofrecer una
+          entrada en el menú de compartir y una ficha en la tienda — y nada más que
+          la aplicación web instalada no haga ya. No podría vigilar tu portapapeles
+          en segundo plano, porque no puede hacerlo nada. Publicarla sería, sobre
+          todo, pedirte que confíes en un segundo binario sin ganar ninguna
+          capacidad a cambio.
+        </p>
+        <p class="honest">
+          El modelo honesto en el móvil: <b>tú llevas el texto a la aplicación, y la
+          aplicación te trae el texto a ti.</b> Recibir es automático — lo que
+          copiaste en el ordenador ya está esperando cuando la abres. Enviar es un
+          pegado o un compartir, y siempre lo será.
+        </p>
+
+        <h2 id="check">Comprueba que ha funcionado</h2>
+        <ul class="sq-list">
+          <li><b>Se abre sin barra de direcciones.</b> Esa es toda la señal: un
+            acceso directo en la pantalla de inicio sigue mostrando la interfaz de
+            Chrome, y una aplicación web instalada no.</li>
+          <li><b>La barra de estado pone <code>T1 · paste only</code></b>, que es lo
+            correcto y no es un fallo. En Android ese es el techo.</li>
+          <li>Se abre sin conexión de red, mostrando tu historial ya existente.</li>
+        </ul>
+
+        <h2 id="first">Tu primera sincronización</h2>
+        <ol class="steps">
+          <li>Abre la aplicación en el ordenador y apunta la clave corta.</li>
+          <li>Escribe la misma clave en el móvil.</li>
+          <li>Copia algo en el ordenador. Aparece en el móvil sin hacer nada más.</li>
+          <li>En el otro sentido: copia en el móvil, abre RealtimeClipboard y mantén
+            pulsado en el editor → <b>Pegar</b>. O usa el menú de compartir de
+            Android desde la aplicación en la que estés.</li>
+        </ol>
+
+        <h2 id="trouble">Cuando no funciona</h2>
+
+        <h3>No ha aparecido ningún aviso de instalación</h3>
+        <p>
+          Chrome decide cuándo ofrecerlo, y no siempre lo hace. La vía del menú
+          funciona igualmente y es la fiable — no esperes a que salga un aviso.
+        </p>
+
+        <h3>Se ha abierto en el navegador y no en su propia ventana</h3>
+        <p>
+          Lo que tienes es un acceso directo a un marcador, no una aplicación
+          instalada. Quítalo y añádelo otra vez desde el menú; la opción que quieres
+          es <b>Añadir a pantalla de inicio</b>, y Chrome enseña el icono de la
+          aplicación en el diálogo de confirmación cuando la instalación va a hacerse
+          de verdad.
+        </p>
+
+        <h3>No llega nada con la aplicación cerrada</h3>
+        <p>
+          Correcto, y no tiene arreglo: una aplicación web no está en marcha
+          mientras no la estás mirando, así que recoge lo que hay esperando en el
+          servidor de retransmisión en cuanto la abres. No se pierde nada — la sesión
+          lo guarda.
+        </p>
+
+        <h3>Copiar en el móvil no envía</h3>
+        <p>
+          Es la regla de Android 10 de más arriba. Pega en la aplicación, o comparte
+          con ella.
+        </p>
+
+        <h2 id="remove">Desinstalar</h2>
+        <p>
+          Mantén pulsado el icono y desinstálala como cualquier otra aplicación, o
+          quítala desde <b>Configuración → Configuración de sitios web</b> de Chrome.
+          En el dispositivo no queda nada más allá del almacenamiento del navegador
+          que usó para tus ajustes y tu historial.
+        </p>
+
+        <p class="hint">
+          Todas las demás plataformas: <a href="/es/help/install/">la guía de
+          instalación</a>. Si tu portapapeles no se sincroniza por motivos que no
+          tienen que ver con esta aplicación,
+          <a href="/es/help/clipboard-sync-not-working/">empieza por aquí</a>.
+          ¿Algo mal o desactualizado?
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">Abre una issue</a>.
+        </p>
+      </div>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código abierto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/install/android/">English</a> · <a href="/es/help/install/android/">Español</a> · <a href="/pt/help/install/android/">Português</a> · <a href="/ru/help/install/android/">Русский</a> · <a href="/zh/help/install/android/">中文</a></p>
+      <p><a href="/es/">Inicio</a> · <a href="/es/download/">Descargas</a> · <a href="/es/help/">Ayuda</a> · <a href="/es/about/">Acerca de</a> · <a href="/privacy/">Privacidad</a> · <a href="/terms/">Términos</a></p>
+      <p>Las sesiones se mantienen en memoria y nunca se escriben en disco. El contenido del portapapeles se cifra en tu navegador antes de enviarse.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

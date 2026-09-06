@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Every id here is a deep-link target that other pages point at
+  (/help/install/relay/#install, #check, #first, #tls, #replicas, #trouble,
+  #remove), and the CLI page links straight to this page's TLS and replica
+  sections, so the ids stay byte-identical to the English original and only the
+  heading text is translated.
+
+  Every pre and code block is the English original unchanged: the image name,
+  the pip and uvicorn lines, the health check, the compose invocation and the
+  environment variable names. Those blocks carry a copy button, so a translated
+  command, path or variable is a command that fails when pasted. The shutdown
+  block keeps its inline English comment as well, because translating it would
+  disturb the alignment the block was written with.
+
+  Terminology follows /zh/: 中继服务器, 密钥, 端到端加密, 自建, 安装.
+-->
+
+<title>自建 RealtimeClipboard 中继服务器</title>
+<meta name="description" content="一个容器，没有数据库。自己跑中继服务器，验证 /health，把应用指过去，再用附带的 compose 文件把 TLS 挡在前面。">
+<link rel="canonical" href="https://realtimeclipboard.com/zh/help/install/relay/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/install/relay/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/install/relay/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/install/relay/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/install/relay/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/install/relay/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/install/relay/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="自己运行 RealtimeClipboard 中继服务器">
+<meta property="og:description" content="一个 Python 文件，没有数据库，没有状态。Docker、带自动 TLS 的 docker compose，或者 Helm chart。">
+<meta property="og:url" content="https://realtimeclipboard.com/zh/help/install/relay/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/zh/help/install/relay/#article",
+      "headline": "用 Docker 自建 RealtimeClipboard 中继服务器",
+      "description": "一个容器，没有数据库。自己跑中继服务器，验证 /health，把应用指过去，再用附带的 compose 文件给它套上 TLS。",
+      "inLanguage": "zh-Hans",
+      "datePublished": "",
+      "dateModified": "",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/zh/help/install/relay/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/zh/" },
+        { "@type": "ListItem", "position": 2, "name": "自建中继服务器" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/copy.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/zh/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">打开应用</a>
+    </div>
+  </div>
+</header>
+
+<svg class="icons" aria-hidden="true">
+  <symbol id="i-docker" viewBox="0 0 24 24"><path d="M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.185.185 0 00-.185.185v1.888c0 .102.083.185.185.185m-2.954-5.43h2.118a.186.186 0 00.186-.186V3.574a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m0 2.716h2.118a.187.187 0 00.186-.186V6.29a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.887c0 .102.082.185.185.186m-2.93 0h2.12a.186.186 0 00.184-.186V6.29a.185.185 0 00-.185-.185H8.1a.185.185 0 00-.185.185v1.887c0 .102.083.185.185.186m-2.964 0h2.119a.186.186 0 00.185-.186V6.29a.185.185 0 00-.185-.185H5.136a.186.186 0 00-.186.185v1.887c0 .102.084.185.186.186m5.893 2.715h2.118a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m-2.93 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.083.185.185.185m-2.964 0h2.119a.185.185 0 00.185-.185V9.006a.185.185 0 00-.184-.186h-2.12a.186.186 0 00-.186.186v1.887c0 .102.084.185.186.185m-2.92 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.082.185.185.185M23.763 9.89c-.065-.051-.672-.51-1.954-.51-.338.001-.676.03-1.01.087-.248-1.7-1.653-2.53-1.716-2.566l-.344-.199-.226.327c-.284.438-.49.922-.612 1.43-.23.97-.09 1.882.403 2.661-.595.332-1.55.413-1.744.42H.751a.751.751 0 00-.75.748 11.376 11.376 0 00.692 4.062c.545 1.428 1.355 2.48 2.41 3.124 1.18.723 3.1 1.137 5.275 1.137.983.003 1.963-.086 2.93-.266a12.248 12.248 0 003.823-1.389c.98-.567 1.86-1.288 2.61-2.136 1.252-1.418 1.998-2.997 2.553-4.4h.221c1.372 0 2.215-.549 2.68-1.009.309-.293.55-.65.707-1.046l.098-.288Z"/></symbol>
+</svg>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="面包屑导航">
+        <a href="/zh/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">自建中继服务器</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1><svg class="brandmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-docker"/></svg> 自建中继服务器</h1>
+
+        <p class="lede">
+          中继服务器在你的设备之间搬运已经加密的剪贴内容。它看到的只有房间哈希和
+          密文，而且什么都不存 —— 但这件事你不必只凭信任，因为你可以自己跑一个。
+          它就是一个 Python 文件，没有数据库。
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2 id="install">跑起来</h2>
+        <pre><code>docker run -p 8000:8000 ghcr.io/akshaynikhare/realtimeclipboard-relay</code></pre>
+        <p>或者从一份克隆直接跑，连容器都不用：</p>
+        <pre><code>pip install -r backend/requirements.txt
+python -m uvicorn main:app --app-dir backend --port 8000</code></pre>
+        <p>
+          整个中继服务器就这些。没有数据库，没有卷，没有迁移步骤，也没有什么要备份
+          的 —— 每个会话都活在内存里，进程一退就没了，这是设计如此，不是能力不足。
+        </p>
+
+        <h2 id="check">确认它跑起来了</h2>
+        <pre><code>curl http://localhost:8000/health</code></pre>
+        <p>
+          它会回一个实例标识。那个字段不是装饰：客户端正是靠它才能发现自己在会话中途
+          被负载均衡换到了另一个副本上，而这恰恰是这套设计必须小心的失败方式 ——
+          见下面关于副本的那一节。
+        </p>
+
+        <h2 id="first">把应用指过去</h2>
+        <ol class="steps">
+          <li>打开<a href="/app.html">应用</a>，进入
+            <b>设置 → 中继服务器</b>。</li>
+          <li>填你自己的中继地址 —— 本地测试用 <code>ws://localhost:8000</code>，
+            正式的用 <code>wss://clip.example.com</code>。</li>
+          <li>它一答复，状态栏就显示<b>已连接</b>。在第二台设备上照做一遍，在两者之间
+            同步一条剪贴内容；整个过程没有碰过公共中继服务器。</li>
+        </ol>
+        <p>
+          命令行客户端用 <code>--relay</code> 或
+          <code>REALTIMECLIPBOARD_RELAY</code> 做同一件事。
+        </p>
+
+        <h2 id="tls">TLS 和一个真实域名</h2>
+        <pre><code>cd deploy
+REALTIMECLIPBOARD_DOMAIN=clip.example.com docker compose up -d</code></pre>
+        <p>
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/tree/main/deploy">deploy 目录</a>
+          里有一个 compose 文件，它把 Caddy 放在中继服务器前面并自动申请证书，
+          旁边还有一份给 Kubernetes 用的 Helm chart。
+        </p>
+        <p class="honest">
+          <b>TLS 在实践中不是可选项。</b>浏览器只在安全上下文里提供
+          <code>crypto.subtle</code>，所以一个通过普通 HTTP 从局域网地址打开的页面
+          连密钥都推导不出来 —— 无论中继服务器做什么，应用在那里都不可能工作。
+        </p>
+
+        <h2 id="replicas">扩容之前</h2>
+        <p>
+          <b>把副本数钉死在 1，或者给它一个 Redis。</b>一个房间只存在于服务它的那个
+          进程的内存里，所以轮询负载均衡后面的两个副本，会把一个会话的两半分到两台
+          机器上，谁也看不见谁。表现出来就是剪贴内容悄无声息地不到，看着像客户端的
+          bug，其实不是。Helm chart 会拒绝在没有 Redis 的情况下接受
+          <code>replicaCount &gt; 1</code>，正是为了这个。
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/blob/main/docs/SELF-HOSTING.md">自建说明</a>
+          完整讲了环境变量和高可用的路子。
+        </p>
+
+        <h2 id="trouble">它不工作的时候</h2>
+
+        <h3>显示已连接，但剪贴内容一直不来</h3>
+        <p>
+          几乎总是副本不止一个、又没有共享状态 —— 见上面。把每台设备拿到的
+          <code>/health</code> 标识对一下：如果不一样，答案就在这里。
+        </p>
+
+        <h3>应用根本连不上它</h3>
+        <p>
+          两种可能。页面自己的 Content-Security-Policy 列出了它允许连接的中继来源，
+          所以你自建的那份静态站点需要在 <code>index.html</code>、
+          <code>app.html</code> 以及 <code>src/pages/</code> 下的每一个页面里更新
+          <code>connect-src</code>。而如果你用的是官方站点配自己的中继服务器，
+          官方那份策略不会放行 —— 两半都要自建。
+        </p>
+
+        <h3>连上了又反复掉线</h3>
+        <p>
+          反向代理没有转发 WebSocket 升级。客户端随后退回到 server-sent events 加
+          POST，继续能用，只是慢一些，所以这个问题看起来是变迟钝而不是失败。把
+          <code>Upgrade</code> 和 <code>Connection</code> 转发过去。
+        </p>
+
+        <h3>空闲的会话消失了</h3>
+        <p>
+          房间一空就会被回收。这是有意的 —— 什么都不留的中继服务器，也就没有什么
+          可泄露的。
+        </p>
+
+        <h2 id="remove">关掉它</h2>
+        <pre><code>docker compose down            # or: docker rm -f &lt;container&gt;</code></pre>
+        <p>
+          没有数据要删。中继服务器持有过的一切都在内存里，而且都是密文。
+        </p>
+
+        <p class="hint">
+          完整的运维说明，包括环境变量表和高可用方案：
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/blob/main/docs/SELF-HOSTING.md">docs/SELF-HOSTING.md</a>。
+          所有平台：<a href="/zh/help/install/">安装指南</a>。
+          这一页有错或者过时了？
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">提一个 issue</a>。
+        </p>
+      </div>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>开源项目 — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/install/relay/">English</a> · <a href="/es/help/install/relay/">Español</a> · <a href="/pt/help/install/relay/">Português</a> · <a href="/ru/help/install/relay/">Русский</a> · <a href="/zh/help/install/relay/">中文</a></p>
+      <p><a href="/zh/">首页</a> · <a href="/zh/download/">下载</a> · <a href="/zh/help/">帮助</a> · <a href="/zh/about/">关于</a> · <a href="/privacy/">隐私政策</a> · <a href="/terms/">使用条款</a></p>
+      <p>会话只保存在内存中，从不写入磁盘。剪贴板内容在发送前已在你的浏览器里完成加密。</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

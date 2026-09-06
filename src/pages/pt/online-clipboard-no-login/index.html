@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Brazilian readers are the most engaged cohort in the analytics, and this is
+  the page their objection already contains: they were asked to criar uma conta
+  for something that should not need one. So the page has to be the one that
+  does not ask, and to state what having no conta actually costs.
+
+  Terminology follows /pt/: área de transferência, chave curta, retransmissor,
+  criptografia de ponta a ponta, conta, cadastro. Fixed on this page: cadastro
+  is the sign-up form, login the act of signing in, conta the account itself.
+  English collapses all three into "no login" and Portuguese does not, so each
+  keeps its own word wherever the original leans on that one phrase.
+-->
+
+<title>Área de transferência online sem login e sem conta</title>
+<meta name="description" content="Uma área de transferência online que não pede login, e-mail nem instalação. Uma chave curta nos dois aparelhos, com criptografia de ponta a ponta.">
+<link rel="canonical" href="https://realtimeclipboard.com/pt/online-clipboard-no-login/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/online-clipboard-no-login/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/online-clipboard-no-login/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/online-clipboard-no-login/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/online-clipboard-no-login/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/online-clipboard-no-login/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/online-clipboard-no-login/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="Área de transferência online sem login, conta ou app">
+<meta property="og:description" content="Copie num aparelho e cole em outro. Uma chave curta no lugar do cadastro — com criptografia de ponta a ponta e código aberto.">
+<meta property="og:url" content="https://realtimeclipboard.com/pt/online-clipboard-no-login/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/pt/online-clipboard-no-login/#article",
+      "headline": "Uma área de transferência online sem login",
+      "description": "Como sincronizar a área de transferência sem conta, o que uma chave compartilhada substitui e o que não ter conta custa a você.",
+      "inLanguage": "pt-BR",
+      "datePublished": "2026-08-07",
+      "dateModified": "2026-08-07",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/pt/online-clipboard-no-login/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/pt/" },
+        { "@type": "ListItem", "position": 2, "name": "Área de transferência online sem login" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/faq.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/pt/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir o aplicativo</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Trilha de navegação">
+        <a href="/pt/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Área de transferência online sem login</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>Uma área de transferência online sem login</h1>
+
+        <p class="lede">
+          <b>Você não precisa de uma conta para sincronizar uma área de
+          transferência — precisa de um segredo compartilhado, e a conta é só uma
+          maneira de ter um.</b> Abra esta página em dois aparelhos, digite a mesma
+          chave curta nos dois, e o que você copiar num deles estará na área de
+          transferência do outro. Sem e-mail, sem senha, sem instalação, sem
+          extensão.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <p>
+          <a class="btn" href="/app.html">Abrir a área de transferência</a>
+        </p>
+
+        <h2>Por que quase toda ferramenta assim pede login</h2>
+
+        <p>
+          Um serviço de sincronização precisa responder a uma pergunta: quais dois
+          aparelhos andam juntos? A conta responde fazendo os dois provarem que são
+          você. Funciona, e traz junto tudo que uma conta exige — um endereço de
+          e-mail, uma senha, um servidor que guarda quais aparelhos são seus e um
+          histórico de quando foram usados.
+        </p>
+
+        <p>
+          Uma chave compartilhada responde à mesma pergunta de outro jeito. Os dois
+          aparelhos apresentam a mesma sequência curta, então o serviço consegue
+          colocá-los na mesma sala sem nunca descobrir de quem eles são. A chave é
+          conhecimento, não identidade, e conhecimento se digita em cinco segundos.
+        </p>
+
+        <p>
+          Essa única troca elimina de uma vez o formulário de cadastro, a
+          redefinição de senha, a confirmação por e-mail e o banco de contas. E
+          significa também que o serviço realmente não tem como distinguir você de
+          mais ninguém, porque nunca recebeu nada que permitisse isso.
+        </p>
+
+        <h2>Como funciona</h2>
+
+        <ol class="steps">
+          <li>Abra a área de transferência no primeiro aparelho. Ele gera uma chave curta.</li>
+          <li>Digite essa chave no segundo aparelho, ou escaneie o QR code que aparece.</li>
+          <li>Copie qualquer coisa em qualquer um dos dois.</li>
+          <li>Passe para o outro aparelho e cole — já está na área de transferência do sistema.</li>
+        </ol>
+
+        <p>
+          A chave nunca sai do seu navegador. O que chega ao retransmissor é
+          <code>SHA-256(chave)</code> — um hash usado só como endereço de sala —
+          junto do seu texto já criptografado com AES-GCM, sob uma chave derivada da
+          que você digitou. O retransmissor encaminha texto cifrado entre duas
+          conexões e não grava nada em disco. Arquivos nem passam por ele: vão
+          direto de um navegador ao outro por WebRTC.
+        </p>
+
+        <h2>O que não ter conta custa a você</h2>
+
+        <p>
+          Todo serviço sem login abre mão de alguma coisa, e a página que não diz
+          de qual coisa é justamente a que está escondendo.
+        </p>
+
+        <div class="honest">
+          <h3>A troca, dita sem rodeios</h3>
+          <dl class="caveats">
+            <div>
+              <dt>A chave é a única credencial</dt>
+              <dd>Não há segundo fator nem identidade por trás dela. Quem descobrir a chave consegue ler aquela sessão enquanto ela estiver aberta.</dd>
+            </div>
+            <div>
+              <dt>Nada fica guardado</dt>
+              <dd>Sem conta não há histórico no servidor. Feche a sessão e acabou — isso é o projeto, não uma limitação a contornar.</dd>
+            </div>
+            <div>
+              <dt>Não há recuperação</dt>
+              <dd>Esqueceu a chave e não há a quem recorrer. Gere outra; não custa nada.</dd>
+            </div>
+            <div>
+              <dt>A captura automática exige Chromium</dt>
+              <dd>Firefox e Safari enviam e recebem texto colado, mas não leem a área de transferência sozinhos.</dd>
+            </div>
+          </dl>
+        </div>
+
+        <p>
+          Se uma sessão precisa ser mais difícil de invadir, a chave pode ser
+          trancada com um PIN. Isso muda a própria sala em vez de acrescentar uma
+          checagem de permissão por cima dela, então um link trancado não abre para
+          quem tem a chave mas não o PIN — e ele não cai silenciosamente na sala
+          destrancada da mesma chave.
+        </p>
+
+        <h2>Também não precisa instalar</h2>
+
+        <p>
+          É uma página web, então não há o que instalar nem o que aprovar. Isso pesa
+          mais justamente nas máquinas em que a decisão não é sua: o notebook do
+          trabalho com instalação de software bloqueada, um computador compartilhado
+          ou de biblioteca, um Chromebook, ou um celular onde você prefere não
+          colocar mais um aplicativo.
+        </p>
+
+        <p>
+          Se você quiser que pareça um aplicativo, ele se instala como PWA pelo
+          próprio menu do navegador — sem conta de loja nenhuma. Os
+          <a href="/pt/help/install/">guias de instalação</a> cobrem cada
+          plataforma, e há <a href="/pt/download/">versões nativas para desktop e uma
+          ferramenta de linha de comando</a> se você preferir.
+        </p>
+
+        <h2>Uma área de transferência sem login é segura?</h2>
+
+        <p>
+          Para o uso a que se destina — mover texto entre os seus próprios aparelhos
+          — a ausência de conta torna tudo mais seguro, e não menos, porque não há
+          conta para invadir nem histórico guardado para vazar. A criptografia
+          acontece no seu navegador, então ninguém que esteja observando a rede — o
+          seu Wi-Fi, o seu provedor — consegue ler sua área de transferência.
+        </p>
+
+        <p>
+          O endereço de sala que o operador de fato enxerga sai do mesmo
+          alongamento de chave de 250 mil iterações, então não dá para revertê-lo
+          até a sua chave sem pagar esse custo a cada tentativa. O
+          <a href="/docs/THREAT-MODEL.md">modelo de ameaças</a> mostra a conta.
+        </p>
+
+        <p>
+          O risco real é o que já foi dito acima: uma chave curta é curta o bastante
+          para alguém determinado adivinhar, então ela é a ferramenta errada para um
+          segredo que ainda vá importar daqui a um ano. Use a trava por PIN para
+          qualquer coisa sensível e trate uma sessão destrancada como um bilhete
+          deixado em cima da mesa. O
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">código está no GitHub</a>
+          sob licença MIT, e você pode
+          <a href="/pt/help/install/relay/">rodar o seu próprio retransmissor</a> se
+          preferir não confiar no de ninguém.
+        </p>
+
+        <p>
+          <a class="btn" href="/app.html">Abrir a área de transferência</a>
+        </p>
+      </div>
+
+      <div class="faq" id="faq">
+        <div class="faqhead">
+          <h2>Perguntas frequentes</h2>
+          <button type="button" class="faqall" id="faqAll"
+                  aria-expanded="false" aria-controls="faq" hidden>
+            <span class="faqall-i" aria-hidden="true"></span>
+            <span class="faqall-t">Expandir tudo</span>
+          </button>
+        </div>
+
+        <details class="qa">
+          <summary><h3>Existe área de transferência online que não exige conta?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Existe. Uma chave curta compartilhada identifica a sessão no lugar de uma
+            identidade conectada, então os dois aparelhos simplesmente digitam a mesma
+            chave e caem na mesma sala. Nenhum e-mail, senha ou perfil entra na
+            história em momento algum, e o serviço não distingue um usuário do outro
+            porque nunca recebeu nada que permitisse isso.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Preciso instalar alguma coisa?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Não. Roda numa aba do navegador no Windows, macOS, Linux, Android, iOS e
+            ChromeOS. Se quiser, dá para instalar como aplicativo web progressivo pelo
+            próprio menu do navegador, o que não pede loja nem conta, e há versões
+            nativas para desktop e uma ferramenta de linha de comando para quem
+            preferir.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Uma área de transferência sem login é segura?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            O texto é criptografado no seu navegador antes de sair, e o servidor é
+            endereçado por um hash da sua chave, não pela chave em si. Não ter conta
+            elimina as duas coisas que mais vazam por aí — um banco de credenciais e
+            um histórico guardado. A troca é que a chave curta é a única coisa
+            protegendo uma sessão destrancada, então tranque com um PIN o que for
+            sensível. O
+            <a href="/docs/THREAT-MODEL.md">modelo de ameaças</a> é específico sobre isso.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>É gratuito mesmo, e qual é a pegadinha?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Gratuito, sem plano pago e sem período de teste. A pegadinha honesta é de
+            escopo, não de dinheiro: transferências de arquivo têm teto de
+            5&nbsp;MB, e a captura automática da área de transferência exige um
+            navegador baseado em Chromium. É código aberto sob licença MIT, então nada
+            impede você de rodar por conta própria.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>O que acontece com meu texto depois que eu fecho a aba?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Acabou. O retransmissor segura cada mensagem só o tempo de encaminhá-la e
+            não grava nada em disco, e sem conta não existe histórico no servidor
+            ligado a você. O que ficar guardado localmente vive no armazenamento do seu
+            próprio navegador e some junto com ele.
+            </p>
+          </div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código aberto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/online-clipboard-no-login/">English</a> · <a href="/es/online-clipboard-no-login/">Español</a> · <a href="/pt/online-clipboard-no-login/">Português</a> · <a href="/ru/online-clipboard-no-login/">Русский</a> · <a href="/zh/online-clipboard-no-login/">中文</a></p>
+      <p><a href="/pt/">Início</a> · <a href="/pt/download/">Download</a> · <a href="/pt/help/">Ajuda</a> · <a href="/pt/about/">Sobre</a> · <a href="/privacy/">Privacidade</a> · <a href="/terms/">Termos</a></p>
+      <p>As sessões ficam em memória e nunca são gravadas em disco. O conteúdo da área de transferência é criptografado no seu navegador antes de ser enviado.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

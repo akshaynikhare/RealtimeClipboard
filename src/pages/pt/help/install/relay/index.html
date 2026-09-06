@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Every id here is a deep-link target that other pages point at
+  (/help/install/relay/#install, #check, #first, #tls, #replicas, #trouble,
+  #remove), and the command line page links straight to this page's TLS and
+  replica sections, so the ids stay byte-identical to the English original and
+  only the heading text is translated.
+
+  Every pre and code block is the English original unchanged: the image name,
+  the pip and uvicorn lines, the health check, the compose invocation and the
+  environment variable names. Those blocks carry a copy button, so a translated
+  command, path or variable is a command that fails when pasted. The shutdown
+  block keeps its inline English comment too, because translating it would
+  disturb the alignment the block was written with.
+
+  Terminology follows /pt/: retransmissor, área de transferência, chave,
+  criptografia de ponta a ponta, auto-hospedagem.
+-->
+
+<title>Rode seu próprio retransmissor com Docker</title>
+<meta name="description" content="Um contêiner, sem banco de dados. Rode o retransmissor você mesmo, confira o /health, aponte o aplicativo para ele e ponha TLS na frente.">
+<link rel="canonical" href="https://realtimeclipboard.com/pt/help/install/relay/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/install/relay/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/install/relay/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/install/relay/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/install/relay/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/install/relay/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/install/relay/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="Rode seu próprio retransmissor RealtimeClipboard">
+<meta property="og:description" content="Um arquivo Python, sem banco de dados, sem estado. Docker, docker compose com TLS automático, ou um chart do Helm.">
+<meta property="og:url" content="https://realtimeclipboard.com/pt/help/install/relay/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/pt/help/install/relay/#article",
+      "headline": "Rode seu próprio retransmissor RealtimeClipboard com Docker",
+      "description": "Um contêiner, sem banco de dados. Rode o retransmissor você mesmo, confira o /health, aponte o aplicativo para ele e ponha TLS na frente com o compose que acompanha o projeto.",
+      "inLanguage": "pt-BR",
+      "datePublished": "",
+      "dateModified": "",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/pt/help/install/relay/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/pt/" },
+        { "@type": "ListItem", "position": 2, "name": "Seu próprio retransmissor" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/copy.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/pt/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir o aplicativo</a>
+    </div>
+  </div>
+</header>
+
+<svg class="icons" aria-hidden="true">
+  <symbol id="i-docker" viewBox="0 0 24 24"><path d="M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.185.185 0 00-.185.185v1.888c0 .102.083.185.185.185m-2.954-5.43h2.118a.186.186 0 00.186-.186V3.574a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m0 2.716h2.118a.187.187 0 00.186-.186V6.29a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.887c0 .102.082.185.185.186m-2.93 0h2.12a.186.186 0 00.184-.186V6.29a.185.185 0 00-.185-.185H8.1a.185.185 0 00-.185.185v1.887c0 .102.083.185.185.186m-2.964 0h2.119a.186.186 0 00.185-.186V6.29a.185.185 0 00-.185-.185H5.136a.186.186 0 00-.186.185v1.887c0 .102.084.185.186.186m5.893 2.715h2.118a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m-2.93 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.083.185.185.185m-2.964 0h2.119a.185.185 0 00.185-.185V9.006a.185.185 0 00-.184-.186h-2.12a.186.186 0 00-.186.186v1.887c0 .102.084.185.186.185m-2.92 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.082.185.185.185M23.763 9.89c-.065-.051-.672-.51-1.954-.51-.338.001-.676.03-1.01.087-.248-1.7-1.653-2.53-1.716-2.566l-.344-.199-.226.327c-.284.438-.49.922-.612 1.43-.23.97-.09 1.882.403 2.661-.595.332-1.55.413-1.744.42H.751a.751.751 0 00-.75.748 11.376 11.376 0 00.692 4.062c.545 1.428 1.355 2.48 2.41 3.124 1.18.723 3.1 1.137 5.275 1.137.983.003 1.963-.086 2.93-.266a12.248 12.248 0 003.823-1.389c.98-.567 1.86-1.288 2.61-2.136 1.252-1.418 1.998-2.997 2.553-4.4h.221c1.372 0 2.215-.549 2.68-1.009.309-.293.55-.65.707-1.046l.098-.288Z"/></symbol>
+</svg>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Trilha de navegação">
+        <a href="/pt/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Seu próprio retransmissor</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1><svg class="brandmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-docker"/></svg> Rodando seu próprio retransmissor</h1>
+
+        <p class="lede">
+          O retransmissor leva os conteúdos criptografados entre os seus
+          dispositivos. Ele nunca vê nada além de um hash de sala e texto cifrado,
+          e não guarda nada — mas você não precisa acreditar nisso, porque pode
+          rodar o seu. É um arquivo Python, sem banco de dados.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2 id="install">Rode</h2>
+        <pre><code>docker run -p 8000:8000 ghcr.io/akshaynikhare/realtimeclipboard-relay</code></pre>
+        <p>Ou a partir de um clone, sem contêiner nenhum:</p>
+        <pre><code>pip install -r backend/requirements.txt
+python -m uvicorn main:app --app-dir backend --port 8000</code></pre>
+        <p>
+          É o retransmissor inteiro. Sem banco de dados, sem volume, sem passo de
+          migração e sem nada para fazer backup — cada sessão vive na memória e some
+          quando o processo termina, o que é o projeto e não uma limitação.
+        </p>
+
+        <h2 id="check">Confira se funcionou</h2>
+        <pre><code>curl http://localhost:8000/health</code></pre>
+        <p>
+          Ele responde com o identificador da instância. Esse campo não é enfeite:
+          é assim que um cliente percebe que foi balanceado para outra réplica no
+          meio da sessão, que é a falha com a qual este projeto precisa tomar
+          cuidado — veja a seção sobre réplicas mais abaixo.
+        </p>
+
+        <h2 id="first">Aponte o aplicativo para ele</h2>
+        <ol class="steps">
+          <li>Abra <a href="/app.html">o aplicativo</a> e vá em
+            <b>Configurações → Retransmissor</b>.</li>
+          <li>Digite a URL do seu retransmissor — <code>ws://localhost:8000</code>
+            para um teste local, <code>wss://clip.example.com</code> para valer.</li>
+          <li>A barra de status mostra <b>Conectado</b> assim que ele responder.
+            Faça o mesmo num segundo dispositivo e sincronize um conteúdo entre os
+            dois; nada passou pelo retransmissor público.</li>
+        </ol>
+        <p>
+          O cliente de linha de comando aceita <code>--relay</code> ou
+          <code>REALTIMECLIPBOARD_RELAY</code> para a mesma coisa.
+        </p>
+
+        <h2 id="tls">TLS e um nome de domínio de verdade</h2>
+        <pre><code>cd deploy
+REALTIMECLIPBOARD_DOMAIN=clip.example.com docker compose up -d</code></pre>
+        <p>
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/tree/main/deploy">O diretório deploy</a>
+          tem um arquivo compose que põe o Caddy na frente do retransmissor e
+          obtém o certificado automaticamente, e ao lado dele um chart do Helm para
+          Kubernetes.
+        </p>
+        <p class="honest">
+          <b>Na prática, TLS não é opcional.</b> Os navegadores só expõem
+          <code>crypto.subtle</code> em contexto seguro, então uma página servida
+          por HTTP puro num endereço de rede local não consegue nem derivar uma
+          chave — o aplicativo não tem como funcionar ali, faça o retransmissor o
+          que fizer.
+        </p>
+
+        <h2 id="replicas">Antes de escalar</h2>
+        <p>
+          <b>Fixe as réplicas em uma, ou dê um Redis para ele.</b> Uma sala fica na
+          memória do processo que a atende, então duas réplicas atrás de um
+          balanceador round-robin colocam as duas metades de uma sessão em máquinas
+          diferentes, e nenhuma enxerga a outra. Isso aparece como conteúdos que
+          simplesmente não chegam, o que parece um bug de cliente e não é. O chart
+          do Helm recusa <code>replicaCount &gt; 1</code> sem Redis exatamente por
+          esse motivo.
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/blob/main/docs/SELF-HOSTING.md">As notas de auto-hospedagem</a>
+          cobrem as variáveis de ambiente e o caminho de alta disponibilidade por
+          inteiro.
+        </p>
+
+        <h2 id="trouble">Quando não funciona</h2>
+
+        <h3>Conectado, mas nada chega</h3>
+        <p>
+          Quase sempre mais de uma réplica sem estado compartilhado — veja acima.
+          Compare o identificador de <code>/health</code> em cada dispositivo: se
+          forem diferentes, a resposta é essa.
+        </p>
+
+        <h3>O aplicativo não alcança o retransmissor</h3>
+        <p>
+          Duas suspeitas. A Content-Security-Policy da própria página lista as
+          origens de retransmissor a que ela pode se conectar, então uma cópia
+          auto-hospedada do site estático precisa do <code>connect-src</code>
+          atualizado no <code>index.html</code>, no <code>app.html</code> e em cada
+          página dentro de <code>src/pages/</code>. E se você estiver usando o site
+          hospedado com o seu próprio retransmissor, a política de lá não vai
+          permitir — hospede as duas metades.
+        </p>
+
+        <h3>Conecta e cai, repetidamente</h3>
+        <p>
+          Um proxy reverso que não encaminha os upgrades de WebSocket. O cliente
+          então cai para server-sent events mais POST e continua funcionando, mais
+          devagar, e é por isso que isso aparece como lentidão e não como falha.
+          Encaminhe <code>Upgrade</code> e <code>Connection</code>.
+        </p>
+
+        <h3>Uma sessão ociosa some</h3>
+        <p>
+          As salas são recolhidas quando ficam vazias. Isso é deliberado — um
+          retransmissor que não guarda nada não tem nada a vazar.
+        </p>
+
+        <h2 id="remove">Desligando</h2>
+        <pre><code>docker compose down            # or: docker rm -f &lt;container&gt;</code></pre>
+        <p>
+          Não há dado nenhum para apagar. Tudo o que o retransmissor guardou estava
+          na memória, e era texto cifrado.
+        </p>
+
+        <p class="hint">
+          As notas operacionais completas, incluindo a tabela de variáveis de
+          ambiente e o caminho de alta disponibilidade:
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/blob/main/docs/SELF-HOSTING.md">docs/SELF-HOSTING.md</a>.
+          Todas as plataformas: <a href="/pt/help/install/">o guia de instalação</a>.
+          Algo errado ou desatualizado aqui?
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">Abra uma issue</a>.
+        </p>
+      </div>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código aberto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/install/relay/">English</a> · <a href="/es/help/install/relay/">Español</a> · <a href="/pt/help/install/relay/">Português</a> · <a href="/ru/help/install/relay/">Русский</a> · <a href="/zh/help/install/relay/">中文</a></p>
+      <p><a href="/pt/">Início</a> · <a href="/pt/download/">Download</a> · <a href="/pt/help/">Ajuda</a> · <a href="/pt/about/">Sobre</a> · <a href="/privacy/">Privacidade</a> · <a href="/terms/">Termos</a></p>
+      <p>As sessões ficam em memória e nunca são gravadas em disco. O conteúdo da área de transferência é criptografado no seu navegador antes de ser enviado.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
