@@ -52,10 +52,10 @@ export const EV = {
   PEERS_CHANGED:   "peers:changed",    // {count, list}
   INSTANCE_CHANGED:"conn:instance",    // {from, to} — split-brain warning (OI-3)
   KEY_COLLISION:   "session:collision",// generated key was taken (OI-2)
-  ROOM_STATE:      "conn:room",        // {existing, hasLast} — what `welcome` said
+  ROOM_STATE:      "conn:room",        // {existing} — what `welcome` said
 
   // session
-  KEY_CHANGED:     "session:key",      // {key, locked}
+  KEY_CHANGED:     "session:key",      // {key, locked, roomHash}
   // Announcements are past tense, commands are bare verbs, and the extra
   // syllable here is load-bearing — see core/CLAUDE.md. The bus does no
   // namespacing of its own, so a collision between the two is silent.

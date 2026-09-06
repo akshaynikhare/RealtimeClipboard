@@ -287,6 +287,31 @@ export function clear({ announce = true, reason = "the file list was cleared" } 
   return dropped.length;
 }
 
+/**
+ * Drop every file a PEER announced, keeping this device's own.
+ *
+ * A room change abandons the peers that announced them: the tiles name files
+ * nobody in the new room can serve, and their ids were minted in a room this
+ * device has left. Local files stay — they are this user's, and the room they
+ * moved into is still theirs to share them into. Nothing is announced: the
+ * peers that would hear it are the ones we just stopped talking to.
+ */
+export function dropRemote(reason = "the session changed") {
+  const dropped = items.filter(f => f.origin === "remote");
+  if (!dropped.length) return 0;
+
+  // Cancelled while the entries still exist, so transfer.js can name the file.
+  for (const f of dropped) abortTransfer(f.id, reason);
+
+  for (const f of dropped) {
+    const at = items.indexOf(f);
+    if (at !== -1) items.splice(at, 1);
+    release(f);
+  }
+  emit(EV.FILES_CHANGED, items);
+  return dropped.length;
+}
+
 /** Tell the room a local file is gone, so its tile disappears there too. */
 export function announceGone(file) {
   if (!file || file.origin !== "local") return false;
@@ -306,9 +331,10 @@ export function applyGone(frame) {
   if (!f) return false;
   if (f.origin !== "local") {
     // `from` is stamped by the relay and is the one field a client cannot lie
-    // about; `originId` is whatever the sender typed.
-    const from = frame.from ?? frame.originId;
-    if (f.owner && from !== f.owner) return false;
+    // about. There is deliberately no fallback to `originId`: that is whatever
+    // the sender typed, so accepting it when `from` is absent would hand the
+    // check straight back to the client it exists to constrain.
+    if (!frame.from || (f.owner && frame.from !== f.owner)) return false;
     return remove(f.id, { announce: false, reason: "the other device removed it" });
   }
   // Our own file. A peer does not get to delete it off this machine.

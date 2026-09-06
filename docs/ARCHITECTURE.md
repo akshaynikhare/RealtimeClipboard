@@ -248,7 +248,9 @@ These are load-bearing. Breaking one is a vulnerability, not a bug.
 | A locked link opens no connection until the PIN is given, and never falls back to the unlocked room of the same key | `main.js` `startSession()`; `tests/live/boot.mjs --locked` |
 | The app is not usable while a locked link has no PIN — no editor, no history, no files, because none of it is connected to anything | `main.js` emits `EV.LOCK_REQUIRED` → `ui/shell/lockGate.js` holds the shell `inert`; `tests/dom/dialog.mjs` |
 | The lock marker is parsed **before** key normalisation | `core/keys.js` `parseFragment()` — normalising first turns `#!ABCDEF` into the different, valid key `ABCDEF` |
-| The lock beacon is planted only into a room with no retained clip | `main.js` on `EV.ROOM_STATE` — it is itself a clip, and would otherwise overwrite the last-clip replay of FR-3.3 |
+| Proving a locked session's PIN costs the room nothing | `core/verify.js` — the proof is a `verify` frame, forwarded and not retained. It was a clip, competing with the user's own for the single replay slot of FR-3.3, and no guard could satisfy both |
+| A device set to Off neither asks for that proof nor gives it | `core/verify.js` `eligible()` — answering is a frame put on the wire for somebody else's benefit, which is the one thing that rung promises it will not do |
+| `verified` is set only by a decryption this device performed | `main.js` `openFrame()`, after the generation check — a peer's presence in the roster is the relay's word for it |
 | A locked session claims "Private" only once something has actually decrypted | `state.setVerified()` → `ui/panels/sessionPanel.js` `renderLock()` |
 | Only the device that opened the room may lock it, once anyone else is in it | `state.canLock()`, fed by `welcome.existing` — enforced at both call sites (`ui/features/lockButton.js` and `main.js` `session:lock`) |
 | Locking never leaves the other devices connected to a session nobody is in | `main.js` `sendEviction()` plants `LOCK.EVICT` in the room being abandoned; `onEvicted()` is the other end |

@@ -20,9 +20,16 @@ import * as native from "../core/native.js";
  * instead of broadcasting it back (docs/CLIPBOARD-FLOW.md §6).
  */
 export async function write(text) {
-  // Falls through to the web path rather than failing: a shell too old to know
-  // this command should degrade to the browser behaviour, not lose the clip.
-  if (native.hasNativeClipboard() && await native.invoke("set_clipboard", { text }) !== null) {
+  // `=== true` is the contract, and it has to be: the bridge answers `null` for
+  // an absent command AND for one that threw, and a Rust `Ok(())` serialises to
+  // `null` as well — so "the write succeeded" was the same value as "there is no
+  // host here". Every successful native write fell through to the branch below
+  // and wrote a second time; unfocused, that second write failed and the whole
+  // call reported failure for a clip already on the clipboard.
+  //
+  // Falls through rather than failing: a shell too old to answer `true` degrades
+  // to the browser behaviour, which is exactly what it did before.
+  if (native.hasNativeClipboard() && await native.invoke("set_clipboard", { text }) === true) {
     return true;
   }
 

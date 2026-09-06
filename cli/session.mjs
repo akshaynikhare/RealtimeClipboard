@@ -26,6 +26,19 @@ import { LOCK, TEXT, textBytes, NET } from "../src/core/config.js";
 import { on, EV } from "../src/core/bus.js";
 import * as relay from "../src/transport/relay.js";
 import * as proto from "../src/transport/protocol.js";
+import { sealWith, openWith } from "../src/core/frames.js";
+
+/**
+ * Which room this module is currently in. Bumped by open() and close(), and
+ * therefore by eviction, which goes through close().
+ *
+ * It exists for the one thing here that outlives the frame it started from: a
+ * verification answer takes two awaits to produce, and both of them are long
+ * enough for the surface to have left the room, rejoined on another key, or
+ * been evicted from it. Sealed with the old key and sent into the new room,
+ * that answer is undecryptable noise attributed to this device.
+ */
+let epoch = 0;
 
 /**
  * Everything needed to talk in a room, derived exactly as the browser derives
@@ -41,8 +54,14 @@ export async function derive(rawKey, pin) {
   if (refused) throw new Error(`"${rawKey}" cannot be used — ${refused}`);
 
   if (pin) {
+    // Length, not truthiness. A one-character PIN passed this and derived a real
+    // locked room that the web PIN dialog then refused to join, because it
+    // enforces the floor on every mode — so these clients could create sessions
+    // no browser could open, with a secret worth a couple of bits.
     const clean = cryptoBox.normalisePin(pin);
-    if (!clean) throw new Error(`a PIN needs at least ${LOCK.MIN_PIN} characters`);
+    if (clean.length < LOCK.MIN_PIN) {
+      throw new Error(`a PIN needs at least ${LOCK.MIN_PIN} characters`);
+    }
     const d = await cryptoBox.deriveLocked(key, clean);
     return { key, roomHash: d.roomHash, aesKey: d.aesKey, auth: d.authToken, locked: true };
   }
@@ -58,10 +77,29 @@ export async function derive(rawKey, pin) {
  * failures, and a script handed one when it expected the other has been told a
  * lie about its own network.
  *
- *   onClip(text, frame)   decrypted, beacon already dropped
+ *   onClip(text, frame)   decrypted, control frames already dropped
+ *   onEvicted()           the room was abandoned; the connection is ALREADY shut
  *   onUndecryptable()     someone in the room on another secret — not an error
+ *
+ * `originId` is this surface's own id — the same one it passes to send(). It is
+ * wanted here because a locked room's verification is answered from inside this
+ * handler, with no caller to ask.
+ *
+ * `sharing` is that answer's rung gate. Defaulted to "yes" rather than made
+ * required, and the default is correct rather than convenient: the CLI, the MCP
+ * server and the browser extension have no Off rung to consult — every one of
+ * their sessions exists because somebody asked for it. VS Code does have one,
+ * and passes it. See vscode/src/room.mjs.
  */
-export function open({ session, name, url, onClip, onUndecryptable, onState, timeoutMs = 0 }) {
+export function open({
+  session, name, url, originId, sharing = () => true,
+  onClip, onEvicted, onUndecryptable, onState, timeoutMs = 0,
+}) {
+  // A rejoin is a different room, even on the same key — re-PINning keeps the
+  // key and moves the room. Anything still in flight for the last one is now
+  // answering a question nobody asked.
+  const mine = ++epoch;
+
   return new Promise((resolve, reject) => {
     let off = null;
     const timer = setTimeout(() => {
@@ -78,6 +116,9 @@ export function open({ session, name, url, onClip, onUndecryptable, onState, tim
     });
 
     relay.setFrameHandler(async (msg) => {
+      if (msg.t === proto.T.VERIFY) {
+        return answerVerify({ session, msg, originId, sharing, mine });
+      }
       if (msg.t !== proto.T.CLIP || !msg.payload) return;
       let text;
       try {
@@ -93,6 +134,21 @@ export function open({ session, name, url, onClip, onUndecryptable, onState, tim
       // "looks like a control character", which would also swallow a legitimate
       // clip that happened to start with NUL.
       if (text === LOCK.BEACON) return;
+
+      // The other control frame, and it was not filtered — it reached callers as
+      // clip text, so the sentinel was printed to stdout by the CLI, recorded as
+      // a clip for the model by the MCP server, and put on the extension's badge.
+      // Every one of them then stayed connected to a room the owner had left.
+      //
+      // Closed here rather than left to each surface: "stop talking to a room
+      // nobody is in" is not a per-client decision, and three of the four
+      // clients did not know they had to make it.
+      if (text === LOCK.EVICT) {
+        close();
+        onEvicted?.();
+        return;
+      }
+
       onClip?.(text, msg);
     });
 
@@ -106,6 +162,42 @@ export function open({ session, name, url, onClip, onUndecryptable, onState, tim
   });
 }
 
+/**
+ * Prove a locked room to whoever asked.
+ *
+ * These four surfaces are frequently the ONLY other device in a room — a phone
+ * on the web app plus a terminal, plus nothing else — and a locked session
+ * cannot confirm its PIN without a peer that answers. Silent here, and the
+ * browser at the other end sits on "the PIN may not match theirs" for the whole
+ * session while the CLI it is talking to reads every clip perfectly.
+ *
+ * `probe !== true` is the loop guard, and it is the same one the app uses: an
+ * answer is never answered.
+ *
+ * Both gates are re-read at every step rather than once at the top, because
+ * there are two awaits here and each is a window: the rung can come down and
+ * the room can change inside either.
+ *
+ * The rung is checked BEFORE the decryption, which is where this deliberately
+ * differs from the app (src/main.js, case proto.T.VERIFY). There, opening the
+ * frame is what sets `verified`, so an Off device is entitled to do it — the
+ * rung governs what reaches the user, not what the session knows. Here nothing
+ * is learned from opening it: the only thing this function produces is a frame
+ * on the wire, so a surface that has said nothing leaves has no reason to start
+ * decrypting.
+ */
+async function answerVerify({ session, msg, originId, sharing, mine }) {
+  if (!session.locked || !sharing() || mine !== epoch) return;
+
+  const frame = await openWith(session.aesKey, msg);
+  if (!sharing() || mine !== epoch) return;
+  if (!frame || frame.probe !== true) return;
+
+  const answer = await sealWith(session.aesKey, proto.verify({ probe: false, originId }));
+  if (!sharing() || mine !== epoch) return;
+  relay.send(answer);
+}
+
 /** Bytes, not characters: the frame cap is what the relay actually enforces. */
 export async function send(session, text, originId) {
   if (!text) throw new Error("there is nothing to send");
@@ -113,7 +205,15 @@ export async function send(session, text, originId) {
     throw new Error(`that is ${textBytes(text)} bytes; the limit is ${TEXT.MAX_BYTES}`);
   }
   const { payload, iv } = await cryptoBox.encrypt(session.aesKey, text);
-  return relay.send(proto.clip({ payload, iv, originId }));
+  // The relay's boolean means "handed to an open socket", and every caller
+  // ignored it: the CLI exited 0 having sent nothing, the MCP server told the
+  // model the clip was delivered, and the extension said "Sent N characters."
+  // — all while disconnected. A throw is the one result none of them can drop
+  // by accident, and each already reports a thrown error.
+  if (!relay.send(proto.clip({ payload, iv, originId }))) {
+    throw new Error("not connected to the relay — nothing was sent");
+  }
+  return true;
 }
 
 /** Announce a room being abandoned, so nobody is left connected to nothing. */
@@ -129,6 +229,10 @@ export async function evict(session, originId) {
 export const isOpen = () => relay.isOpen();
 
 export function close() {
+  // Before the socket, not after: a response mid-seal must be abandoned even
+  // though relay.send() would refuse it anyway, because the next open() may
+  // have handed the transport a new room by the time that seal resolves.
+  epoch++;
   relay.setFrameHandler(() => {});
   relay.close();
 }

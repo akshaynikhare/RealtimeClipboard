@@ -251,6 +251,11 @@ async function runTransfer(announceOpenEvent) {
   // The bridge. Direction is unambiguous from `to`, because the two roles
   // address different fake peers; the ids and originIds are rewritten so one
   // registry can hold both ends of the same file.
+  //
+  // `from` is stamped exactly as the relay stamps it — on the connection the
+  // frame arrived on, overwriting whatever the sender put there. transfer.js
+  // identifies peers by it and refuses a frame that carries none, so a bridge
+  // that leaves it off is not standing in for a relay at all.
   transfer.setSignalSender(frame => {
     if (!frame.to) return true;                          // file-meta broadcast
     const fromSender = frame.to === "peerB";
@@ -258,6 +263,7 @@ async function runTransfer(announceOpenEvent) {
       ...frame,
       id: fromSender ? RX : TX,
       originId: fromSender ? "peerA" : "peerB",
+      from: fromSender ? "peerA" : "peerB",
       to: ME,
     };
     setTimeout(() => transfer.onSignal(relayed), 0);

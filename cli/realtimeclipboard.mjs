@@ -47,6 +47,13 @@ import { INVISIBLE_SOURCE } from "../src/core/text.js";
  * itself and never goes through the bundler, so its depth in the tree is fixed.
  * npm always includes package.json in a tarball, so this resolves after install.
  */
+/**
+ * This process's id in the room. One per run, not one per clip: it is how peers
+ * recognise our own frames coming back, and how a locked room's verification
+ * answer is attributed.
+ */
+const ORIGIN = `cli-${Date.now().toString(36)}`;
+
 const VERSION = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
 ).version;
@@ -158,6 +165,9 @@ const forTerminal = text => (stdout.isTTY ? text.replace(TERMINAL_UNSAFE, "") : 
 
 const note = (msg, opts) => { if (!opts.quiet) stderr.write(`${msg}\n`); };
 
+/** How long EOF waits for queued lines to finish leaving. */
+const DRAIN_MS = 5_000;
+
 function die(msg, code = 1) {
   stderr.write(`realtimeclipboard: ${msg}\n`);
   exit(code);
@@ -187,6 +197,7 @@ function connect(sess, opts, onClip) {
   return room.open({
     session: sess,
     name: `cli@${hostname()}`,
+    originId: ORIGIN,
     url: url ? normaliseRelay(url) : undefined,
     timeoutMs: opts.timeout || 0,
     onClip,
@@ -195,14 +206,17 @@ function connect(sess, opts, onClip) {
   });
 }
 
-async function sendText(sess, text, opts) {
-  if (!text) die("nothing on stdin to send", 2);
+/**
+ * Throws rather than exiting. `send` is one shot and dies on a failure, but
+ * two-way mode has a session to keep: killing the process on one refused line
+ * would drop the reader half too.
+ */
+async function sendText(sess, text) {
+  if (!text) throw new Error("nothing on stdin to send");
   if (text.length > TEXT.MAX_CHARS) {
-    die(`that is ${text.length} characters; the limit is ${TEXT.MAX_CHARS}`, 2);
+    throw new Error(`that is ${text.length} characters; the limit is ${TEXT.MAX_CHARS}`);
   }
-  try {
-    await room.send(sess, text, `cli-${Date.now().toString(36)}`);
-  } catch (err) { die(err.message, 2); }
+  await room.send(sess, text, ORIGIN);
   // The frame is handed to a socket, not delivered. Give it a moment to flush
   // before the process exits out from under it.
   await new Promise(r => setTimeout(r, 250));
@@ -283,7 +297,9 @@ try {
 note("  connected", opts);
 
 if (cmd === "send") {
-  await sendText(session, await readStdin(), opts);
+  try {
+    await sendText(session, await readStdin());
+  } catch (err) { die(err.message, 2); }
   relay.close();
   exit(0);
 }
@@ -297,11 +313,30 @@ if (cmd === "both") {
   // A pasted block of lines could reach the relay out of order and be stamped
   // with inverted `seq`, which is what receivers order and dedupe by.
   let sending = Promise.resolve();
+  let failed = false;
   rl.on("line", line => {
     if (!line.length) return;
-    sending = sending.then(() => sendText(session, line, opts)).catch(() => {});
+    sending = sending
+      .then(() => sendText(session, line))
+      .catch(err => { failed = true; note(`  ${err.message}`, opts); });
   });
-  rl.on("close", () => { relay.close(); exit(0); });
+
+  // Drained, not abandoned. `close` fires the moment stdin ends, and calling
+  // exit() there killed the chain mid-flight: piping three lines in sent none of
+  // them, because the first was still being encrypted — and the exit status said
+  // it had worked. Bounded, so a wedged relay cannot hold the process open.
+  rl.on("close", async () => {
+    // Which of the two won matters: the timeout winning means lines are still
+    // unsent, and exiting 0 there reports a success that did not happen — the
+    // same overstatement as the send path that ignored its own return value.
+    const drained = await Promise.race([
+      sending.then(() => true, () => true),
+      new Promise(done => setTimeout(() => done(false), DRAIN_MS)),
+    ]);
+    relay.close();
+    if (!drained) note("  timed out with lines still unsent", opts);
+    exit(failed || !drained ? 4 : 0);
+  });
 }
 
 for (const sig of ["SIGINT", "SIGTERM"]) {

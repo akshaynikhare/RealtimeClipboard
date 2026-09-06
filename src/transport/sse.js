@@ -40,7 +40,7 @@ const RETRY_MS = 400;
 /** A POST that never answers must not wedge the outbox behind it. */
 const POST_TIMEOUT_MS = 15_000;
 
-export function create({ url, roomHash, auth = null, onOpen, onFrame, onDown }) {
+export function create({ url, roomHash, auth = null, org = null, onOpen, onFrame, onDown }) {
   const base = url.replace(/^ws/i, "http").replace(/\/+$/, "");
 
   let sid = null;          // issued by the relay on `welcome`; null until then
@@ -59,9 +59,15 @@ export function create({ url, roomHash, auth = null, onOpen, onFrame, onDown }) 
   };
 
   // `?a=` — a locked session's admission token, checked at join on both
-  // transports so the fallback is not the lenient way in.
-  const es = new EventSource(
-    `${base}/sse/${roomHash}${auth ? `?a=${encodeURIComponent(auth)}` : ""}`);
+  // transports so the fallback is not the lenient way in. `?org=` is the
+  // deployment's join token, for a relay that runs with one; the fallback has
+  // to carry it too, or turning the setting on would work over WebSockets and
+  // silently refuse every device that failed over to HTTP.
+  const query = new URLSearchParams();
+  if (auth) query.set("a", auth);
+  if (org) query.set("org", org);
+  const qs = query.toString();
+  const es = new EventSource(`${base}/sse/${roomHash}${qs ? `?${qs}` : ""}`);
 
   es.onmessage = e => {
     const msg = proto.parse(e.data);

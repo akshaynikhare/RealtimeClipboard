@@ -9,7 +9,7 @@ import * as state from "../../src/core/state.js";
 import * as history from "../../src/core/history.js";
 import * as native from "../../src/core/native.js";
 import * as capture from "../../src/clipboard/capture.js";
-import { RELAY_URL } from "../../src/core/config.js";
+import { RELAY_URL, sharesSession } from "../../src/core/config.js";
 
 import * as room from "./room.mjs";
 import * as hostFactory from "./host.mjs";
@@ -55,6 +55,14 @@ export async function run(context, vscode) {
   // touches the transport and the clipboard never learns the network exists;
   // this file is the only place that knows both, exactly as src/main.js is.
   const offCaptured = on(EV.TEXT_CAPTURED, ({ text }) => {
+    // "Off: nothing leaves, ever" — the same gate src/main.js puts at its own
+    // transmit edge. This surface had none, so a window set to Off went on
+    // sending every copy while its own mode picker said nothing left the device.
+    if (!sharesSession(state.get().settings.syncMode)) return;
+    // A false return is a clip that was never handed to a socket, not a clip
+    // that failed to arrive — either way it did not go, and saying nothing made
+    // a disconnected window look like a working one.
+    // A send that never left throws now, so this catch is the whole report.
     room.send(text).catch(err => log(`send failed: ${err.message}`));
   });
 

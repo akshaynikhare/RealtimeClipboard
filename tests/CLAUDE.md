@@ -5,7 +5,7 @@
 
 | Folder | Prerequisite | Suites |
 |---|---|---|
-| `unit/` | nothing | `static-check` `relay-url` `lock` `files` `transfer` `clipsize` `syncmode` `pasteguard` `sharelink` `keyfloor` `adpolicy` `vscode-host` |
+| `unit/` | nothing | `static-check` `relay-url` `lock` `session-boundaries` `verify` `shared-session` `files` `transfer` `clipsize` `syncmode` `pasteguard` `sharelink` `keyfloor` `adpolicy` `vscode-host` `browser-worker` `browser-popup` |
 | `dom/` | jsdom | `dialog` `theme` `whatsnew` `tiles` `guide` `links` `editor` `capture` `offer` `bundle` (also needs a build) |
 | `live/` | a reachable relay | `e2e` `boot` `fallback` `cli` |
 
@@ -37,3 +37,12 @@ and everything under `live/`, and runs in `.husky/pre-push`.
   existing share link is dead — that failure is the feature.
 - A new check goes in the suite whose prerequisite it already has. Adding a network call to a
   `unit/` suite moves the file.
+- **A check that reads source rather than running it must be able to FAIL.**
+  `session-boundaries` asserts where a rule SITS — several of its bugs were a correct check placed
+  in a caller instead of in the one function every path goes through, which is invisible to a test
+  that only runs code. That style rots into a permanent pass in three ways, all of which happened:
+  a regex with `[^]*?` crosses function boundaries and matches anything later in the file; the rule
+  is described in a comment beside itself, so the check matches the prose; and `async ({ key }) => {`
+  opens a destructured parameter, so naive brace-matching returns the parameter list as the body and
+  every assertion reads as "missing". It brace-matches from `=>`/`)`, strips comments, and carries
+  self-checks for all three. Mutate the source and confirm the suite goes red before trusting it.

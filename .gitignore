@@ -95,3 +95,6 @@ desktop.ini
 
 # The MCP server's staged package root, written by tools/build/build-mcp.mjs.
 /mcp/dist/
+
+# The read-only audit workspace.
+/audit/

@@ -36,3 +36,7 @@ runs these exact modules. Two consequences:
   there. The active session lives in `sessionStorage` and dies with the tab.
 - `text.js` is a security character class with three consumers that may not import each other. It
   belongs here for that reason, and the ranges in it are not a style preference — see the comment.
+- **`verify.js` and `frames.js` take their seams injected, not imported.** A frame shape and the
+  transport are both rank 10, so neither is reachable from here — but the reason to keep it that
+  way is that every rule in them is then exercisable from a plain node test. Both were four lines
+  in the composition root first, and four lines in `main.js` can only be checked by reading them.

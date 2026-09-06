@@ -61,6 +61,20 @@ export function saveRelayUrl(url) {
 }
 
 /**
+ * The organisation token for a relay that demands one. Per DEVICE, not per
+ * session: it admits this machine to a deployment, and it is deliberately kept
+ * out of share links — see ORG_TOKEN in config.js.
+ */
+export const loadOrgToken = () => read("orgToken", null);
+
+export function saveOrgToken(token) {
+  const clean = typeof token === "string" && token.trim() ? token.trim() : null;
+  if (!clean) { remove("orgToken"); return null; }
+  write("orgToken", clean);
+  return clean;
+}
+
+/**
  * The last room, so a relaunch can offer it back (FR-1.7, OI-10). Stores
  * `{key, locked}` and still reads the bare string it used to be, because an
  * upgrade must not strand somebody in "no room at all".

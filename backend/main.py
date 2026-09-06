@@ -46,6 +46,7 @@ means one socket.
 """
 
 import asyncio
+import contextlib
 import hmac
 import json
 import os
@@ -61,6 +62,16 @@ from fastapi.responses import StreamingResponse
 from shared import Backend, REDIS_URL
 
 INSTANCE_ID = uuid.uuid4().hex[:8]
+
+# What this relay can do that an older one could not, announced in `welcome`.
+#
+# It exists because the alternative is a client guessing. A relay that predates
+# a frame type answers it with UNKNOWN_TYPE — indistinguishable, from the
+# client, from a frame that was delivered to nobody — and for lock verification
+# that difference is "your PIN is wrong" versus "this relay needs redeploying".
+# Absent from an old relay's welcome, so `caps or []` is the whole compatibility
+# story on the client side.
+CAPS = ["verify"]
 BOOTED_AT = time.time()
 
 # PRD OI-3. Inert unless REALTIMECLIPBOARD_REDIS_URL is set, in which case this is what
@@ -182,10 +193,59 @@ MAX_CONNS_PER_IP = _limit("MAX_CONNS_PER_IP", 64)
 #                           limits are per connection, so this is what stops
 #                           them being multiplied by opening more. 0 disables,
 #                           for a deployment that caps this at the edge.
+#   REALTIMECLIPBOARD_TRUSTED_PROXIES  which immediate peers may set CF-Connecting-IP or
+#                           X-Forwarded-For on this relay's behalf. Default "*",
+#                           which is what the hosted deployment needs: it sits
+#                           behind Cloudflare and every connection arrives from
+#                           an edge address. A relay reachable DIRECTLY should
+#                           name its proxy — otherwise a client picks its own
+#                           rate-limit bucket, including somebody else's.
+#   REALTIMECLIPBOARD_REQUIRE_SHARED   whether REALTIMECLIPBOARD_REDIS_URL being unreachable is
+#                           fatal at startup. Default on. Configured HA with no
+#                           working backend is the split-brain in PRD OI-3, and
+#                           a pod that restarts until Redis answers is the
+#                           behaviour an orchestrator can actually act on.
 CORS_ORIGINS = [o.strip() for o in os.getenv("REALTIMECLIPBOARD_CORS_ORIGINS", "*").split(",") if o.strip()]
 DISABLE_FILES = os.getenv("REALTIMECLIPBOARD_DISABLE_FILES", "").lower() in {"1", "true", "yes"}
 JOIN_TOKEN = os.getenv("REALTIMECLIPBOARD_JOIN_TOKEN", "") or None
 MAX_SESSION_SECONDS = _int("MAX_SESSION", 0)
+
+# Which immediate peers may set CF-Connecting-IP / X-Forwarded-For on this
+# relay's behalf. "*" trusts whatever is in front, which is what the hosted
+# deployment needs (Cloudflare rewrites the header, and every connection
+# arrives from an edge address). A self-hosted relay reachable directly should
+# name its proxy, or a client can pick which rate-limit bucket to land in —
+# including somebody else's.
+# Whether a configured-but-unreachable shared backend is fatal at startup.
+# Default on: asking for Redis and not getting it is how rooms split in half.
+REQUIRE_SHARED = os.getenv("REALTIMECLIPBOARD_REQUIRE_SHARED", "1").lower() not in {"0", "false", "no"}
+
+TRUSTED_PROXIES = [
+    p.strip() for p in os.getenv("REALTIMECLIPBOARD_TRUSTED_PROXIES", "*").split(",") if p.strip()
+]
+
+
+def _trusted_proxy(peer: str) -> bool:
+    return "*" in TRUSTED_PROXIES or (bool(peer) and peer in TRUSTED_PROXIES)
+
+
+# A control message on the room's channel, distinguishable from a protocol
+# frame because it is not JSON. Says "my roster changed", carries no roster —
+# each replica reads the shared hash and computes the total itself.
+ROSTER_NUDGE = "\x00roster"
+
+# How long one peer may take to accept a broadcast frame before it is dropped.
+# Generous for a phone on a slow link, short enough that a dead reader cannot
+# hold a room's fan-out.
+PEER_WRITE_TIMEOUT = 5.0
+
+# How often the lifetime sweeper looks. Only runs when a cap is configured, and
+# never coarser than half the cap — a fixed 30s interval would let a 60s limit
+# overrun by half again, and a 2s one by fifteen times.
+SWEEP_SECONDS = 30
+
+# The sweeper task, so shutdown can stop it.
+_sweeper: asyncio.Task | None = None
 
 # ---- SSE + POST fallback ------------------------------------------------
 #
@@ -249,15 +309,22 @@ CLASS_LIMITS = {"interactive": RATE_LIMIT_MSGS, "signal": 60, "bulk": 400, "http
 TARGETED = {
     "rtc-offer", "rtc-answer", "rtc-ice",
     "file-req", "file-accept", "file-deny",
-    "file-chunk", "file-done", "file-cancel", "file-error",
+    # file-ok is the receiver's "I have it, and the digest matched" — without it
+    # the holder can only say the bytes left, never that they arrived.
+    "file-chunk", "file-done", "file-ok", "file-cancel", "file-error",
 }
-ROOM_WIDE = {"file-meta", "file-gone", "cursor", "stream"}
+# `verify` is here for the one property it needs and `clip` cannot give it: a
+# room-wide frame is FORWARDED and never retained. Lock verification used to
+# ride a clip, which meant proving a PIN cost the room its `last` — the replay
+# slot a late joiner gets their session from. Sealed like everything else; the
+# relay reads `t` and nothing more.
+ROOM_WIDE = {"file-meta", "file-gone", "cursor", "stream", "verify"}
 
 # What REALTIMECLIPBOARD_DISABLE_FILES turns off: everything that moves a file or sets up
 # the channel to move one. Not `cursor` or `stream`, which are presence and the
-# editor's own view channel rather than data movement, and not `clip`, which is
-# the product.
-FILE_FRAMES = (TARGETED | ROOM_WIDE) - {"cursor", "stream"}
+# editor's own view channel rather than data movement, not `verify`, which is
+# how a locked session proves its PIN, and not `clip`, which is the product.
+FILE_FRAMES = (TARGETED | ROOM_WIDE) - {"cursor", "stream", "verify"}
 
 # Every forwarded frame is setup/teardown control traffic — bursty for a moment,
 # then silent — except file-chunk, which is the bulk path, and cursor, which is
@@ -408,6 +475,18 @@ class Connection:
     async def send_text(self, text: str) -> None:
         raise NotImplementedError
 
+    async def close(self, code: int = 1000) -> None:
+        """End the transport. Every subclass must actually end it.
+
+        _retire() calls this to evict a room that has hit its lifetime cap, and
+        for a while nothing implemented it: the AttributeError was swallowed by
+        the suppress() around the call, so the room was removed from `rooms`
+        while every socket carrying it stayed open. The peers went on talking to
+        a Room object nothing could reach — a cap on joining, dressed as a cap
+        on the session.
+        """
+        raise NotImplementedError
+
 
 class WsConnection(Connection):
     """A WebSocket peer.
@@ -433,6 +512,9 @@ class WsConnection(Connection):
     async def send_text(self, text: str) -> None:
         async with self.lock:
             await self.sock.send_text(text)
+
+    async def close(self, code: int = 1000) -> None:
+        await self.sock.close(code=code)
 
 
 class SseConnection(Connection):
@@ -461,11 +543,29 @@ class SseConnection(Connection):
         self.queue.put_nowait(text)
 
     def end(self) -> None:
-        """Sentinel that tells the streaming generator to finish."""
+        """Sentinel that tells the streaming generator to finish.
+
+        It has to LAND. A full queue was treated as "never mind", and a full
+        queue is precisely the case that needs this most: it means the peer has
+        stopped reading, which is who _retire() and a failed fan-out are trying
+        to get rid of. The stream outlived the room, holding frames addressed to
+        something that no longer existed. What the queue holds at that point is
+        worth less than the sentinel, so one slot is made for it.
+        """
         try:
             self.queue.put_nowait(None)
+            return
         except asyncio.QueueFull:
             pass
+        with contextlib.suppress(asyncio.QueueEmpty):
+            self.queue.get_nowait()
+        with contextlib.suppress(asyncio.QueueFull):
+            self.queue.put_nowait(None)
+
+    async def close(self, code: int = 1000) -> None:
+        # There is no socket to close: the stream ends when its generator does,
+        # and the sentinel is what tells it to.
+        self.end()
 
 
 @dataclass
@@ -506,6 +606,13 @@ class Room:
     seq: int = 0
     evict_task: asyncio.Task | None = None
 
+    # When the room's first peer arrived, for REALTIMECLIPBOARD_MAX_SESSION. The setting
+    # was read at startup and then never used by anything, so an operator who
+    # capped session lifetime got no cap at all and no way to tell — which is
+    # the failure mode docs/SELF-HOSTING.md names as the reason these flags are
+    # gated by backend/test_policy.py in the first place.
+    created: float = field(default_factory=time.monotonic)
+
     # Locked sessions: the admission token the first arrival presented, if any.
     #
     # Trust on first use, and safe here for a reason that is worth stating: the
@@ -536,6 +643,12 @@ def _drop_peer(room: Room, conn: Connection) -> Peer | None:
     peer = room.peers.pop(conn, None)
     if peer is None:
         return None
+    # Fire-and-forget: this function is synchronous and called from four places
+    # including an async generator's finally, where an await would be a
+    # GeneratorExit. Only scheduled when there is a shared backend to tell.
+    if shared.enabled and peer.peer_id:
+        with contextlib.suppress(RuntimeError):
+            asyncio.create_task(shared.drop_peer(room.hash, peer.peer_id))
     if peer.ip:
         remaining = ip_conns.get(peer.ip, 1) - 1
         if remaining > 0:
@@ -568,6 +681,13 @@ async def health():
         # quietly costing ~3.5x the memory per connection and losing three
         # quarters of its ceiling. This is how you find that out from outside.
         "ws_deflate": WS_DEFLATE_STATE,
+        # Whether the cross-replica bus is actually working, as opposed to
+        # configured. A readiness probe that stays green through a Redis outage
+        # is a probe that lets an orchestrator keep routing into rooms that have
+        # quietly split in half — which is the failure PRD OI-3 is about.
+        "shared": ("off" if not shared.enabled
+                   else "ok" if shared.healthy
+                   else "degraded"),
     }
 
 
@@ -674,8 +794,17 @@ def _short(value, limit: int) -> str | None:
 
 
 async def _send(conn: Connection, obj: dict) -> bool:
+    """One frame to one connection, on a deadline.
+
+    Bounded for the same reason the fan-out is: a socket write suspends while
+    the receiver is not reading, and every caller here is on the sender's own
+    read loop. A targeted frame to a peer that had stopped reading held up the
+    peer that sent it.
+    """
     try:
-        await conn.send_text(json.dumps(obj, separators=(",", ":")))
+        await asyncio.wait_for(
+            conn.send_text(json.dumps(obj, separators=(",", ":"))), PEER_WRITE_TIMEOUT
+        )
         return True
     except Exception:
         return False
@@ -691,23 +820,80 @@ async def _broadcast(room: Room, frame: str, exclude: Connection | None = None,
     """
     if not local_only:
         await shared.publish(room.hash, frame)
-    dead = []
-    for peer in list(room.peers):
-        if peer is exclude:
-            continue
+
+    # Concurrent, and each write on a deadline.
+    #
+    # This used to await every peer in turn with no bound. A WebSocket write
+    # applies backpressure when the receiver stops reading, so one peer that had
+    # gone quiet without closing TCP suspended the fan-out — and because
+    # _handle_raw awaits this, it suspended the SENDER's read loop too, and
+    # every other peer's fan-out behind the same lock. One slow reader stalled
+    # the whole room. The SSE side already had this right (SseConnection uses a
+    # bounded queue and put_nowait, for exactly this reason); the socket side
+    # did not.
+    targets = [p for p in room.peers if p is not exclude]
+    if not targets:
+        return
+
+    async def deliver(peer: Connection) -> Connection | None:
         try:
-            await peer.send_text(frame)
+            await asyncio.wait_for(peer.send_text(frame), PEER_WRITE_TIMEOUT)
+            return None
         except Exception:
-            dead.append(peer)
-    for peer in dead:
-        _drop_peer(room, peer)
+            # A timeout is a peer that is not reading. Dropped like any other
+            # failed write: it will reconnect, and the room does not wait.
+            return peer
+
+    for peer in await asyncio.gather(*(deliver(p) for p in targets)):
+        if peer is not None:
+            _drop_peer(room, peer)
 
 
-async def _deliver_remote(room_hash: str, frame: str) -> None:
-    """A frame that another replica fanned out. Deliver it to our peers only."""
+async def _deliver_remote(room_hash: str, frame: str, to: str | None = None) -> None:
+    """A frame another replica published. Delivered here, never re-published.
+
+    Three things this has to get right, and it used to do only the first.
+
+      - A ROOM-WIDE frame is fanned out to our peers.
+      - A TARGETED frame goes to the one peer it names, if that peer is ours.
+        Targeted frames were never published at all, so rtc-* and file-* could
+        not cross replicas and a transfer failed on the pod boundary.
+      - A `clip` updates this replica's replay slot. Without it a device joining
+        replica B mid-session was welcomed with `last: null` while replica A had
+        the clip all along.
+    """
     room = rooms.get(room_hash)
-    if room and frame:
-        await _broadcast(room, frame, local_only=True)
+    if not room or not frame:
+        return
+
+    # A roster nudge, not a frame: the sender changed who it is holding and
+    # every other replica needs to recount. Answered by recomputing, never by
+    # forwarding somebody else's list as if it were the room.
+    if frame == ROSTER_NUDGE:
+        await _on_roster_nudge(room_hash)
+        return
+
+    if to:
+        target = _find(room, to)
+        if target is not None and not await _send_raw(target.conn, frame):
+            _drop_peer(room, target.conn)
+            await _announce_peers(room)
+        return
+
+    with contextlib.suppress(ValueError, TypeError):
+        if json.loads(frame).get("t") == "clip":
+            room.last = frame
+
+    await _broadcast(room, frame, local_only=True)
+
+
+async def _send_raw(conn: Connection, frame: str) -> bool:
+    """A frame that is already serialised. Same deadline as _send()."""
+    try:
+        await asyncio.wait_for(conn.send_text(frame), PEER_WRITE_TIMEOUT)
+        return True
+    except Exception:
+        return False
 
 
 @app.on_event("startup")
@@ -715,16 +901,54 @@ async def _open_shared() -> None:
     try:
         await shared.connect()
     except Exception as exc:
-        # Loud, and non-fatal. A relay that refuses to start because Redis is
-        # slow to come up is worse than one that serves a single process and
-        # says so — but it MUST say so, because the silent version of this is
-        # the split-brain in PRD OI-3.
+        # Configured HA with no working backend is the split-brain in PRD OI-3,
+        # and it is the one failure this module exists to prevent — so a
+        # deployment that asked for Redis and cannot reach it does NOT come up
+        # pretending otherwise. The old message said "serving single-process",
+        # which was not even true: `enabled` stayed set, so every publish raised
+        # into a join and left the peer counted but not connected.
+        #
+        # Failing here is self-healing under an orchestrator: the pod restarts
+        # until Redis answers. REALTIMECLIPBOARD_REQUIRE_SHARED=0 opts out for anyone who
+        # would rather serve one process while their cache is down — which is
+        # safe only at replicas=1, and says so.
+        if REQUIRE_SHARED:
+            raise RuntimeError(
+                f"REALTIMECLIPBOARD_REDIS_URL is set but the shared backend is unreachable ({exc}). "
+                "Refusing to start: with more than one replica this silently splits "
+                "rooms. Set REALTIMECLIPBOARD_REQUIRE_SHARED=0 to serve single-process anyway."
+            ) from exc
+        shared.enabled = False
         print(f"[relay] shared backend unavailable ({exc}). "
               f"Serving single-process — do NOT run more than one replica.")
+
+    if MAX_SESSION_SECONDS:
+        global _sweeper
+        _sweeper = asyncio.create_task(_sweep_expired())
+
+
+async def _sweep_expired() -> None:
+    """Retire rooms that have hit REALTIMECLIPBOARD_MAX_SESSION.
+
+    The join path checks too, but a cap that only applies to arrivals is not a
+    cap on a session: a room whose peers simply stay connected would never be
+    asked the question.
+    """
+    every = max(0.5, min(SWEEP_SECONDS, MAX_SESSION_SECONDS / 2))
+    while True:
+        await asyncio.sleep(every)
+        for room_hash, room in list(rooms.items()):
+            if _expired(room):
+                with contextlib.suppress(Exception):
+                    await _retire(room_hash, room)
 
 
 @app.on_event("shutdown")
 async def _close_shared() -> None:
+    if _sweeper is not None:
+        _sweeper.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await _sweeper
     await shared.close()
 
 
@@ -748,21 +972,53 @@ def _find(room: Room, peer_id: str | None) -> Peer | None:
     return None
 
 
+async def _full_roster(room: Room) -> list[dict]:
+    """Everyone in the room, on this replica and on the others."""
+    return _roster(room) + await shared.remote_peers(room.hash)
+
+
 async def _announce_peers(room: Room, exclude: Connection | None = None) -> None:
     """Presence frames report *changes*: who is here and what they are called.
 
     `count` is kept alongside `list` because existing clients read it (and the
     M0 gate asserts it). A peer that just joined already learned the roster from
     its own welcome, so it is excluded to avoid a duplicate frame.
+
+    Two things had to change for replicas, and they pull in opposite directions.
+    The roster is now the WHOLE room, not this process's share of it. And the
+    frame is fanned out LOCALLY — it used to go through the publishing
+    _broadcast, so every replica re-fanned another replica's partial list to its
+    own peers as though it were the room, and the count on screen flapped
+    between two wrong answers. Each replica computes the same total and tells
+    only its own peers; the nudge below is what makes the others recompute.
     """
     await _broadcast(
         room,
         json.dumps(
-            {"t": "peers", "count": len(room.peers), "list": _roster(room)},
+            {"t": "peers", "count": len(room.peers) + len(await shared.remote_peers(room.hash)),
+             "list": await _full_roster(room)},
             separators=(",", ":"),
         ),
         exclude=exclude,
+        local_only=True,
     )
+    await shared.publish(room.hash, ROSTER_NUDGE)
+
+
+async def _on_roster_nudge(room_hash: str) -> None:
+    """Another replica's roster changed: recompute ours and tell our peers."""
+    room = rooms.get(room_hash)
+    if room and room.peers:
+        await _broadcast(
+            room,
+            json.dumps(
+                {"t": "peers",
+                 "count": len(room.peers) + len(await shared.remote_peers(room_hash)),
+                 "list": await _full_roster(room)},
+                separators=(",", ":"),
+            ),
+            local_only=True,
+        )
 
 
 async def _forward(room: Room, me: Peer, msg: dict) -> None:
@@ -774,31 +1030,46 @@ async def _forward(room: Room, me: Peer, msg: dict) -> None:
     no verified sender is unanswerable). On the SSE fallback that connection is
     the event stream the sid resolved to, never the POST itself.
     """
-    target = _find(room, _short(msg.get("to"), MAX_ID_CHARS))
+    to = _short(msg.get("to"), MAX_ID_CHARS)
+    target = _find(room, to)
+    msg["from"] = me.peer_id
+
     if target is None:
+        # Not here — but with replicas it may be on another one, and only the
+        # shared roster knows. Published rather than refused; NO_SUCH_PEER is
+        # kept for a peer no replica claims.
+        if to and shared.enabled and any(p["id"] == to for p in await shared.remote_peers(room.hash)):
+            await shared.publish(
+                room.hash, json.dumps(msg, separators=(",", ":")), to=to
+            )
+            return
+
         # Also covers a missing/blank/non-string `to`; the echoed value tells a
         # client which of the two it was without adding a second error code.
-        await _send(me.conn, {
-            "t": "error",
-            "code": "NO_SUCH_PEER",
-            "to": _short(msg.get("to"), MAX_ID_CHARS),
-        })
+        await _send(me.conn, {"t": "error", "code": "NO_SUCH_PEER", "to": to})
         return
 
-    msg["from"] = me.peer_id
     if not await _send(target.conn, msg):
         _drop_peer(room, target.conn)
         await _announce_peers(room)
 
 
-def _adopt_identity(room: Room, me: Peer, msg: dict) -> tuple[bool, bool]:
-    """Apply `hello`. Returns (roster_changed, id_was_taken)."""
+async def _adopt_identity(room: Room, me: Peer, msg: dict) -> tuple[bool, bool]:
+    """Apply `hello`. Returns (roster_changed, id_was_taken).
+
+    Uniqueness is checked across the whole room, not just this replica: two
+    devices claiming one id on two pods would each be told it was free, and
+    every targeted frame after that would reach whichever of them the roster
+    happened to name.
+    """
     changed = False
     taken = False
 
     wanted = _short(msg.get("originId"), MAX_ID_CHARS)
     if wanted and wanted != me.peer_id:
-        if _find(room, wanted) is None:
+        elsewhere = any(p["id"] == wanted for p in await shared.remote_peers(room.hash))
+        if _find(room, wanted) is None and not elsewhere:
+            await shared.drop_peer(room.hash, me.peer_id)
             me.peer_id = wanted
             changed = True
         else:
@@ -808,6 +1079,11 @@ def _adopt_identity(room: Room, me: Peer, msg: dict) -> tuple[bool, bool]:
     if nickname and nickname != me.name:
         me.name = nickname
         changed = True
+
+    # Re-registered under whatever it ended up being called, so the other
+    # replicas' rosters and their targeted routing agree with this one.
+    if changed:
+        await shared.add_peer(room.hash, me.peer_id, me.name, ROOM_TTL_SECONDS)
 
     return changed, taken
 
@@ -840,19 +1116,62 @@ def _country_of(headers) -> str:
     return country if len(country) == 2 and country.isalpha() else ""
 
 
+def _expired(room: Room) -> bool:
+    """Has this room outlived REALTIMECLIPBOARD_MAX_SESSION? 0 disables the cap."""
+    return bool(MAX_SESSION_SECONDS) and (
+        time.monotonic() - room.created > MAX_SESSION_SECONDS
+    )
+
+
+async def _retire(room_hash: str, room: Room) -> None:
+    """Close a room that has hit its lifetime cap, and forget what it held.
+
+    Every peer is disconnected rather than merely refused: the cap is on the
+    SESSION, so leaving the current occupants connected until they happen to
+    reconnect would make it a cap on joining instead.
+    """
+    for conn in list(room.peers):
+        # Told before it is cut off, so the client can say why rather than
+        # showing a bare disconnect.
+        with contextlib.suppress(Exception):
+            await _send(conn, {"t": "error", "code": "SESSION_EXPIRED"})
+        try:
+            await conn.close(1013)
+        except Exception as exc:
+            # NOT silent. A close that cannot happen leaves a live transport
+            # attached to a room that no longer exists, which is worse than the
+            # expiry never firing — and swallowing it is how that shipped.
+            print(f"[relay] could not close a {conn.kind} peer on expiry: {exc}")
+        _drop_peer(room, conn)
+    room.last = None
+    rooms.pop(room_hash, None)
+    await shared.unsubscribe(room_hash)
+
+
 def _client_ip(headers, client) -> str:
     """Source address, for the per-address connection count and nothing else.
 
-    Cloudflare fronts this service and CF-Connecting-IP is the address it saw;
-    it cannot be spoofed by a client through Cloudflare, because Cloudflare
-    overwrites it. X-Forwarded-For is read only as a fallback for a self-hosted
-    deployment behind a different proxy, and it CAN be spoofed by anyone talking
-    to this process directly — which is why it buys nothing worse than the cap
-    being evaded, never a cap applied to someone else's address.
+    Cloudflare fronts the hosted service and CF-Connecting-IP is the address it
+    saw; it cannot be spoofed THROUGH Cloudflare, because Cloudflare overwrites
+    it. Reached directly, both it and X-Forwarded-For are whatever the client
+    typed — and the old note here claimed that bought "nothing worse than the
+    cap being evaded, never a cap applied to someone else's address", which was
+    wrong in its second half: claiming a victim's address MAX_CONNS_PER_IP times
+    fills that victim's bucket and locks them out.
+
+    So the headers are honoured only when the immediate peer is a proxy the
+    operator has named. REALTIMECLIPBOARD_TRUSTED_PROXIES defaults to "*" — the hosted
+    deployment sits behind Cloudflare and every connection arrives from an edge
+    address, so distrusting them would put every user in one bucket and lock
+    the whole relay out at once. Self-hosted deployments should set it.
 
     Not stored on any object that outlives the connection, not logged, and never
     sent to a peer. Returns "" when there is nothing trustworthy to key on.
     """
+    peer = (getattr(client, "host", "") or "")[:64]
+    if not _trusted_proxy(peer):
+        return peer
+
     direct = (headers.get("cf-connecting-ip") or "").strip()
     if direct:
         return direct[:64]
@@ -861,7 +1180,7 @@ def _client_ip(headers, client) -> str:
     if forwarded:
         return forwarded[:64]
 
-    return (getattr(client, "host", "") or "")[:64]
+    return peer
 
 
 def _admits(room: Room, auth: str | None) -> bool:
@@ -920,6 +1239,14 @@ async def _join(room_hash: str, conn: Connection, country: str,
         await _send(conn, {"t": "error", "code": "TOO_MANY_CONNECTIONS"})
         return None
 
+    # The lifetime cap, enforced here as well as by the sweeper, so a room
+    # cannot be held open indefinitely by reconnecting into it. Retired BEFORE
+    # the lookup, so what follows rebuilds it through the ordinary creation
+    # path — with its shared subscription and its room-ceiling check.
+    stale = rooms.get(room_hash)
+    if stale is not None and _expired(stale):
+        await _retire(room_hash, stale)
+
     room = rooms.get(room_hash)
     if room is None:
         # Creating a room is the only unbounded allocation a stranger can ask
@@ -934,10 +1261,15 @@ async def _join(room_hash: str, conn: Connection, country: str,
         room = rooms[room_hash] = Room(hash=room_hash)
         # Frames from the other replicas are fanned out locally and NOT
         # re-published, or the two processes would bounce each one forever.
-        await shared.subscribe(
-            room_hash,
-            lambda frame, rh=room_hash: _deliver_remote(rh, frame),
-        )
+        # A named function, not a lambda. The pump calls deliver(frame, to=...)
+        # and the lambda took `frame` plus a defaulted `rh` — so the second
+        # argument bound to `rh` and every remote frame was delivered to a room
+        # named after a peer id. Nothing raised; cross-replica delivery simply
+        # stopped, which is the exact silent failure shared.py exists to prevent.
+        async def deliver(frame: str, to: str | None = None, rh: str = room_hash) -> None:
+            await _deliver_remote(rh, frame, to)
+
+        await shared.subscribe(room_hash, deliver)
 
     if len(room.peers) >= MAX_PEERS:
         await _send(conn, {"t": "error", "code": "ROOM_FULL"})
@@ -958,13 +1290,20 @@ async def _join(room_hash: str, conn: Connection, country: str,
         room.evict_task.cancel()
         room.evict_task = None
 
-    existing = len(room.peers)   # peers already here, BEFORE we join — the collision signal
+    # Peers already here, BEFORE we join — the collision signal, and the basis
+    # for who may lock the session. Counted across replicas: on one process
+    # alone, two devices creating the same key on different pods would each be
+    # told they were first.
+    existing = len(room.peers) + len(await shared.remote_peers(room_hash))
 
     # Provisional id: welcome must go out immediately (a client is entitled to
     # sit silent and still be told the room state), and `hello` has not arrived
     # yet. It is replaced by the client's originId the moment hello lands.
     me = Peer(conn=conn, peer_id=uuid.uuid4().hex[:8], country=country, ip=ip)
     room.peers[conn] = me
+    # Registered where the other replicas can see it, so their rosters and their
+    # targeted routing both know this peer exists.
+    await shared.add_peer(room_hash, me.peer_id, "", ROOM_TTL_SECONDS)
     # Counted only once the peer is actually in a room, so every path that
     # returned None above leaves the count untouched and _drop_peer is the sole
     # decrement. Paired insert and remove, one site each.
@@ -973,14 +1312,22 @@ async def _join(room_hash: str, conn: Connection, country: str,
 
     # `existing > 0` on an intent:"create" means the auto-generated key is taken,
     # and the client must regenerate rather than land in a stranger's room (OI-2).
+    replay = room.last or await shared.get_last(room_hash)
+
     await _send(conn, {
         "t": "welcome",
         "instance": INSTANCE_ID,
+        "caps": CAPS,
         "existing": existing,
         "peers": len(room.peers),
         "you": me.peer_id,
-        "list": _roster(room),
-        "last": json.loads(room.last) if room.last else None,
+        "list": await _full_roster(room),
+        # The room's last clip, from wherever it is. `shared.get_last` was
+        # written and then never called, so a late joiner that landed on a
+        # replica which had not itself seen the clip was welcomed with nothing
+        # to replay — and for a locked session that also meant no beacon, so it
+        # could not tell "right PIN" from "wrong PIN".
+        "last": json.loads(replay) if replay else None,
         **(extra or {}),
     })
     await _announce_peers(room, exclude=conn)
@@ -1039,7 +1386,7 @@ async def _handle_raw(room: Room, me: Peer, raw: str) -> None:
         await _send(me.conn, {"t": "pong"})
 
     elif kind == "hello":                   # intent already answered by welcome
-        changed, taken = _adopt_identity(room, me, msg)
+        changed, taken = await _adopt_identity(room, me, msg)
         if taken:
             # Never silent: the client is addressable, just not under the name
             # it asked for, and it needs to know which.
@@ -1122,14 +1469,39 @@ async def ws(sock: WebSocket, room_hash: str):
 
 # CORS matters here in a way it never did for WebSockets, which are exempt from
 # it: the site is served from github.io and this relay from another host, so an
-# EventSource and a fetch POST are both cross-origin. "*" because there are no
-# credentials anywhere in this design — the session key never leaves the browser
-# and the relay only ever holds ciphertext — and pinning an origin would break
-# local development, a future custom domain, and anyone self-hosting a copy.
-CORS = {"Access-Control-Allow-Origin": "*"}
+# EventSource and a fetch POST are both cross-origin. The default is "*",
+# because there are no credentials anywhere in this design — the session key
+# never leaves the browser and the relay only ever holds ciphertext — and
+# pinning would break local development, a future custom domain and anyone
+# self-hosting a copy. An operator who pins REALTIMECLIPBOARD_CORS_ORIGINS gets what
+# they asked for, on every route.
+
+
+def _cors(request: Request | None = None) -> dict:
+    """The configured allowlist, for the routes that write their own headers.
+
+    These routes used to set a hard-coded "*", which silently overrode
+    REALTIMECLIPBOARD_CORS_ORIGINS on every SSE and /pub response. Starlette's
+    CORSMiddleware neither sets nor strips the header for a DISALLOWED origin,
+    so the wildcard survived all the way to the browser: a deployment that had
+    pinned its origins — which docker-compose, the Helm values and
+    SELF-HOSTING.md all tell operators to do — was not pinned at all on the
+    fallback transport, and the fallback needs no preflight to be driven end to
+    end.
+    """
+    if "*" in CORS_ORIGINS:
+        return {"Access-Control-Allow-Origin": "*"}
+    origin = (request.headers.get("origin") if request else None) or ""
+    if origin and origin in CORS_ORIGINS:
+        return {"Access-Control-Allow-Origin": origin, "Vary": "Origin"}
+    return {"Vary": "Origin"}
+
+
+def _sse_headers(request: Request) -> dict:
+    return {**SSE_HEADERS, **_cors(request)}
+
 
 SSE_HEADERS = {
-    **CORS,
     "Cache-Control": "no-cache, no-store, no-transform",
     "Connection": "keep-alive",
     # Ask intermediaries not to buffer. nginx and several corporate proxies
@@ -1203,15 +1575,16 @@ async def sse(room_hash: str, request: Request):
             except RuntimeError:
                 pass                    # the loop is going away; so is the room
 
-    return StreamingResponse(stream(), media_type="text/event-stream", headers=SSE_HEADERS)
+    return StreamingResponse(stream(), media_type="text/event-stream",
+                             headers=_sse_headers(request))
 
 
 @app.options("/pub/{room_hash}")
-async def pub_preflight(room_hash: str) -> Response:
+async def pub_preflight(room_hash: str, request: Request) -> Response:
     """The client sends text/plain to stay a "simple request", so this should
     never be reached. It exists for any other client that does not."""
     return Response(status_code=204, headers={
-        **CORS,
+        **_cors(request),
         "Access-Control-Allow-Methods": "POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type",
         "Access-Control-Max-Age": "86400",
@@ -1229,16 +1602,21 @@ async def pub(room_hash: str, request: Request, sid: str = "") -> Response:
     room = rooms.get(room_hash)
     me = _by_sid(room, sid) if room else None
     if me is None:
-        return _json(404, {"t": "error", "code": "NO_STREAM"})
+        return _json(404, {"t": "error", "code": "NO_STREAM"}, request)
 
     # The request itself is metered, on top of the frames inside it: otherwise
     # a flood of empty POSTs costs a client nothing.
     if not me.buckets.allow("http"):
-        return _json(429, {"t": "error", "code": "RATE_LIMITED"})
+        return _json(429, {"t": "error", "code": "RATE_LIMITED"}, request)
 
-    body = await request.body()
-    if len(body) > MAX_BODY_BYTES:
-        return _json(413, {"t": "error", "code": "TOO_LARGE"})
+    # Capped WHILE reading. request.body() buffers the whole thing first, so the
+    # limit was enforced after the allocation it exists to prevent: a declared
+    # length is a claim, and a chunked body makes no claim at all, so a handful
+    # of concurrent posts could hold far more than the cap in a 512 MB container
+    # — and an OOM here takes every live session with it.
+    body = await _read_capped(request, MAX_BODY_BYTES)
+    if body is None:
+        return _json(413, {"t": "error", "code": "TOO_LARGE"}, request)
 
     for line in body.decode("utf-8", "replace").split("\n"):
         line = line.strip()
@@ -1248,7 +1626,23 @@ async def pub(room_hash: str, request: Request, sid: str = "") -> Response:
     # Nothing to say in the response: every answer the relay has — pong, error,
     # peers, a forwarded frame — goes down the stream, exactly as it would over
     # a WebSocket.
-    return Response(status_code=204, headers=CORS)
+    return Response(status_code=204, headers=_cors(request))
+
+
+async def _read_capped(request: Request, cap: int) -> bytes | None:
+    """Read at most `cap` bytes, then give up. None means "over the limit".
+
+    Stops at the boundary instead of trusting Content-Length, so a lying header
+    and a slow chunked trickle are both bounded by what has actually arrived.
+    """
+    total = 0
+    parts: list[bytes] = []
+    async for chunk in request.stream():
+        total += len(chunk)
+        if total > cap:
+            return None
+        parts.append(chunk)
+    return b"".join(parts)
 
 
 def _by_sid(room: Room, sid: str) -> Peer | None:
@@ -1260,12 +1654,12 @@ def _by_sid(room: Room, sid: str) -> Peer | None:
     return None
 
 
-def _json(status: int, obj: dict) -> Response:
+def _json(status: int, obj: dict, request: Request | None = None) -> Response:
     return Response(
         content=json.dumps(obj, separators=(",", ":")),
         status_code=status,
         media_type="application/json",
-        headers=CORS,
+        headers=_cors(request),
     )
 
 

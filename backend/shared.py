@@ -28,12 +28,18 @@ must not pay for a feature it does not use.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import os
 
-# redis is an optional dependency. A self-hoster running one replica should not
-# have to install it, and an import error at startup for a feature nobody asked
-# for is a worse outage than the feature being unavailable.
+# redis is an optional dependency FROM SOURCE: a self-hoster running one replica
+# should not have to install it, and an import error at startup for a feature
+# nobody asked for is a worse outage than the feature being unavailable.
+#
+# The published image installs it regardless (backend/Dockerfile), because the
+# Helm chart tells operators that redis.enabled makes replicas safe and then
+# deploys that image — an image that cannot import redis turns that promise into
+# the split-brain it was written to prevent.
 try:
     import redis.asyncio as aioredis
 except ImportError:                                       # pragma: no cover
@@ -48,10 +54,19 @@ class Backend:
     def __init__(self, url: str | None, instance: str) -> None:
         self.instance = instance
         self.enabled = bool(url) and aioredis is not None
+        # Whether the connection is actually working RIGHT NOW, as opposed to
+        # configured. `enabled` stayed true through a failed ping, so every
+        # publish raised — out of _announce_peers, out of _join, past the peer
+        # that had already been inserted into the room, leaking its roster entry
+        # and its per-address connection count. Health is a separate question
+        # from configuration and now has a separate answer.
+        self.healthy = False
         self._url = url
         self._redis = None
         self._pubsub = None
         self._tasks: dict[str, asyncio.Task] = {}
+        self._subscribers: dict[str, object] = {}
+        self._reconnecting: asyncio.Task | None = None
 
         if url and aioredis is None:
             print("[relay] REALTIMECLIPBOARD_REDIS_URL is set but the redis package is not "
@@ -62,30 +77,90 @@ class Backend:
         if not self.enabled or self._redis is not None:
             return
         self._redis = aioredis.from_url(self._url, decode_responses=True)
-        await self._redis.ping()
+        try:
+            await self._redis.ping()
+        except Exception:
+            # Not left half-open: a live client object with a dead server is
+            # what made `enabled and not healthy` indistinguishable from
+            # working, and every later call raised into a request handler.
+            self._redis = None
+            raise
+        self.healthy = True
         print(f"[relay] shared backend connected; replicas may exceed 1 "
               f"(instance {self.instance})")
 
+    def _degrade(self, what: str, exc: Exception) -> None:
+        """Record that Redis is not answering, and start trying to get it back.
+
+        Never raises. Every caller is on a request path, and taking a live
+        session down because the cross-replica bus hiccuped is a worse failure
+        than the one being reported.
+        """
+        if self.healthy:
+            print(f"[relay] shared backend degraded during {what}: {exc}")
+        self.healthy = False
+        if self._reconnecting is None or self._reconnecting.done():
+            self._reconnecting = asyncio.create_task(self._recover())
+
+    async def _recover(self) -> None:
+        """Reconnect, then rebuild every subscription that died with the link."""
+        delay = 1.0
+        while not self.healthy:
+            await asyncio.sleep(delay)
+            delay = min(delay * 2, 30.0)
+            try:
+                if self._redis is not None:
+                    with contextlib.suppress(Exception):
+                        await self._redis.aclose()
+                self._redis = None
+                await self.connect()
+            except Exception:
+                continue
+
+            # Resubscribe. A pump that died took its room off the air until the
+            # room itself was evicted — there was no path back, because the
+            # dead task stayed registered and subscribe() returns early when it
+            # finds one.
+            for room_hash, deliver in list(self._subscribers.items()):
+                self._tasks.pop(room_hash, None)
+                await self.subscribe(room_hash, deliver)
+            print("[relay] shared backend recovered")
+
     # ---- fan-out --------------------------------------------------------
 
-    async def publish(self, room_hash: str, frame: str) -> None:
+    async def publish(self, room_hash: str, frame: str, to: str | None = None) -> None:
         """
         Hand a frame to the other replicas.
 
         Stamped with this instance's id so the delivery loop below can drop its
         own echo. Without that, a two-replica deployment doubles every message
         and a three-replica one triples it.
+
+        `to` names a single peer. Targeted frames were never published at all,
+        so rtc-* and every file-* frame simply could not reach a peer on another
+        replica: the sender got NO_SUCH_PEER and a transfer between two devices
+        in the same room failed depending on which pod each had landed on.
         """
-        if not self.enabled:
+        if not self.enabled or not self.healthy:
             return
-        await self._redis.publish(
-            f"hb:{room_hash}",
-            json.dumps({"o": self.instance, "f": frame}, separators=(",", ":")),
-        )
+        try:
+            await self._redis.publish(
+                f"hb:{room_hash}",
+                json.dumps(
+                    {"o": self.instance, "f": frame, **({"to": to} if to else {})},
+                    separators=(",", ":"),
+                ),
+            )
+        except Exception as exc:
+            self._degrade("publish", exc)
 
     async def subscribe(self, room_hash: str, deliver) -> None:
         """
         Start relaying this room's remote frames into `deliver`.
+
+        `deliver` is awaited as `deliver(frame, to=...)`, where `to` names a
+        single peer for a targeted frame and is None for a room-wide one. It
+        must accept that keyword.
 
         One task per room rather than one shared task, so a room going quiet
         cleans itself up and a slow room cannot stall the others.
@@ -93,10 +168,21 @@ class Backend:
         if not self.enabled or room_hash in self._tasks:
             return
 
+        # Remembered so a recovery can rebuild it. Registered before the task,
+        # so a pump that dies immediately is still known to be wanted.
+        self._subscribers[room_hash] = deliver
+
         async def pump() -> None:
-            pubsub = self._redis.pubsub()
-            await pubsub.subscribe(f"hb:{room_hash}")
+            # Setup INSIDE the try. Creating the pubsub and subscribing can both
+            # fail — a connection that dropped between here and connect() is the
+            # ordinary way — and outside it the exception escaped, killing the
+            # task while `_tasks` still held it. That is the unrecoverable state
+            # this module was supposed to have stopped having: registered, dead,
+            # and never retried, with no degrade and no recovery asked for.
+            pubsub = None
             try:
+                pubsub = self._redis.pubsub()
+                await pubsub.subscribe(f"hb:{room_hash}")
                 async for message in pubsub.listen():
                     if message.get("type") != "message":
                         continue
@@ -107,20 +193,33 @@ class Backend:
                     # Our own publish, coming back around.
                     if envelope.get("o") == self.instance:
                         continue
-                    await deliver(envelope.get("f", ""))
+                    # `to` by KEYWORD, deliberately. Passed positionally it
+                    # silently bound to whatever second parameter the callback
+                    # happened to have — main.py's was a defaulted room_hash, so
+                    # every remote frame was delivered to a room named after a
+                    # peer id and nothing raised. A keyword makes a callback
+                    # with the wrong shape fail loudly instead.
+                    await deliver(envelope.get("f", ""), to=envelope.get("to"))
             except asyncio.CancelledError:
                 raise
             except Exception as exc:                      # pragma: no cover
                 # A dead subscription is a silently desynced room, which is the
-                # exact failure this module exists to prevent. Say so.
+                # exact failure this module exists to prevent. Say so, drop the
+                # registration so a retry is possible at all, and ask for one.
                 print(f"[relay] room {room_hash[:8]} lost its shared subscription: {exc}")
+                self._tasks.pop(room_hash, None)
+                self._degrade("subscribe", exc)
             finally:
-                await pubsub.unsubscribe(f"hb:{room_hash}")
-                await pubsub.aclose()
+                if pubsub is not None:
+                    with contextlib.suppress(Exception):
+                        await pubsub.unsubscribe(f"hb:{room_hash}")
+                    with contextlib.suppress(Exception):
+                        await pubsub.aclose()
 
         self._tasks[room_hash] = asyncio.create_task(pump())
 
     async def unsubscribe(self, room_hash: str) -> None:
+        self._subscribers.pop(room_hash, None)
         task = self._tasks.pop(room_hash, None)
         if task:
             task.cancel()
@@ -133,14 +232,21 @@ class Backend:
     # which pod the load balancer picked.
 
     async def set_last(self, room_hash: str, frame: str, ttl: int) -> None:
-        if not self.enabled:
+        if not self.enabled or not self.healthy:
             return
-        await self._redis.set(f"hb:{room_hash}:last", frame, ex=ttl)
+        try:
+            await self._redis.set(f"hb:{room_hash}:last", frame, ex=ttl)
+        except Exception as exc:
+            self._degrade("set_last", exc)
 
     async def get_last(self, room_hash: str) -> str | None:
-        if not self.enabled:
+        if not self.enabled or not self.healthy:
             return None
-        return await self._redis.get(f"hb:{room_hash}:last")
+        try:
+            return await self._redis.get(f"hb:{room_hash}:last")
+        except Exception as exc:
+            self._degrade("get_last", exc)
+            return None
 
     # ---- roster ---------------------------------------------------------
     #
@@ -149,22 +255,32 @@ class Backend:
     # other laptop actually joined.
 
     async def add_peer(self, room_hash: str, peer_id: str, name: str, ttl: int) -> None:
-        if not self.enabled:
+        if not self.enabled or not self.healthy:
             return
         key = f"hb:{room_hash}:peers"
-        await self._redis.hset(key, peer_id, json.dumps({"name": name, "i": self.instance}))
-        await self._redis.expire(key, ttl)
+        try:
+            await self._redis.hset(key, peer_id, json.dumps({"name": name, "i": self.instance}))
+            await self._redis.expire(key, ttl)
+        except Exception as exc:
+            self._degrade("add_peer", exc)
 
     async def drop_peer(self, room_hash: str, peer_id: str) -> None:
-        if not self.enabled:
+        if not self.enabled or not self.healthy:
             return
-        await self._redis.hdel(f"hb:{room_hash}:peers", peer_id)
+        try:
+            await self._redis.hdel(f"hb:{room_hash}:peers", peer_id)
+        except Exception as exc:
+            self._degrade("drop_peer", exc)
 
     async def remote_peers(self, room_hash: str) -> list[dict]:
         """Peers held by the OTHER replicas. This one already knows its own."""
-        if not self.enabled:
+        if not self.enabled or not self.healthy:
             return []
-        raw = await self._redis.hgetall(f"hb:{room_hash}:peers")
+        try:
+            raw = await self._redis.hgetall(f"hb:{room_hash}:peers")
+        except Exception as exc:
+            self._degrade("remote_peers", exc)
+            return []
         out = []
         for peer_id, blob in raw.items():
             try:
@@ -177,8 +293,12 @@ class Backend:
         return out
 
     async def close(self) -> None:
+        if self._reconnecting is not None:
+            self._reconnecting.cancel()
         for task in self._tasks.values():
             task.cancel()
         self._tasks.clear()
+        self._subscribers.clear()
+        self.healthy = False
         if self._redis is not None:
             await self._redis.aclose()

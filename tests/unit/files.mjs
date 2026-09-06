@@ -212,10 +212,20 @@ ok("a spoofed originId does not beat the relay's own stamp",
    Boolean(registry.get("remote3")),
    "`from` is set by the relay on the socket the frame arrived on; originId is whatever the sender typed");
 ok("the device that announced it can retract it",
-   registry.applyGone({ t: registry.FRAME_GONE, id: "remote3", originId: "peerX" }) === true &&
+   registry.applyGone({ t: registry.FRAME_GONE, id: "remote3", from: "peerX" }) === true &&
    registry.get("remote3") === undefined);
 ok("a retraction for a file we never had changes nothing",
-   registry.applyGone({ t: registry.FRAME_GONE, id: "remote3", originId: "peerX" }) === false);
+   registry.applyGone({ t: registry.FRAME_GONE, id: "remote3", from: "peerX" }) === false);
+
+// There is no fallback to `originId` when the stamp is missing: accepting one
+// would hand the check straight back to the client it exists to constrain.
+// The relay stamps every file-gone it fans out, so this shape cannot arrive.
+registry.addRemote({ id: "remote4", name: "theirs4.pdf", size: 10,
+                     type: "application/pdf", thumb: null, originId: "peerX" });
+ok("an unstamped retraction is refused even from the real owner",
+   registry.applyGone({ t: registry.FRAME_GONE, id: "remote4", originId: "peerX" }) === false &&
+   Boolean(registry.get("remote4")));
+registry.applyGone({ t: registry.FRAME_GONE, id: "remote4", from: "peerX" });
 
 await registry.add([new File([new Uint8Array(8)], "mine.txt")], { makeThumbs: false });
 const stillMine = registry.all().find(f => f.name === "mine.txt");
@@ -277,18 +287,59 @@ async function waitFor(type, ms = 2000) {
 }
 
 sent.length = 0;
-transfer.onSignal({ t: "file-req", id: ours.id, originId: "peerStranger" });
+transfer.onSignal({ t: "file-req", id: ours.id, from: "peerStranger" });
 ok("an unknown device with no approver is denied", Boolean(await waitFor("file-deny")),
    sent.map(f => f.t).join(", ") || "nothing sent");
 
 sent.length = 0;
 transfer.allowPeer("peerFriend");
-transfer.onSignal({ t: "file-req", id: ours.id, originId: "peerFriend" });
+transfer.onSignal({ t: "file-req", id: ours.id, from: "peerFriend" });
 const accepted = await waitFor("file-accept");
 ok("an allowed device is served without an approver at all",
    Boolean(accepted) && !sent.some(f => f.t === "file-deny"),
    sent.map(f => f.t).join(", ") || "nothing sent");
 transfer.cancel(ours.id, "test over");
+
+/* A request identifies its sender by the relay's stamp and nothing else. Both
+   of these used to be honoured: `originId` is chosen by the sender, so naming
+   an allowed device was enough to inherit its grant. */
+sent.length = 0;
+transfer.onSignal({ t: "file-req", id: ours.id, originId: "peerFriend" });
+await new Promise(r => setTimeout(r, 120));
+ok("a request with no relay stamp is dropped", sent.length === 0,
+   sent.map(f => f.t).join(", ") || "nothing sent");
+
+sent.length = 0;
+transfer.onSignal({ t: "file-req", id: ours.id, from: "peerStranger", originId: "peerFriend" });
+const spoofed = await waitFor("file-deny", 600);
+ok("a stranger cannot borrow an allowed device's grant by naming it",
+   Boolean(spoofed) && !sent.some(f => f.t === "file-accept"),
+   sent.map(f => f.t).join(", ") || "nothing sent");
+transfer.cancel(ours.id, "test over");
+
+/* A live transfer belongs to one peer. Every handler used to find it by file id
+   alone, so any other member of the room could cancel it, answer its
+   negotiation, or inject bytes into it. A request we are WAITING on is the
+   transfer that stays live long enough to aim a frame at. */
+transfer.setRequestTimeoutMs(30_000);
+sent.length = 0;
+registry.addRemote({ id: "remote9", name: "theirs9.bin", size: 4096,
+                     type: "", thumb: null, originId: "peerOwner" });
+await transfer.request("remote9");
+const started = transfer.isActive("remote9");
+
+transfer.onSignal({ t: "file-cancel", id: "remote9", from: "peerIntruder", reason: "mine now" });
+await new Promise(r => setTimeout(r, 120));
+const survived = transfer.isActive("remote9");
+
+transfer.onSignal({ t: "file-cancel", id: "remote9", from: "peerOwner", reason: "changed my mind" });
+await new Promise(r => setTimeout(r, 120));
+ok("a third device cannot cancel someone else's transfer",
+   started === true && survived === true,
+   started ? (survived ? "" : "the intruder's cancel was honoured") : "the request never started");
+ok("...but the peer it belongs to still can",
+   transfer.isActive("remote9") === false);
+transfer.setRequestTimeoutMs(transfer.requestTimeoutMs());
 
 /* ---- peer-supplied filenames -------------------------------------------
  *

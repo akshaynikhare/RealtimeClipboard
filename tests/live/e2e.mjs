@@ -18,8 +18,7 @@ import * as cryptoBox from "../../src/core/crypto.js";
 import * as keys from "../../src/core/keys.js";
 import { LOCK } from "../../src/core/config.js";
 import * as proto from "../../src/transport/protocol.js";
-
-const LOCK_BEACON = LOCK.BEACON;
+import { sealWith, openWith } from "../../src/core/frames.js";
 
 const BASE = process.argv[2] || process.env.RELAY_BASE
   || "wss://realtimeclipboard.fastapicloud.dev";
@@ -86,6 +85,15 @@ class Peer {
   async readClip(msg) {
     return cryptoBox.decrypt(this.aesKey, msg.payload, msg.iv);
   }
+
+  /** The lock proof, sealed exactly as the app seals it. */
+  async sendVerify(probe) {
+    const frame = await sealWith(this.aesKey,
+      proto.verify({ probe, originId: this.originId }));
+    this.ws.send(JSON.stringify(frame));
+  }
+
+  readFrame(msg) { return openWith(this.aesKey, msg); }
 
   close() { try { this.ws?.close(1000); } catch { /* already gone */ } }
 }
@@ -196,9 +204,10 @@ async function main() {
   const wl1 = await l1.next(m => m.t === "welcome");
   check("first device into the locked room finds it empty", wl1.existing === 0);
 
-  // The beacon: planted only into an empty room with no retained clip, so a
-  // later joiner can tell "right PIN" from "first one here".
-  await l1.sendClip(LOCK_BEACON);
+  // The clip a real user copied, before anyone starts proving anything. It is
+  // what the proof used to destroy, so it goes in first on purpose.
+  const retained = "the-clip-a-user-actually-copied";
+  await l1.sendClip(retained);
 
   const l2 = new Peer("L2", right.roomHash, right.aesKey);
   await l2.connect("join");
@@ -206,8 +215,37 @@ async function main() {
   check("a device with the right PIN joins the same room", wl2.existing === 1);
   // `welcome.last` arrives as an object, not a string: the relay stores the
   // envelope as JSON but re-parses it on the way out (backend/main.py `_join`).
-  check("and the replayed beacon decrypts to exactly the sentinel",
-        !!wl2.last && await l2.readClip(wl2.last) === LOCK_BEACON);
+  check("and is replayed the room's last clip",
+        !!wl2.last && await l2.readClip(wl2.last) === retained);
+
+  // Verification, the round trip. A wrong PIN is silent — it derives a
+  // different room and lands you alone in it — so the only way to tell "right
+  // PIN" from "first one here" is for something in the room to be readable.
+  check("the relay advertises the frame that does it",
+        (wl2.caps ?? []).includes("verify"),
+        "a client cannot probe for a type an older relay answers UNKNOWN_TYPE");
+
+  await l2.sendVerify(true);
+  const probe = await l1.next(m => m.t === "verify");
+  check("a probe reaches the other device", (await l1.readFrame(probe))?.probe === true);
+  check("...sealed, so the relay cannot tell a question from an answer",
+        !("probe" in probe) && !!probe.payload);
+  check("...and stamped with the sender the relay saw", !!probe.from,
+        "the one field a client cannot choose for itself");
+
+  await l1.sendVerify(false);
+  const answer = await l2.next(m => m.t === "verify");
+  check("and the answer comes back", (await l2.readFrame(answer))?.probe === false);
+
+  // THE POINT of moving off a clip. Everything above travelled through the room
+  // and none of it touched what the room retains.
+  const l2b = new Peer("L2B", right.roomHash, right.aesKey);
+  await l2b.connect("join");
+  const wl2b = await l2b.next(m => m.t === "welcome");
+  check("THE REPLAY SURVIVES VERIFICATION: the user's clip is still the retained one",
+        !!wl2b.last && await l2b.readClip(wl2b.last) === retained,
+        "proving the PIN used to overwrite it with a sentinel");
+  l2b.close();
 
   // The device that mistyped its PIN. It is not rejected — it is somewhere else
   // entirely, which is the point: it never occupies a slot in, or appears in the

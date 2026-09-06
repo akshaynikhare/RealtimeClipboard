@@ -64,6 +64,40 @@ export const RELAY_URL =
 export const RELAY_IS_CUSTOM = RELAY_URL !== DEFAULT_RELAY_URL && RELAY_URL !== LOCAL_RELAY_URL;
 
 /**
+ * The organisation token for a relay that runs with REALTIMECLIPBOARD_JOIN_TOKEN set.
+ *
+ * Such a relay refuses every join that does not present `?org=`, and no client
+ * had any way to send one — so turning the setting on, which SELF-HOSTING.md
+ * tells operators to do to stop their relay being open to anyone who learns the
+ * hostname, bricked every shipped client instead of restricting it.
+ *
+ * Deliberately NOT in the share link: a link is pasted into chats and read off
+ * screens, and this is the credential that admits a device to the deployment.
+ * It is configured once per device — `?org=` on first load, which is persisted,
+ * or REALTIMECLIPBOARD_ORG for the CLI and MCP server.
+ */
+const ORG_KEY = "orgToken";
+
+/** The query parameter that carries it. Named once — safeSearch() strips it. */
+export const ORG_PARAM = "org";
+const storedOrg = () => {
+  try { return JSON.parse(localStorage.getItem(STORAGE_PREFIX + ORG_KEY)); }
+  catch { return null; }
+};
+const orgFromQuery = () => {
+  try { return new URLSearchParams(location.search).get(ORG_PARAM); }
+  catch { return null; }
+};
+const orgFromEnv = () => {
+  try { return globalThis.process?.env?.REALTIMECLIPBOARD_ORG || null; }
+  catch { return null; }
+};
+const cleanOrg = v => (typeof v === "string" && v.trim() ? v.trim() : null);
+
+export const ORG_TOKEN = cleanOrg(orgFromQuery()) ?? cleanOrg(orgFromEnv()) ?? cleanOrg(storedOrg());
+export const ORG_STORAGE_KEY = ORG_KEY;
+
+/**
  * The same relay over plain HTTP, for the SSE+POST fallback and /stats. One
  * hostname so IT allowlists one domain (PRD §5.4); derived so the two cannot drift.
  */
@@ -146,8 +180,13 @@ export const PASTE_GUARD = {
   ENABLED: true,
 
   /**
-   * Past this, do not scan. The patterns are anchored per line, so a pasted
-   * logfile is a lot of backtracking for a case this does not defend against.
+   * The longest LINE the scanner will look at. Every pattern is anchored to the
+   * start of a line and none spans one, so the scan runs per line and this
+   * bounds the work any single regex does.
+   *
+   * A line past it is treated as risky rather than safe. This was once a cap on
+   * the whole clip, above which nothing was scanned at all — and it sat below
+   * the clip size limit, so padding a command past it turned the guard off.
    */
   MAX_SCAN_CHARS: 8_192,
 };
@@ -188,6 +227,17 @@ export const FILES = {
    * wedged association must not hold a transfer open.
    */
   CHANNEL_CLOSE_MS: 1_000,
+
+  /**
+   * How long a sender waits for the receiver to confirm it has the file, whole
+   * and verified, before reporting what it actually knows.
+   *
+   * "Sent" used to mean "the last frame was handed to a socket". A digest
+   * failure at the far end was reported to nobody, so the holder's tile said
+   * the transfer had worked while the other device showed an error. Bounded,
+   * because a receiver that vanishes must not leave a progress bar up forever.
+   */
+  RECEIPT_MS: 10_000,
 };
 
 export const KEY = {
@@ -291,8 +341,21 @@ export const LOCK = {
   SIGIL: "!",
 
   /**
-   * Sent on creating a locked room and replayed to joiners, so a joiner can tell
-   * "wrong PIN" from "first one here" by whether it decrypts. Receivers drop it.
+   * READ, never written. Locked sessions used to prove themselves by planting
+   * this as a clip: the relay retains one clip per room and replays it, so a
+   * joiner that decrypted it had proved its PIN before any peer was awake.
+   *
+   * It worked and it cost too much. The proof took the room's single retained
+   * slot, so it either destroyed the last thing the user copied or, once the
+   * plant started honouring the sync rung, silently never happened — and the
+   * two guards that stopped those cases could not both hold. Verification is
+   * now its own frame (`proto.verify`), forwarded and not retained.
+   *
+   * Still recognised on arrival, because a client older than that change is
+   * still planting one, and a sentinel that reached the editor would be
+   * printed, put on the OS clipboard and written to history as a clip.
+   * Compared against the constant, never "starts with NUL", which would also
+   * swallow a legitimate clip.
    */
   BEACON: String.fromCharCode(0) + "realtimeclipboard-lock-v1",
 
@@ -314,10 +377,30 @@ export const LOCK = {
    * that needs the fallback.
    */
   EVICT_FLUSH_MS: 250,
+
+  /**
+   * Floor between two verification probes. Not a retry timer — every trigger
+   * is an event worth asking on (a peer arrived, the rung came off Off) and
+   * roster churn can fire several in a second. One question per interval is
+   * plenty: a peer that can answer answers immediately, and a peer that cannot
+   * will not answer the second one either.
+   */
+  VERIFY_MIN_INTERVAL_MS: 3_000,
 };
 
 export const NET = {
   HEARTBEAT_MS: 30_000,       // must beat proxy idle reaping (PRD 5.4, FR-3.6)
+
+  /**
+   * How long a ping may go unanswered before the connection is treated as dead.
+   *
+   * A socket can sit at readyState OPEN with nothing at the other end: no
+   * error, no close, and the session reads "connected" for as long as the tab
+   * is left open. The ping had no deadline at all, so nothing ever noticed.
+   * Generous against a slow phone network, short enough that a dead session
+   * reconnects rather than sits.
+   */
+  PONG_DEADLINE_MS: 10_000,
   BACKOFF_MIN_MS: 1_000,
   BACKOFF_MAX_MS: 30_000,
   ICE_TIMEOUT_MS: 5_000,      // then fall back to relay chunks (FR-7.6)
@@ -482,7 +565,8 @@ export const LAYOUT = {
  * removed 2026-08-09). The ad tag reports the page URL itself with no override,
  * so what survives is TIMING: ui/features/ads.js must never load it while the
  * share key is still in `location.hash`, and waits for keys.clearUrl(). gtag
- * takes `page_location` from `pageLocation()` below, which strips it too. !!
+ * takes `page_location` from `pageLocation()` below, which strips it too — and
+ * strips `?org=` with it, a credential rather than a room name. !!
  *
  * Adding an origin means adding it to the CSP in _headers AND every page's meta
  * tag — app.html's included — which tools/check/site-check.mjs asserts agree.
@@ -570,6 +654,32 @@ export const CONSENT_REGIONS = [
  * `page_location` is `location.href` — the unmodified tag would send the key to
  * Google on the first page_view. Every gtag config passes this instead. !!
  */
+/**
+ * `location.search` with the deployment credential taken out.
+ *
+ * `?org=` admits a device to a self-hosted relay, and it rides in the query
+ * because a browser cannot set a header on a WebSocket or an EventSource. That
+ * put it in `location.search` — which is exactly what gtag's `page_location`
+ * sends, and what AdSense reads off the page for itself. A deployment that
+ * turned the token on was handing it to Google on the first page_view.
+ *
+ * Fails CLOSED: anything unparseable yields no query at all rather than the
+ * original string, because the string is the thing under suspicion.
+ */
+export function safeSearch(search) {
+  const raw = search ?? (typeof location === "undefined" ? "" : location.search);
+  if (!raw) return "";
+  try {
+    const q = new URLSearchParams(raw);
+    if (!q.has(ORG_PARAM)) return raw;
+    q.delete(ORG_PARAM);
+    const rest = q.toString();
+    return rest ? `?${rest}` : "";
+  } catch {
+    return "";
+  }
+}
+
 export const pageLocation = () => {
   if (typeof location === "undefined") return "";
   /* The desktop webview answers at `tauri.localhost` on Windows and
@@ -580,7 +690,7 @@ export const pageLocation = () => {
      on-disk name is not the name a report should show. Which surface a hit came
      from is `rtc_surface`, not the hostname. */
   if (IS_DESKTOP) return `${SITE.ORIGIN}/app`;
-  return location.origin + location.pathname + location.search;
+  return location.origin + location.pathname + safeSearch();
 };
 
 export const GOOGLE_SRC = {

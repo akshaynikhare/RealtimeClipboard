@@ -133,12 +133,20 @@ impl Default for WindowPrefs {
 /// from docs/ARCHITECTURE.md §5: remember FIRST, write SECOND. Reversed, the
 /// watcher thread can observe the new value before we have recorded it, and the
 /// storm starts.
+/// Returns `true` rather than `()`. serde serialises the unit type as JSON
+/// `null`, and `null` is also what the JS bridge yields for "no such command"
+/// and for a command that threw — so a SUCCESSFUL native write was
+/// indistinguishable from an absent bridge. src/clipboard/os.js took it for a
+/// failure every time, wrote a second copy through the browser API, and on an
+/// unfocused window reported the whole thing as failed. Every other host
+/// (vscode/src/host.mjs) already answers `true`; this now agrees with it.
 #[tauri::command]
-fn set_clipboard(text: String, watcher: State<Watcher>, app: AppHandle) -> Result<(), String> {
+fn set_clipboard(text: String, watcher: State<Watcher>, app: AppHandle) -> Result<bool, String> {
     watcher.remember(&text);
     tauri_plugin_clipboard_manager::ClipboardExt::clipboard(&app)
         .write_text(text)
-        .map_err(|e| e.to_string())
+        .map_err(|e| e.to_string())?;
+    Ok(true)
 }
 
 /// Plain boolean preferences — the only kind of app state this side owns.

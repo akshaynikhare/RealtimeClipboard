@@ -25,4 +25,11 @@ end up subtly and silently disagreeing.
   already wrong — the package said 0.2.1 while `--version` said 0.1.0.
 - `package.json` `files:` ships `cli/`, `src/core/` and `src/transport/`. Importing anything outside
   those three from here breaks the published package, and only after publish.
+- **`session.mjs` acts on its own initiative in exactly one place**, and that place needs the
+  caller's permission. Everything else in it runs because a surface asked — it sends when told,
+  closes when told. The lock-verification responder answers a frame off the wire with nobody in the
+  loop, so it takes a `sharing` predicate (VS Code has an Off rung; the other three do not) and
+  carries a session generation, because producing an answer spans two awaits and the surface can
+  leave, be evicted, or rejoin on another key inside either. Anything else added here that
+  transmits unprompted needs both. `tests/unit/shared-session.mjs`.
 - `tests/live/cli.mjs` runs this against a real relay, and `prepublishOnly` runs that suite.

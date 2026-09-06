@@ -8,6 +8,7 @@ import * as keys from "../../../src/core/keys.js";
 import * as state from "../../../src/core/state.js";
 import * as history from "../../../src/core/history.js";
 import * as capture from "../../../src/clipboard/capture.js";
+import * as guard from "../../../src/clipboard/guard.js";
 import { emit, EV } from "../../../src/core/bus.js";
 import { SYNC_MODES, LOCK, POLL_OPTIONS, SITE } from "../../../src/core/config.js";
 
@@ -54,9 +55,12 @@ export function register(vscode, ctx) {
     if (!text) return vscode.window.showInformationMessage("Nothing selected.");
     // Deliberately NOT via the clipboard: sharing a selection should not clobber
     // what the user already has copied.
-    await room.send(text);
-    // No history.add() here: history.init() already subscribes to the bus, and
-    // a selection IS a sent clip. Announcing it is what records it.
+    //
+    // And announced rather than sent directly. TEXT_CAPTURED is the transmit
+    // edge on this surface — main.mjs listens and sends — so calling room.send()
+    // here as well put every shared selection on the wire twice. No history.add()
+    // either: history subscribes to the same event, and a selection IS a sent
+    // clip. Announcing it is what records it and what sends it.
     emit(EV.TEXT_CAPTURED, { text, how: "Sent selection" });
     vscode.window.setStatusBarMessage("$(clippy) Selection shared", 3000);
   });
@@ -70,8 +74,7 @@ export function register(vscode, ctx) {
   add("pasteLatest", async () => {
     const clip = latest();
     if (!clip) return vscode.window.showInformationMessage("No clips yet.");
-    await capture.putOnClipboard(clip.text);
-    vscode.window.setStatusBarMessage("$(clippy) Latest clip is on your clipboard", 3000);
+    await copyClip(vscode, clip);
   });
 
   add("insertLatest", async () => {
@@ -99,7 +102,7 @@ export function register(vscode, ctx) {
       ["Copy to clipboard", "Insert at cursor", "Open in a new editor"],
       { title: "Do what with it?" },
     );
-    if (what === "Copy to clipboard") await capture.putOnClipboard(pick.clip.text);
+    if (what === "Copy to clipboard") await copyClip(vscode, pick.clip);
     if (what === "Insert at cursor") {
       const ed = vscode.window.activeTextEditor;
       if (ed) await ed.edit(b => b.replace(ed.selection, pick.clip.text));
@@ -200,6 +203,44 @@ async function start(vscode, ctx, key, pin) {
   // log is a file the user can hand to anyone.
   log(`joined room ${s.roomHash.slice(0, 8)}… (${s.locked ? "locked" : "open"})`);
   emit(EV.TOAST, `Session ${s.key} is live`);
+}
+
+/**
+ * Put a history entry on the clipboard, with the review a REMOTE one needs.
+ *
+ * putOnClipboard() deliberately applies none of it — its other caller is the
+ * user restoring their own history, where mangling what they saved would be the
+ * bug. history stores clips exactly as they arrived, so a received one still
+ * carries its trailing newline, its invisibles, and whatever command it is; and
+ * paste-latest writes without showing anything, on the surface whose integrated
+ * terminal is one keystroke from the cursor.
+ *
+ * Reports what actually happened, too. Below the Live rung putOnClipboard() is
+ * a no-op by design, and this said "on your clipboard" regardless.
+ */
+async function copyClip(vscode, clip) {
+  const remote = clip.direction === "received";
+  const text = remote ? guard.defuse(clip.text) : clip.text;
+
+  if (remote) {
+    const risk = guard.looksExecutable(text);
+    if (risk) {
+      const go = await vscode.window.showWarningMessage(
+        `That clip looks like a command — ${risk}.`,
+        { modal: true, detail: text.length > 500 ? `${text.slice(0, 500)}…` : text },
+        "Copy it anyway",
+      );
+      if (go !== "Copy it anyway") return false;
+    }
+  }
+
+  if (await capture.putOnClipboard(text)) {
+    vscode.window.setStatusBarMessage("$(clippy) Copied to your clipboard", 3000);
+    return true;
+  }
+  vscode.window.showInformationMessage(
+    "Nothing was copied — the clipboard is only wired up on the Live sync mode.");
+  return false;
 }
 
 const guarded = (vscode, fn) => async (...args) => {

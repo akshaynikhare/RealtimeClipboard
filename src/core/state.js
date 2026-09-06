@@ -31,6 +31,12 @@ const state = {
   peerId: null,              // assigned by the relay in `welcome.you`
   connection: "idle",        // idle | connecting | connected | reconnecting | offline
   instance: null,            // relay instance id — a change means split-brain (OI-3)
+  /**
+   * Frame types this relay understands, from `welcome.caps`. Empty on a relay
+   * older than the field, which is the point: a client that guesses gets
+   * UNKNOWN_TYPE back and cannot tell it from silence. See core/verify.js.
+   */
+  relayCaps: [],
   peers: 1,
   tier: "T1",                // clipboard capture tier, see clipboard/capture.js
   lastSent: "",              // dedupe guard (FR-2.7)
@@ -141,19 +147,38 @@ function watchSettings() {
   });
 }
 
-export function setKey({ key, roomHash, aesKey, locked = false, authToken = null }) {
+/**
+ * `roomHash` and `aesKey` keep their old value when the property is ABSENT, not
+ * when it is null. `??` could not tell those apart, so the one caller that says
+ * `aesKey: null` to wipe a session — VS Code's leave — kept the key it was
+ * clearing. Omission still means "leave it alone"; an explicit null now clears.
+ */
+export function setKey(next) {
+  const { key, roomHash, aesKey, locked = false, authToken = null } = next;
   state.key = key;
-  state.roomHash = roomHash ?? state.roomHash;
-  state.aesKey = aesKey ?? state.aesKey;
+  state.roomHash = "roomHash" in next ? roomHash : state.roomHash;
+  state.aesKey = "aesKey" in next ? aesKey : state.aesKey;
   state.locked = locked;
   state.authToken = authToken;
   // A new key is a new room, so both of these are re-asked. Left standing, the
   // founder of one session would carry the right to lock into the next.
   state.verified = false;
   state.founder = null;
-  emit(EV.KEY_CHANGED, { key, locked });
+  // roomHash rides along because the ROOM is the privacy boundary, not the
+  // share key: re-PINning keeps the key and changes the room, and a listener
+  // scoping anything to the key alone would carry it across that change.
+  emit(EV.KEY_CHANGED, { key, locked, roomHash: state.roomHash });
   emit(EV.LOCK_STATE, { locked, verified: false });
   emit(EV.FOUNDER, { founder: null });
+}
+
+/**
+ * Wipe every credential this module holds. The teardown paths used to spell
+ * this out field by field and each one forgot a different field — the shape of
+ * "no session" belongs here, with the shape of a session.
+ */
+export function clearKey() {
+  setKey({ key: "", roomHash: "", aesKey: null, locked: false, authToken: null });
 }
 
 /**
@@ -195,6 +220,10 @@ export function setVerified() {
   if (!state.locked || state.verified) return;
   state.verified = true;
   emit(EV.LOCK_STATE, { locked: true, verified: true });
+}
+
+export function setRelayCaps(caps) {
+  state.relayCaps = Array.isArray(caps) ? caps : [];
 }
 
 export function setConnection(connection, detail = "") {

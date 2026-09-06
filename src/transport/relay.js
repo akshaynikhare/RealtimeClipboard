@@ -17,7 +17,7 @@
  * The choice is remembered, so someone behind that proxy pays the probe once.
  */
 
-import { RELAY_URL, NET, TRANSPORT } from "../core/config.js";
+import { RELAY_URL, ORG_TOKEN, NET, TRANSPORT } from "../core/config.js";
 import { emit, EV } from "../core/bus.js";
 import * as state from "../core/state.js";
 import * as storage from "../core/storage.js";
@@ -58,6 +58,17 @@ let backoff = NET.BACKOFF_MIN_MS;
 let heartbeat = null;
 let probe = null;
 let pingSentAt = 0;
+let pongTimer = null;
+
+/**
+ * The relay's last refusal, if there was one. _join() sends an error frame and
+ * then closes the socket, so the code lands just before the close — which is
+ * what tells a permanent refusal (a wrong token, a full room) from a transient
+ * one worth retrying. Without it every refusal was retried forever, quietly.
+ */
+let refusal = null;
+
+const TERMINAL = new Set(["AUTH_FAILED", "ROOM_FULL", "ORG_TOKEN_REQUIRED"]);
 
 /**
  * Which attempt is the current one. Rejoin, rotate and collision recovery all
@@ -77,9 +88,11 @@ export const transport = () => mode;
  * not the key, so the relay can check that two peers agree without being able to
  * reverse it into either. A relay that predates it ignores the parameter.
  */
-export function connect({ roomHash, intent = "join", url = RELAY_URL, name = "", auth = null }) {
+export function connect({
+  roomHash, intent = "join", url = RELAY_URL, name = "", auth = null, org = ORG_TOKEN,
+}) {
   channel?.close(1000);            // a second connect() replaces, never stacks
-  session = { roomHash, intent, url, name, auth };
+  session = { roomHash, intent, url, name, auth, org };
   wantOpen = true;
   forced = storage.loadTransportChoice();
   failures = { [TRANSPORT.WS]: 0, [TRANSPORT.SSE]: 0 };
@@ -205,6 +218,7 @@ function start() {
     url: session.url,
     roomHash: session.roomHash,
     auth: session.auth,
+    org: session.org,
     onOpen: current(up),
     onFrame: current(handle),
     onDown: current(down),
@@ -228,6 +242,7 @@ function up() {
   opened = true;
   stuck = false;
   unsupported = false;
+  refusal = null;
   idRetries = 0;
   backoff = NET.BACKOFF_MIN_MS;
   failures[mode] = 0;
@@ -244,6 +259,16 @@ function up() {
 
   heartbeat = setInterval(() => {
     pingSentAt = performance.now();
+    // A ping nobody answers is how a silently dead socket presents: readyState
+    // stays OPEN, nothing errors, and the session reads "connected" for as long
+    // as the tab is left open. The deadline is what turns that into a reconnect.
+    clearTimeout(pongTimer);
+    pongTimer = setTimeout(() => {
+      pongTimer = null;
+      channel?.close(4001);          // deliberate: it will not call down() itself
+      channel = null;
+      down({ code: 4001, reason: "no answer to a heartbeat" });
+    }, NET.PONG_DEADLINE_MS);
     send(proto.ping());
   }, NET.HEARTBEAT_MS);
 }
@@ -254,6 +279,17 @@ function down({ code, reason }) {
   if (mode === TRANSPORT.SSE) unsupported = reason === sseChannel.NO_FALLBACK;
 
   if (!wantOpen) return state.setConnection("idle");
+
+  // A refusal the relay will give again to the same credentials. Retrying it
+  // every second forever told the user "reconnecting…" about a room they are
+  // not going to be admitted to, and never said why.
+  if (!opened && refusal && TERMINAL.has(refusal)) {
+    wantOpen = false;
+    const why = proto.ERRORS[refusal] || `refused: ${refusal}`;
+    refusal = null;
+    announce();
+    return state.setConnection("offline", why);
+  }
 
   if (opened) {
     // Always rejoin: a reconnect is never a "create", or a transient drop would
@@ -298,7 +334,8 @@ function down({ code, reason }) {
 function stopTimers() {
   clearInterval(heartbeat);
   clearTimeout(probe);
-  heartbeat = probe = null;
+  clearTimeout(pongTimer);
+  heartbeat = probe = pongTimer = null;
 }
 
 /**
@@ -335,6 +372,10 @@ function handle(msg) {
   switch (msg.t) {
     case proto.T.WELCOME:
       state.setInstance(msg.instance);
+      // Before the replay and before ROOM_STATE: lock verification is decided
+      // on this list, and a listener that ran first would read an empty one and
+      // conclude the relay is too old to ask.
+      state.setRelayCaps(msg.caps);
       if (msg.you) state.get().peerId = msg.you;
       state.setPeers(msg.peers ?? 1, msg.list ?? []);
       // `existing > 0` on a create means the generated key is taken (OI-2).
@@ -346,10 +387,14 @@ function handle(msg) {
       // mid-session is immediately in sync (FR-3.3).
       if (msg.last) onFrame(msg.last);
 
-      // Both halves, because main.js can infer neither: a locked session plants
-      // its beacon only into a room that is empty AND has no retained clip.
-      // Emitted after the replay so a listener cannot race the last clip.
-      emit(EV.ROOM_STATE, { existing: msg.existing ?? 0, hasLast: msg.last != null });
+      // `existing` is the peer count the instant before we joined, which only
+      // the relay can answer. Emitted after the replay so a listener cannot
+      // race the last clip.
+      //
+      // `hasLast` used to ride along, for a locked session to decide whether to
+      // plant its proof-of-PIN into the room's retained clip slot. Nothing asks
+      // any more: the proof is its own frame and does not compete for the slot.
+      emit(EV.ROOM_STATE, { existing: msg.existing ?? 0 });
       break;
 
     case proto.T.PEERS:
@@ -357,6 +402,8 @@ function handle(msg) {
       break;
 
     case proto.T.PONG:
+      clearTimeout(pongTimer);
+      pongTimer = null;
       emit(EV.CONN_STATE, {
         state: "connected",
         detail: detail(`${Math.round(performance.now() - pingSentAt)} ms`),
@@ -365,6 +412,9 @@ function handle(msg) {
 
     case proto.T.ERROR:
       if (msg.code === "PEER_ID_TAKEN") return reclaimIdentity();
+      // Remembered for the close that follows a refused join, so down() can
+      // tell "come back later" from "you are not getting in".
+      if (!opened) refusal = msg.code;
       emit(EV.TOAST, proto.ERRORS[msg.code] || `Relay error: ${msg.code}`);
       break;
 
