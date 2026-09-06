@@ -528,11 +528,24 @@ class SseConnection(Connection):
         self.queue.put_nowait(text)
 
     def end(self) -> None:
-        """Sentinel that tells the streaming generator to finish."""
+        """Sentinel that tells the streaming generator to finish.
+
+        It has to LAND. A full queue was treated as "never mind", and a full
+        queue is precisely the case that needs this most: it means the peer has
+        stopped reading, which is who _retire() and a failed fan-out are trying
+        to get rid of. The stream outlived the room, holding frames addressed to
+        something that no longer existed. What the queue holds at that point is
+        worth less than the sentinel, so one slot is made for it.
+        """
         try:
             self.queue.put_nowait(None)
+            return
         except asyncio.QueueFull:
             pass
+        with contextlib.suppress(asyncio.QueueEmpty):
+            self.queue.get_nowait()
+        with contextlib.suppress(asyncio.QueueFull):
+            self.queue.put_nowait(None)
 
     async def close(self, code: int = 1000) -> None:
         # There is no socket to close: the stream ends when its generator does,

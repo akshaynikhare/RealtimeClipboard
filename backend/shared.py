@@ -173,9 +173,16 @@ class Backend:
         self._subscribers[room_hash] = deliver
 
         async def pump() -> None:
-            pubsub = self._redis.pubsub()
-            await pubsub.subscribe(f"hb:{room_hash}")
+            # Setup INSIDE the try. Creating the pubsub and subscribing can both
+            # fail — a connection that dropped between here and connect() is the
+            # ordinary way — and outside it the exception escaped, killing the
+            # task while `_tasks` still held it. That is the unrecoverable state
+            # this module was supposed to have stopped having: registered, dead,
+            # and never retried, with no degrade and no recovery asked for.
+            pubsub = None
             try:
+                pubsub = self._redis.pubsub()
+                await pubsub.subscribe(f"hb:{room_hash}")
                 async for message in pubsub.listen():
                     if message.get("type") != "message":
                         continue
@@ -203,10 +210,11 @@ class Backend:
                 self._tasks.pop(room_hash, None)
                 self._degrade("subscribe", exc)
             finally:
-                with contextlib.suppress(Exception):
-                    await pubsub.unsubscribe(f"hb:{room_hash}")
-                with contextlib.suppress(Exception):
-                    await pubsub.aclose()
+                if pubsub is not None:
+                    with contextlib.suppress(Exception):
+                        await pubsub.unsubscribe(f"hb:{room_hash}")
+                    with contextlib.suppress(Exception):
+                        await pubsub.aclose()
 
         self._tasks[room_hash] = asyncio.create_task(pump())
 

@@ -235,7 +235,14 @@ async function retryLock() {
 async function sendBeacon() {
   const { aesKey } = state.get();
   if (!aesKey || !relay.isOpen()) return;
+  // Deliberately NOT gated on the rung — the beacon is how a locked session
+  // proves itself, and an Off device still needs that. It IS gated on the
+  // session: the relay retains one clip per room, so a beacon sealed under the
+  // room being left would overwrite the new room's retained clip with a
+  // sentinel nobody there can read.
+  const gen = sessionGen;
   const { payload, iv } = await cryptoBox.encrypt(aesKey, LOCK.BEACON);
+  if (gen !== sessionGen) return;
   relay.send(proto.clip({ payload, iv, originId: state.get().originId }));
 }
 
@@ -248,7 +255,11 @@ async function sendBeacon() {
 async function sendEviction() {
   const { aesKey, originId } = state.get();
   if (!aesKey || !relay.isOpen()) return;
+  // Same reason as the beacon: this is a retained clip, and the room it is a
+  // goodbye TO is the one it must land in.
+  const gen = sessionGen;
   const { payload, iv } = await cryptoBox.encrypt(aesKey, LOCK.EVICT);
+  if (gen !== sessionGen) return;
   relay.send(proto.clip({ payload, iv, originId }));
   // Awaited: the caller's next act is to close the socket this travels down.
   await new Promise(done => setTimeout(done, LOCK.EVICT_FLUSH_MS));
@@ -457,7 +468,11 @@ const sendClip = (() => {
       const { aesKey, originId } = state.get();
       if (!aesKey || !relay.isOpen()) { queuedClip = { text, gen }; return; }
       const { payload, iv } = await cryptoBox.encrypt(aesKey, text);
+      // Both questions again, because encryption is long enough for either
+      // answer to change: is this still the room, and is this device still
+      // sharing? Dropping to Off during the seal used to send anyway.
       if (gen !== sessionGen) return;
+      if (!sharesSession(state.get().settings.syncMode)) return;
       relay.send(proto.clip({ payload, iv, originId }));
     }).catch(err => console.error("[realtimeclipboard] could not send a clip", err));
   };
@@ -499,6 +514,7 @@ async function sendStream({ text, caret }) {
     const sealed = await encryptFrame(
       proto.stream({ text, caret, name: device.name(), originId }));
     if (gen !== sessionGen) return;
+    if (!sharesSession(state.get().settings.syncMode)) return;
     relay.send(sealed);
   } catch (err) {
     console.error("[realtimeclipboard] could not send a stream frame", err);
@@ -558,8 +574,10 @@ function leaveRoom() {
   cryptoBox.clearCache();
   state.resetRoster();
 
-  // A clip committed into the room being left is not a clip for the next one.
+  // A clip committed into the room being left is not a clip for the next one,
+  // and neither is one still waiting for a click to reach the clipboard.
   queuedClip = null;
+  capture.forgetSession();
 
   // Closing the relay says nothing to a WebRTC data channel — it is peer-direct
   // — so a transfer to a device this room change is EJECTING carried on
@@ -585,8 +603,6 @@ function endSession() {
   storage.clearSessionKey();
   storage.forgetLastKey();
   keys.clearUrl();
-  capture.discardPending();
-  capture.forgetLastImage();
   history.clear("session-left");
   filesTeardown({ full: true });
   state.clearKey();

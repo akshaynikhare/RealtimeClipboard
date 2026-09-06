@@ -186,6 +186,37 @@ await (async () => {
   ok("the admission token moves with it", before.authToken !== after.authToken);
 })();
 
+/* ------------------------------------------ the deployment credential --- */
+console.log("\nThe org token is a credential, not a room name\n");
+
+await (async () => {
+  // config.js reads location at module scope, so this needs its own realm.
+  globalThis.location = {
+    origin: "https://relay.example", pathname: "/app",
+    search: "?org=SUPERSECRET&relay=wss%3A%2F%2Fr.example", hostname: "relay.example",
+  };
+  const cfg = await import(
+    `${pathToFileURL(join(REPO, "src/core/config.js")).href}?org-test`);
+
+  ok("the token is still resolved, so the device can be admitted",
+     cfg.ORG_TOKEN === "SUPERSECRET");
+  ok("...but page_location does not carry it",
+     !cfg.pageLocation().includes("SUPERSECRET"),
+     `${cfg.pageLocation()} — gtag sends this verbatim, and AdSense reads the URL itself`);
+  ok("...while the rest of the query survives",
+     cfg.pageLocation().includes("relay="),
+     "a relay hostname is not a secret and is worth keeping for attribution");
+  ok("safeSearch drops only the credential",
+     cfg.safeSearch("?a=1&org=X&b=2") === "?a=1&b=2", cfg.safeSearch("?a=1&org=X&b=2"));
+  ok("a query that was ONLY the credential becomes no query at all",
+     cfg.safeSearch("?org=X") === "", `"${cfg.safeSearch("?org=X")}"`);
+  ok("...and a query without one is left exactly alone",
+     cfg.safeSearch("?a=1&b=2") === "?a=1&b=2");
+  ok("no argument means this page's own query, stripped",
+     cfg.safeSearch() === "?relay=wss%3A%2F%2Fr.example", cfg.safeSearch());
+  delete globalThis.location;
+})();
+
 console.log(`\n${"=".repeat(58)}`);
 console.log(`SESSION BOUNDARIES: ${pass}/${pass + fail} passed`);
 console.log("=".repeat(58));

@@ -77,12 +77,15 @@ export const RELAY_IS_CUSTOM = RELAY_URL !== DEFAULT_RELAY_URL && RELAY_URL !== 
  * or REALTIMECLIPBOARD_ORG for the CLI and MCP server.
  */
 const ORG_KEY = "orgToken";
+
+/** The query parameter that carries it. Named once — safeSearch() strips it. */
+export const ORG_PARAM = "org";
 const storedOrg = () => {
   try { return JSON.parse(localStorage.getItem(STORAGE_PREFIX + ORG_KEY)); }
   catch { return null; }
 };
 const orgFromQuery = () => {
-  try { return new URLSearchParams(location.search).get("org"); }
+  try { return new URLSearchParams(location.search).get(ORG_PARAM); }
   catch { return null; }
 };
 const orgFromEnv = () => {
@@ -540,7 +543,8 @@ export const LAYOUT = {
  * removed 2026-08-09). The ad tag reports the page URL itself with no override,
  * so what survives is TIMING: ui/features/ads.js must never load it while the
  * share key is still in `location.hash`, and waits for keys.clearUrl(). gtag
- * takes `page_location` from `pageLocation()` below, which strips it too. !!
+ * takes `page_location` from `pageLocation()` below, which strips it too — and
+ * strips `?org=` with it, a credential rather than a room name. !!
  *
  * Adding an origin means adding it to the CSP in _headers AND every page's meta
  * tag — app.html's included — which tools/check/site-check.mjs asserts agree.
@@ -628,6 +632,32 @@ export const CONSENT_REGIONS = [
  * `page_location` is `location.href` — the unmodified tag would send the key to
  * Google on the first page_view. Every gtag config passes this instead. !!
  */
+/**
+ * `location.search` with the deployment credential taken out.
+ *
+ * `?org=` admits a device to a self-hosted relay, and it rides in the query
+ * because a browser cannot set a header on a WebSocket or an EventSource. That
+ * put it in `location.search` — which is exactly what gtag's `page_location`
+ * sends, and what AdSense reads off the page for itself. A deployment that
+ * turned the token on was handing it to Google on the first page_view.
+ *
+ * Fails CLOSED: anything unparseable yields no query at all rather than the
+ * original string, because the string is the thing under suspicion.
+ */
+export function safeSearch(search) {
+  const raw = search ?? (typeof location === "undefined" ? "" : location.search);
+  if (!raw) return "";
+  try {
+    const q = new URLSearchParams(raw);
+    if (!q.has(ORG_PARAM)) return raw;
+    q.delete(ORG_PARAM);
+    const rest = q.toString();
+    return rest ? `?${rest}` : "";
+  } catch {
+    return "";
+  }
+}
+
 export const pageLocation = () => {
   if (typeof location === "undefined") return "";
   /* The desktop webview answers at `tauri.localhost` on Windows and
@@ -638,7 +668,7 @@ export const pageLocation = () => {
      on-disk name is not the name a report should show. Which surface a hit came
      from is `rtc_surface`, not the hostname. */
   if (IS_DESKTOP) return `${SITE.ORIGIN}/app`;
-  return location.origin + location.pathname + location.search;
+  return location.origin + location.pathname + safeSearch();
 };
 
 export const GOOGLE_SRC = {

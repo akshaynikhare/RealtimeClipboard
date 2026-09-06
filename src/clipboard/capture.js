@@ -234,6 +234,18 @@ export async function tryReadImage() {
 export function forgetLastImage() { lastImageKey = ""; }
 
 /**
+ * Drop everything this module is holding on behalf of a room being left: the
+ * clip waiting for a click, the image dedupe, and any write still in flight —
+ * which is the one that needed a generation, because it resolves after the
+ * room has gone and used to re-queue what it was writing.
+ */
+export function forgetSession() {
+  clipboardGen++;
+  discardPending();
+  forgetLastImage();
+}
+
+/**
  * Handed to the files layer as a normal 5 MB-capped item, so a screenshot shares
  * its thumbnail immediately and the bytes move only when asked for. This module
  * stays ignorant of files/: it announces.
@@ -399,6 +411,14 @@ let writtenSeq = 0;
 let pendingSeq = 0;
 
 /**
+ * The session the clipboard state belongs to. A write can be in flight when the
+ * room goes, and its failure branch re-queues the clip it was writing — so a
+ * clip discarded by leaving could put itself back afterwards and land on the
+ * next session's clipboard. Bumped by forgetSession().
+ */
+let clipboardGen = 0;
+
+/**
  * A clip the guard flagged is deliberately NOT flushed here: regaining focus is
  * not consent, and it is exactly the moment a planted command would land
  * unread.
@@ -443,12 +463,14 @@ async function writePending() {
     return;
   }
 
+  const gen = clipboardGen;
   if (!await writeNow(text, seq)) {
     // writeText() can refuse in the gap where the tab is visible but not yet
     // focused, and the clip is still owed. Unless a newer clip took the slot
-    // mid-write, or landed on the clipboard while this one was failing — in
-    // either case that newer clip is the one that stands.
-    if (pending === null && seq > writtenSeq) {
+    // mid-write, or landed on the clipboard while this one was failing, or the
+    // session it belonged to ended underneath the write — the last of those is
+    // how a clip the user had left behind came back.
+    if (gen === clipboardGen && pending === null && seq > writtenSeq) {
       pending = text; pendingRisk = risk; pendingSeq = seq;
     }
     return;

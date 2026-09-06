@@ -1,6 +1,6 @@
 /** Share-key generation and normalisation. */
 
-import { KEY, LOCK, SITE, RELAY_URL, RELAY_IS_CUSTOM } from "./config.js";
+import { KEY, LOCK, SITE, RELAY_URL, RELAY_IS_CUSTOM, safeSearch } from "./config.js";
 import { IS_WEB } from "./native.js";
 import * as state from "./state.js";
 
@@ -158,7 +158,12 @@ export function fromUrl() {
  */
 export function clearUrl() {
   if (typeof history === "undefined" || typeof location === "undefined") return;
-  history.replaceState(null, "", location.pathname + location.search);
+  // The query is rewritten too, not just the fragment: `?org=` is a deployment
+  // credential and it was left in the address bar for the life of the session —
+  // in every screenshot, and readable by the ad tag, which reports the page URL
+  // itself rather than taking pageLocation(). It has been read into storage by
+  // the time this runs.
+  history.replaceState(null, "", location.pathname + safeSearch());
 }
 
 /**

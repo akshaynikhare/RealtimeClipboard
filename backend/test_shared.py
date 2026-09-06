@@ -201,6 +201,34 @@ async def main():
     check("a callback that cannot take `to` fails loudly rather than silently",
           blew_up == ["TypeError"], str(blew_up))
 
+    # ---- a subscription that dies DURING setup --------------------------
+    #
+    # pubsub creation and subscribe() sat outside the try, so a connection that
+    # dropped between connect() and here killed the task while _tasks still held
+    # it: registered, dead, never retried, and no degrade asked for. That is the
+    # unrecoverable state this module exists to not have.
+    print("\nA subscription that fails while being set up\n")
+    noted = []
+    f = backend(store, bus, "replica-F")
+    f._degrade = lambda what, exc: noted.append(what)
+
+    class ExplodingRedis(FakeRedis):
+        def pubsub(self):
+            raise ConnectionError("gone between connect() and subscribe()")
+
+    async def never_called(frame, to=None):
+        return None
+
+    f._redis = ExplodingRedis(store, bus)
+    await f.subscribe("room5", never_called)
+    await asyncio.sleep(0.05)
+    check("a setup failure does not leave a dead task registered",
+          "room5" not in f._tasks, str(list(f._tasks)))
+    check("...and asks for recovery rather than dying quietly",
+          noted == ["subscribe"], str(noted))
+    check("...while the room stays wanted, so recovery rebuilds it",
+          "room5" in f._subscribers)
+
     # ---- degradation and recovery ---------------------------------------
     print("\nRedis goes away, and comes back\n")
     a._redis.fail = True
