@@ -12,6 +12,7 @@
  */
 
 import { on, emit, EV } from "../../core/bus.js";
+import { t } from "../../core/i18n.js";
 import * as gate from "./gate.js";
 
 const ICON = `<rect x="4" y="10" width="16" height="10" rx="2"/>`
@@ -24,14 +25,14 @@ export function init() {
 function raise() {
   gate.raise({
     icon: ICON,
-    title: "This session is locked",
-    body: "It needs its PIN before this device can join. The PIN is not in the "
-        + "link — whoever sent it to you has to pass it on separately.",
+    title: t("This session is locked"),
+    body: t("It needs its PIN before this device can join. The PIN is not in the "
+        + "link — whoever sent it to you has to pass it on separately."),
     actions: [
-      { label: "Enter PIN", onClick: () => emit("session:relock") },
-      { label: "Start a new session", ghost: true, onClick: () => emit("session:rotate") },
+      { label: t("Enter PIN"), onClick: () => emit("session:relock") },
+      { label: t("Start a new session"), ghost: true, onClick: () => emit("session:rotate") },
     ],
-    note: "A new session is a different room with a new key, open to anyone you "
-        + "give the link to. It does not get you into this one.",
+    note: t("A new session is a different room with a new key, open to anyone you "
+        + "give the link to. It does not get you into this one."),
   });
 }

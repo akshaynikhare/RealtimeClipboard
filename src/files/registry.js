@@ -14,6 +14,7 @@ import { emit, EV } from "../core/bus.js";
 import { stripInvisible } from "../core/text.js";
 import * as state from "../core/state.js";
 import * as thumbs from "./thumbs.js";
+import { t } from "../core/i18n.js";
 
 const items = [];
 
@@ -60,11 +61,11 @@ export async function add(fileList, { makeThumbs = true } = {}) {
 
   for (const file of fileList) {
     if (items.length >= FILES.MAX_COUNT) {
-      rejected.push({ name: file.name, reason: `session limit of ${FILES.MAX_COUNT} files reached` });
+      rejected.push({ name: file.name, reason: t("session limit of {max} files reached", { max: FILES.MAX_COUNT }) });
       continue;
     }
     if (file.size > FILES.MAX_BYTES) {
-      rejected.push({ name: file.name, reason: `${thumbs.formatSize(file.size)} — over the 5 MB limit` });
+      rejected.push({ name: file.name, reason: t("{size} — over the 5 MB limit", { size: thumbs.formatSize(file.size) }) });
       continue;
     }
 
@@ -122,7 +123,7 @@ function safeName(raw) {
     .trim()
     .slice(0, FILES.MAX_NAME_CHARS);
 
-  return cleaned || "unnamed";
+  return cleaned || t("unnamed");
 }
 
 /** A peer announced a file: metadata and thumbnail only, no bytes. */
@@ -185,7 +186,7 @@ export function complete(id, blob, path) {
  * indistinguishable from a slow network, and the user can do nothing about
  * either unless we say which it was.
  */
-export function fail(id, reason = "transfer failed") {
+export function fail(id, reason = t("transfer failed")) {
   const f = get(id);
   if (!f) return;
   f.state = STATE.ERROR;

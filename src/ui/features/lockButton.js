@@ -19,6 +19,7 @@
 import { emit, on, EV } from "../../core/bus.js";
 import * as state from "../../core/state.js";
 import { $, setHTML, on as bind } from "../primitives/dom.js";
+import { t } from "../../core/i18n.js";
 
 /** A closed padlock, drawn on the same 24-grid as the header's other icons. */
 const ICON = `<rect x="4" y="10.5" width="16" height="10.5" rx="2"/>`
@@ -65,9 +66,9 @@ export function init() {
  */
 function refusal() {
   if (state.get().locked) {
-    return "This session is already locked — change or remove the PIN in Settings";
+    return t("This session is already locked — change or remove the PIN in Settings");
   }
-  return "Only the first device in this session can lock it";
+  return t("Only the first device in this session can lock it");
 }
 
 function render() {
@@ -80,19 +81,20 @@ function render() {
 
   btn.classList.toggle("on", locked);
   btn.setAttribute("aria-disabled", String(!allowed));
-  btn.querySelector(".lbl").textContent = locked ? "Locked" : "Lock session";
+  btn.querySelector(".lbl").textContent = locked ? t("Locked") : t("Lock session");
 
   // The label is the same three words whatever the state, so everything that
   // distinguishes one state from another has to live in the description.
   const title = locked
-    ? "Locked with a PIN. Change or remove it in Settings"
+    ? t("Locked with a PIN. Change or remove it in Settings")
     : allowed
       ? others
-        ? `Add a PIN. This starts a new session — the ${others} other `
-          + `device${others === 1 ? "" : "s"} here will be disconnected`
-        : "Add a PIN that is not in the link. This starts a new session"
+        ? (others === 1
+            ? t("Add a PIN. This starts a new session — the 1 other device here will be disconnected")
+            : t("Add a PIN. This starts a new session — the {n} other devices here will be disconnected", { n: others }))
+        : t("Add a PIN that is not in the link. This starts a new session")
       : refusal();
 
   btn.title = title;
-  btn.setAttribute("aria-label", `${locked ? "Session locked" : "Lock this session"} — ${title}`);
+  btn.setAttribute("aria-label", `${locked ? t("Session locked") : t("Lock this session")} — ${title}`);
 }

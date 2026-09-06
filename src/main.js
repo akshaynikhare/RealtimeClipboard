@@ -12,6 +12,7 @@ import {
 import { emit, on, EV } from "./core/bus.js";
 import * as state from "./core/state.js";
 import * as i18n from "./core/i18n.js";
+import { t } from "./core/i18n.js";
 import * as keys from "./core/keys.js";
 import * as storage from "./core/storage.js";
 import * as cryptoBox from "./core/crypto.js";
@@ -123,7 +124,7 @@ async function openSession(key, intent, { locked = false, pin = null, prk = null
 
   // Two different waits, so say which. Locked sessions are four times the PBKDF2
   // work (OI-8) and the user is looking at a dialog they just dismissed.
-  state.setConnection("connecting", locked ? "unlocking" : "deriving key");
+  state.setConnection("connecting", locked ? t("unlocking") : t("deriving key"));
 
   if (locked) {
     const derived = prk
@@ -196,7 +197,7 @@ async function startSession(key, intent, locked) {
     pendingLock = { key, intent };
     // No LOCK_STATE on purpose — `state.locked` is false because no session was
     // opened, and a padlock on a session that does not exist is a lie.
-    state.setConnection("idle", "locked — PIN required");
+    state.setConnection("idle", t("locked — PIN required"));
     // The app behind this is not usable, so it must not look it: the editor
     // accepted text and history marked it SENT, in a session that did not exist.
     emit(EV.LOCK_REQUIRED, { required: true });
@@ -280,7 +281,7 @@ async function onEvicted() {
   // the room everywhere resolveKey() looks, or a reload bounces straight back
   // off the retained goodbye into a loop announcing the same removal.
   endSession();
-  state.setConnection("idle", "removed — the session was locked");
+  state.setConnection("idle", t("removed — the session was locked"));
 
   const answer = await lockDialog.notice({
     title: "This session has been locked",
@@ -298,7 +299,7 @@ async function onEvicted() {
   if (answer !== "action") return;
 
   const key = keys.generate(keys.nextLength());
-  emit(EV.TOAST, "New session — share the link to bring a device in");
+  emit(EV.TOAST, t("New session — share the link to bring a device in"));
   await openSession(key, "create");
 }
 
@@ -340,7 +341,7 @@ async function onFrame(msg) {
       } catch {
         // Should be unreachable: the room name is a hash of the key, so peers in
         // a room share it by construction.
-        emit(EV.TOAST, "Could not decrypt a clip — key mismatch");
+        emit(EV.TOAST, t("Could not decrypt a clip — key mismatch"));
       }
       break;
     }
@@ -453,8 +454,8 @@ async function sendText(text) {
   // clipboard arrives, and a silent `return` was a clip that never synced.
   const bytes = textBytes(text);
   if (bytes > TEXT.MAX_BYTES) {
-    return emit(EV.TOAST, `Too big to send — ${Math.ceil(bytes / 1024)} KB, `
-      + `limit ${Math.floor(TEXT.MAX_BYTES / 1024)} KB`);
+    return emit(EV.TOAST, t("Too big to send — {size} KB, limit {limit} KB",
+      { size: Math.ceil(bytes / 1024), limit: Math.floor(TEXT.MAX_BYTES / 1024) }));
   }
 
   if (!state.get().aesKey || !relay.isOpen()) {
@@ -692,7 +693,7 @@ function wire() {
       emit(EV.CLIP_OFFERED, { text: null });
       // The core event of the product used to announce nothing at all, so a
       // screen-reader user had no way to know a clip had arrived.
-      emit(EV.TOAST, `Clip received · ${text.length.toLocaleString()} characters`);
+      emit(EV.TOAST, t("Clip received · {n} characters", { n: text.length.toLocaleString() }));
       return;
     }
     emit(EV.CLIP_OFFERED, { text, onClipboard });
@@ -706,14 +707,14 @@ function wire() {
     const key = keys.generate(keys.nextLength());
 
     if (!locked) {
-      emit(EV.TOAST, "That key was taken — generated a new one");
+      emit(EV.TOAST, t("That key was taken — generated a new one"));
       return openSession(key, "create");
     }
 
     // The stretched PIN is salted with the key that collided, so it names that
     // room and no other. Carrying it over re-derived the SAME room, collided
     // again, and looped. Re-deriving needs the PIN, which is never retained.
-    emit(EV.TOAST, "That key was taken — confirm the PIN for the new one");
+    emit(EV.TOAST, t("That key was taken — confirm the PIN for the new one"));
     const pin = await lockDialog.ask({
       mode: "rotate",
       key,
@@ -721,7 +722,7 @@ function wire() {
     });
     if (!pin) {
       pendingLock = { key, intent: "create" };
-      state.setConnection("idle", "locked — PIN required");
+      state.setConnection("idle", t("locked — PIN required"));
       emit(EV.LOCK_REQUIRED, { required: true });
       return;
     }
@@ -741,7 +742,7 @@ function wire() {
       rejected.forEach(r => emit(EV.TOAST, `${r.name}: ${r.reason}`));
     } catch (err) {
       console.warn("[realtimeclipboard] could not add clipboard image", err);
-      emit(EV.TOAST, "Could not read that image");
+      emit(EV.TOAST, t("Could not read that image"));
     }
   });
 
@@ -757,7 +758,7 @@ function wire() {
     editor.setText(text);
     capture.capture(text, "Restored from history");
     capture.putOnClipboard(text);
-    emit(EV.TOAST, "Loaded into the editor");
+    emit(EV.TOAST, t("Loaded into the editor"));
   });
 
   on("session:rejoin", async ({ key, locked = false }) => {
@@ -813,9 +814,9 @@ function wire() {
     // Checked here as well as on the button: the gear menu emits this same
     // event, and a rule enforced at one of two call sites is about to be
     // enforced at neither.
-    if (state.get().locked) return emit(EV.TOAST, "This session is already locked");
+    if (state.get().locked) return emit(EV.TOAST, t("This session is already locked"));
     if (!state.canLock()) {
-      return emit(EV.TOAST, "Only the first device in this session can lock it");
+      return emit(EV.TOAST, t("Only the first device in this session can lock it"));
     }
 
     const others = Math.max(0, state.get().peers - 1);
@@ -849,7 +850,7 @@ function wire() {
     if (!state.get().locked) return;
     leaveRoom();
     const key = keys.generate(keys.nextLength());
-    emit(EV.TOAST, "Unlocked — anyone with the new link can read this");
+    emit(EV.TOAST, t("Unlocked — anyone with the new link can read this"));
     await openSession(key, "create");
   });
 
@@ -863,7 +864,7 @@ function wire() {
     leaveRoom();
     // Same key, new PIN — and therefore a different room. The link does not
     // change, which is the point: this is "the PIN got out", not "the link did".
-    emit(EV.TOAST, "New PIN — devices using the old one are left behind");
+    emit(EV.TOAST, t("New PIN — devices using the old one are left behind"));
     await openSession(key, "create", { locked: true, pin });
   });
 
@@ -927,7 +928,7 @@ function wire() {
   on("session:leave", () => {
     endSession();
     state.setConnection("idle");
-    emit(EV.TOAST, "Left the session");
+    emit(EV.TOAST, t("Left the session"));
   });
 }
 
@@ -1132,8 +1133,8 @@ async function boot() {
   } else {
     startSession(key, intent, locked).catch(err => {
       console.error("[realtimeclipboard] session failed to open", err);
-      state.setConnection("offline", "could not start session");
-      emit(EV.TOAST, "Could not start the session — check the console");
+      state.setConnection("offline", t("could not start session"));
+      emit(EV.TOAST, t("Could not start the session — check the console"));
     });
   }
 

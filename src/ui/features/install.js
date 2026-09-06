@@ -16,6 +16,7 @@ import { $, esc, setHTML, clear, scriptURL } from "../primitives/dom.js";
 import { read, write } from "../../core/storage.js";
 import { APP_ROOT, atRoot, lazyStyleHref } from "../../core/paths.js";
 import { IS_DESKTOP } from "../../core/native.js";
+import { t } from "../../core/i18n.js";
 
 // These three URLs are the reason core/paths.js exists — see above.
 const SW_URL = atRoot("sw.js");
@@ -102,7 +103,7 @@ function banner({ id, kind, icon, message, action, onAction, onClose }) {
   setHTML(el, `<svg class="pwa-ico" viewBox="0 0 24 24" aria-hidden="true">${icon}</svg>` +
     `<span class="pwa-msg">${esc(message)}</span>` +
     `<button class="btn" type="button" data-act>${esc(action)}</button>` +
-    `<button class="ibtn pwa-x" type="button" aria-label="Dismiss">` +
+    `<button class="ibtn pwa-x" type="button" aria-label="${t("Dismiss")}">` +
     `<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`);
 
   el.querySelector("[data-act]").addEventListener("click", onAction);
@@ -142,8 +143,8 @@ const drop = id => $(id)?.remove();
 const OFFERS = {
   desktop: {
     dismissed: DESKTOP_DISMISSED,
-    action: "Desktop app",
-    message: "There is a desktop app. It picks up what you copy without you switching here.",
+    action: () => t("Desktop app"),
+    message: () => t("There is a desktop app. It picks up what you copy without you switching here."),
     run: () => {
       write(DESKTOP_DISMISSED, true);        // they have seen it; do not re-ask
       window.open(atRoot("download/"), "_blank", "noopener");
@@ -151,13 +152,13 @@ const OFFERS = {
   },
   install: {
     dismissed: DISMISSED,
-    action: "Install",
-    message: "Install RealtimeClipboard for its own window, icon and offline shell.",
+    action: () => t("Install"),
+    message: () => t("Install RealtimeClipboard for its own window, icon and offline shell."),
     run: () => promptInstall(),
   },
 };
 
-const BOTH = "RealtimeClipboard also runs as an app.";
+const BOTH = () => t("RealtimeClipboard also runs as an app.");
 
 const live = new Set();
 
@@ -189,10 +190,10 @@ function renderOffers() {
   el.setAttribute("role", "status");
   setHTML(el,
     `<svg class="topnotice-ico" viewBox="0 0 24 24" aria-hidden="true">${ICON.install}</svg>` +
-    `<span class="topnotice-msg">${esc(keys.length > 1 ? BOTH : OFFERS[keys[0]].message)}</span>` +
+    `<span class="topnotice-msg">${esc(keys.length > 1 ? BOTH() : OFFERS[keys[0]].message())}</span>` +
     keys.map(key => `<button class="topnotice-act" type="button" data-offer="${esc(key)}">` +
-      `${esc(OFFERS[key].action)}</button>`).join("") +
-    `<button class="topnotice-x" type="button" aria-label="Dismiss this notice">` +
+      `${esc(OFFERS[key].action())}</button>`).join("") +
+    `<button class="topnotice-x" type="button" aria-label="${t("Dismiss this notice")}">` +
     `<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`);
 
   for (const btn of el.querySelectorAll("[data-offer]")) {
@@ -227,10 +228,10 @@ async function promptInstall() {
   try {
     evt.prompt();
     const { outcome } = await evt.userChoice;
-    if (outcome !== "accepted") emit(EV.TOAST, "Install dismissed");
+    if (outcome !== "accepted") emit(EV.TOAST, t("Install dismissed"));
   } catch (err) {
     console.warn("[pwa] install prompt failed", err);
-    emit(EV.TOAST, "Install is not available here");
+    emit(EV.TOAST, t("Install is not available here"));
   }
 }
 
@@ -279,13 +280,13 @@ async function registerSW() {
 
 function showUpdate(reg) {
   if ($("pwaUpdate")) return;
-  emit(EV.TOAST, "Update available · Reload");
+  emit(EV.TOAST, t("Update available · Reload"));
   banner({
     id: "pwaUpdate",
     kind: "warn",
     icon: ICON.update,
-    message: "A new version of RealtimeClipboard is ready.",
-    action: "Reload",
+    message: t("A new version of RealtimeClipboard is ready."),
+    action: t("Reload"),
     onAction: () => applyUpdate(reg),
   });
 }
@@ -327,7 +328,7 @@ export function init() {
     deferredPrompt = null;
     retire(["install"]);
     write(DISMISSED, false);         // a later uninstall should offer it again
-    emit(EV.TOAST, "RealtimeClipboard installed");
+    emit(EV.TOAST, t("RealtimeClipboard installed"));
   });
 
   // Installing from Chrome's own address-bar affordance never fires our click

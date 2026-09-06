@@ -18,6 +18,7 @@
 
 import { PASTE_GUARD } from "../core/config.js";
 import { stripInvisible, hasInvisible } from "../core/text.js";
+import { t } from "../core/i18n.js";
 
 /** Trailing blank lines, however many. One of them is the auto-execute. */
 const TRAILING_NEWLINES = /\n+$/;
@@ -43,43 +44,47 @@ export function defuse(text) {
  * Anchored to the start of the clip or of a line: `curl` inside a paragraph is
  * prose, `curl` beginning a line is an instruction. That is also what keeps an
  * article about installing software from tripping this on every read.
+ *
+ * `reason` is a thunk, not a string: this array is built at module load, before
+ * the catalogue has necessarily loaded, so the English literal must not be
+ * captured until the reason is actually shown — see looksExecutable() below.
  */
 const PATTERNS = [
   {
     pattern: /(?:^|\n)[ \t]*(?:curl|wget)[^\n]*\|[ \t]*(?:sudo[ \t]+)?(?:ba|z|k|d)?sh\b/i,
-    reason: "it pipes a download into a shell",
+    reason: () => t("it pipes a download into a shell"),
   },
   {
     pattern: /(?:^|\n)[ \t]*(?:powershell|pwsh)[^\n]*[-/]e(?:nc|ncoded(?:command)?)?[ \t]/i,
-    reason: "it is an encoded PowerShell command",
+    reason: () => t("it is an encoded PowerShell command"),
   },
   {
     pattern: /(?:^|\n)[ \t]*(?:iex|invoke-expression|eval)\b/i,
-    reason: "it evaluates a string as code",
+    reason: () => t("it evaluates a string as code"),
   },
   {
     pattern: /(?:^|\n)[ \t]*(?:sudo|doas)[ \t]+\S/i,
-    reason: "it asks for administrator rights",
+    reason: () => t("it asks for administrator rights"),
   },
   {
     pattern: /(?:^|\n)[ \t]*rm[ \t]+-[a-z]*[rf]/i,
-    reason: "it deletes files recursively",
+    reason: () => t("it deletes files recursively"),
   },
   {
     pattern: /(?:^|\n)[ \t]*(?:chmod|chown|dd|mkfs|shutdown|reboot)[ \t]+\S/i,
-    reason: "it is a system command",
+    reason: () => t("it is a system command"),
   },
   {
     pattern: /(?:^|\n)[ \t]*(?:ba|z|k)?sh[ \t]+-c[ \t]/i,
-    reason: "it runs a shell with an inline script",
+    reason: () => t("it runs a shell with an inline script"),
   },
   {
     pattern: /(?:^|\n)[ \t]*(?:python3?|perl|ruby|node)[ \t]+-[ce][ \t]/i,
-    reason: "it runs an inline script",
+    reason: () => t("it runs an inline script"),
   },
   {
     pattern: /(?:^|\n)[ \t]*(?:curl|wget|nc|ncat|telnet)[ \t]+\S/i,
-    reason: "it contacts a network host",
+    reason: () => t("it contacts a network host"),
   },
 ];
 
@@ -111,9 +116,9 @@ export function looksExecutable(text) {
   for (const line of s.split("\n")) {
     // A line too long to check is not a line known to be safe. It costs one
     // click, on the banner that a clip arriving unfocused already uses.
-    if (line.length > PASTE_GUARD.MAX_SCAN_CHARS) return "it is too long to check";
+    if (line.length > PASTE_GUARD.MAX_SCAN_CHARS) return t("it is too long to check");
     for (const { pattern, reason } of PATTERNS) {
-      if (pattern.test(line)) return reason;
+      if (pattern.test(line)) return reason();
     }
   }
   return null;

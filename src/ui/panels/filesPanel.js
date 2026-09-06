@@ -24,6 +24,7 @@ import * as transfer from "../../files/transfer.js";
 import { iconFor, formatSize } from "../../files/thumbs.js";
 import { canPreview, openPreview } from "../features/preview.js";
 import { $, esc, on as bind, setHTML, clear } from "../primitives/dom.js";
+import { t } from "../../core/i18n.js";
 
 const S = registry.STATE;
 
@@ -125,17 +126,17 @@ async function removeFile(id) {
 
   const busy = BUSY.has(file.state);
   if (busy && !await confirmAction({
-    title: "Remove a file that is still transferring?",
+    title: t("Remove a file that is still transferring?"),
     file: file.name,
     warning: file.origin === "local"
-      ? "A device is receiving this right now. Removing it cancels the transfer at both ends."
-      : "This download is still running. Removing it cancels it and discards what has arrived.",
-    confirm: "Remove anyway",
+      ? t("A device is receiving this right now. Removing it cancels the transfer at both ends.")
+      : t("This download is still running. Removing it cancels it and discards what has arrived."),
+    confirm: t("Remove anyway"),
   })) return;
 
   const name = file.name;
   registry.remove(id);
-  emit(EV.TOAST, busy ? `Removed ${name} — transfer cancelled` : `Removed ${name}`);
+  emit(EV.TOAST, busy ? t("Removed {name} — transfer cancelled", { name }) : t("Removed {name}", { name }));
 }
 
 /**
@@ -145,25 +146,27 @@ async function removeFile(id) {
  */
 async function clearAll() {
   const items = registry.all();
-  if (!items.length) return emit(EV.TOAST, "There are no files to remove");
+  if (!items.length) return emit(EV.TOAST, t("There are no files to remove"));
 
   const busy = items.filter(f => BUSY.has(f.state)).length;
   const mine = items.filter(f => f.origin === "local").length;
 
   const ok = await confirmAction({
-    title: `Remove all ${items.length} file${items.length === 1 ? "" : "s"}?`,
+    title: items.length === 1 ? t("Remove all 1 file?") : t("Remove all {n} files?", { n: items.length }),
     file: null,
     warning: [
-      busy ? `${busy} ${busy === 1 ? "transfer is" : "transfers are"} still running and will be cancelled.` : "",
-      mine ? `${mine} ${mine === 1 ? "is yours" : "are yours"} — those devices will lose the tile too.` : "",
-      "Nothing is deleted from disk. This only empties the session.",
+      busy ? (busy === 1 ? t("1 transfer is still running and will be cancelled.")
+                         : t("{n} transfers are still running and will be cancelled.", { n: busy })) : "",
+      mine ? (mine === 1 ? t("1 is yours — those devices will lose the tile too.")
+                         : t("{n} are yours — those devices will lose the tile too.", { n: mine })) : "",
+      t("Nothing is deleted from disk. This only empties the session."),
     ].filter(Boolean).join(" "),
-    confirm: "Remove all",
+    confirm: t("Remove all"),
   });
   if (!ok) return;
 
   const n = registry.clear();
-  emit(EV.TOAST, `Removed ${n} file${n === 1 ? "" : "s"}`);
+  emit(EV.TOAST, n === 1 ? t("Removed 1 file") : t("Removed {n} files", { n }));
 }
 
 /**
@@ -179,8 +182,8 @@ function mountClearAll() {
   btn.className = "ibtn";
   btn.id = "bClearFiles";
   btn.type = "button";
-  btn.title = "Remove every file from this session";
-  btn.setAttribute("aria-label", "Remove every file from this session");
+  btn.title = t("Remove every file from this session");
+  btn.setAttribute("aria-label", t("Remove every file from this session"));
   setHTML(btn, `<svg viewBox="0 0 24 24" aria-hidden="true">${BIN_PATH}</svg>`);
 
   // ui/panes.js already ignores header-button clicks, but this must not depend
@@ -236,7 +239,7 @@ function render() {
       <div class="meta">
         <div class="nm">${esc(f.name)}</div>
         ${f.state === S.ERROR
-          ? `<div class="sz bad">${esc(f.error || "transfer failed")}</div>`
+          ? `<div class="sz bad">${esc(f.error || t("transfer failed"))}</div>`
           : `<div class="sz">${esc(subtitle(f))}</div>`}
       </div>
       <div class="bar${f.path === "relay" ? " viarelay" : ""}"></div>
@@ -283,7 +286,8 @@ function tileClass(f) {
 
 function cancelButton(f) {
   return `<button class="tcancel" data-cancel="${esc(f.id)}"
-    title="Cancel this transfer" aria-label="Cancel transfer of ${esc(f.name)}">×</button>`;
+    title="${esc(t("Cancel this transfer"))}"
+    aria-label="${esc(t("Cancel transfer of {name}", { name: f.name }))}">×</button>`;
 }
 
 /** VS Code's own bin, matching the one in the history pane header. */
@@ -297,11 +301,11 @@ const BIN_PATH = `<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13a1 1 0 001 1h8a1 1 0 
 function removeButton(f) {
   const busy = BUSY.has(f.state);
   const what = f.origin === "local"
-    ? "Remove from the session — peers lose the tile too"
-    : "Hide this file here — the device that holds it keeps it";
+    ? t("Remove from the session — peers lose the tile too")
+    : t("Hide this file here — the device that holds it keeps it");
   return `<button class="tremove" type="button" data-remove="${esc(f.id)}"
-    title="${esc(busy ? `${what}. Cancels the transfer in progress.` : what)}"
-    aria-label="Remove ${esc(f.name)} from the session">
+    title="${esc(busy ? t("{what}. Cancels the transfer in progress.", { what }) : what)}"
+    aria-label="${esc(t("Remove {name} from the session", { name: f.name }))}">
     <svg viewBox="0 0 24 24" aria-hidden="true">${BIN_PATH}</svg>
   </button>`;
 }
@@ -309,12 +313,12 @@ function removeButton(f) {
 /** Under the name: normally the size, but the live state while it is moving. */
 function subtitle(f) {
   switch (f.state) {
-    case S.REQUESTING: return "requesting…";
-    case S.WAITING:    return "awaiting approval";
-    case S.CONNECTING: return "connecting…";
-    case S.SENDING:    return `sending ${f.progress}%`;
+    case S.REQUESTING: return t("requesting…");
+    case S.WAITING:    return t("awaiting approval");
+    case S.CONNECTING: return t("connecting…");
+    case S.SENDING:    return t("sending {n}%", { n: f.progress });
     case S.RECEIVING:  return `${f.progress}%`;
-    case S.CANCELLED:  return "cancelled";
+    case S.CANCELLED:  return t("cancelled");
     default:           return formatSize(f.size);
   }
 }
@@ -322,12 +326,12 @@ function subtitle(f) {
 function tooltip(f) {
   const bits = [f.name, formatSize(f.size)];
   if (f.state === S.ERROR) {
-    bits.push(`failed: ${f.error}`);
+    bits.push(t("failed: {error}", { error: f.error }));
   } else {
-    if (f.path === "relay") bits.push("came via the relay, not directly");
-    else if (f.path === "p2p") bits.push("direct peer-to-peer transfer");
-    if (!f.blob) bits.push("click to request the file");
-    else bits.push(canPreview(f) ? "click to preview" : "click to save");
+    if (f.path === "relay") bits.push(t("came via the relay, not directly"));
+    else if (f.path === "p2p") bits.push(t("direct peer-to-peer transfer"));
+    if (!f.blob) bits.push(t("click to request the file"));
+    else bits.push(canPreview(f) ? t("click to preview") : t("click to save"));
   }
   return bits.join(" · ");
 }
@@ -337,19 +341,19 @@ function tooltip(f) {
  * Precedence: a failure beats a state, a state beats a path.
  */
 function badge(f) {
-  if (f.state === S.ERROR) return `<span class="badge err">ERR</span>`;
-  if (f.state === S.WAITING) return `<span class="badge busy">ASK</span>`;
+  if (f.state === S.ERROR) return `<span class="badge err">${esc(t("ERR"))}</span>`;
+  if (f.state === S.WAITING) return `<span class="badge busy">${esc(t("ASK"))}</span>`;
   if (f.state === S.REQUESTING || f.state === S.CONNECTING) {
     return `<span class="badge busy">…</span>`;
   }
   if (f.state === S.SENDING || f.state === S.RECEIVING) {
     return `<span class="badge busy">${f.progress}%</span>`;
   }
-  if (f.origin === "local") return `<span class="badge local">HERE</span>`;
+  if (f.origin === "local") return `<span class="badge local">${esc(t("HERE"))}</span>`;
 
-  if (f.path === "relay") return `<span class="badge relay">RELAY</span>`;
+  if (f.path === "relay") return `<span class="badge relay">${esc(t("RELAY"))}</span>`;
   if (f.path === "p2p") return `<span class="badge remote">P2P</span>`;
-  return `<span class="badge want">GET</span>`;      // not fetched — no path to claim yet
+  return `<span class="badge want">${esc(t("GET"))}</span>`;   // not fetched — no path to claim yet
 }
 
 /* ------------------------------------------------------------------ *
@@ -386,7 +390,8 @@ function settle(token, allowed, always = false) {
   // Answered before the promise resolves, so requests already queued behind this
   // one from the same device are covered too.
   if (always && allowed && transfer.allowPeer(p.req.from)) {
-    emit(EV.TOAST, `${p.req.from} can now send and receive without asking, until this tab closes`);
+    emit(EV.TOAST, t("{device} can now send and receive without asking, until this tab closes",
+                     { device: p.req.from }));
     for (const [other, q] of [...prompts]) {
       if (q.req.from === p.req.from) settle(other, true);
     }
@@ -402,7 +407,7 @@ function sweep() {
   const now = Date.now();
   for (const [token, p] of [...prompts]) {
     if (p.expires <= now) {
-      emit(EV.TOAST, `Request for ${p.req.name} expired — nobody answered`);
+      emit(EV.TOAST, t("Request for {name} expired — nobody answered", { name: p.req.name }));
       settle(token, false);
     }
   }
@@ -455,27 +460,30 @@ function drawPrompts() {
     // sent without a click and an unanswered prompt expiring into a denial.
     region.className = "ask req";
     region.setAttribute("role", "region");
-    region.setAttribute("aria-label", "File requests");
+    region.setAttribute("aria-label", t("File requests"));
     region.setAttribute("aria-live", "polite");
     host.appendChild(region);
     host.onclick = onPromptClick;
     document.addEventListener("keydown", onKey);
   }
 
+  // The device sentence is the one t() result not passed through esc(): the
+  // <code> wrapper has to survive, so the escaping moves inside the placeholder
+  // and only req.from — the peer-chosen half — is escaped.
   setHTML(region, [...prompts].map(([token, { req, expires }]) => `
       <div class="card" data-token="${esc(token)}">
-        <div class="t">A device wants one of your files</div>
+        <div class="t">${esc(t("A device wants one of your files"))}</div>
         <div class="f">${esc(req.name)} <span class="s">${formatSize(req.size)}</span></div>
         <div class="w">
-          Device <code>${esc(req.from)}</code> is in this session. Anyone holding
-          the share key can ask for any file here.
+          ${t("Device {device} is in this session. Anyone holding the share key can ask for any file here.",
+              { device: `<code>${esc(req.from)}</code>` })}
         </div>
         <div class="acts">
           <span class="cd">${Math.max(0, Math.ceil((expires - Date.now()) / 1000))}s</span>
-          <button class="btn ghost" data-deny="${esc(token)}">Deny</button>
+          <button class="btn ghost" data-deny="${esc(token)}">${esc(t("Deny"))}</button>
           <button class="btn ghost" data-allowall="${esc(token)}"
-                  title="Stop asking about this device until this tab closes">Allow all</button>
-          <button class="btn" data-allow="${esc(token)}">Send it</button>
+                  title="${esc(t("Stop asking about this device until this tab closes"))}">${esc(t("Allow all"))}</button>
+          <button class="btn" data-allow="${esc(token)}">${esc(t("Send it"))}</button>
         </div>
       </div>`).join(""));
 }
@@ -532,7 +540,7 @@ function confirmAction({ title, file, warning, confirm }) {
       ${file ? `<div class="f">${esc(file)}</div>` : ""}
       <div class="w">${esc(warning)}</div>
       <div class="acts">
-        <button class="btn ghost" type="button" data-no>Keep</button>
+        <button class="btn ghost" type="button" data-no>${esc(t("Keep"))}</button>
         <button class="btn bad" type="button" data-yes>${esc(confirm)}</button>
       </div>
     </div>`);

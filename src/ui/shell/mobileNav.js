@@ -19,6 +19,7 @@
 
 import { LAYOUT } from "../../core/config.js";
 import { $, esc, setHTML } from "../primitives/dom.js";
+import { t } from "../../core/i18n.js";
 
 /* 24×24, stroked, matching the icons already in app.html. */
 const ICON = {
@@ -41,12 +42,12 @@ export function init() {
   // there is no Clips view to offer. main.js runs this after loadOptional()
   // for exactly that reason.
   views = [
-    { id: "text",    label: "Text",    icon: ICON.text,    els: [$("mainPane")] },
-    { id: "files",   label: "Files",   icon: ICON.files,   els: [side, $("paneFiles")] },
+    { id: "text",    label: t("Text"),    icon: ICON.text,    els: [$("mainPane")] },
+    { id: "files",   label: t("Files"),   icon: ICON.files,   els: [side, $("paneFiles")] },
     // Labelled for the pane it shows, not for the concept: the header inside it
     // says HISTORY, and a tab called "Clips" that opens "History" reads as two
     // different places.
-    { id: "history", label: "History", icon: ICON.history, els: [side, $("paneHistory")] },
+    { id: "history", label: t("History"), icon: ICON.history, els: [side, $("paneHistory")] },
     // There was a fourth, Devices. Its pane is gone: the roster and every
     // setting it held are now slide-up menus on the status bar, which is on
     // screen in all three of these views instead of being one of four.
@@ -59,13 +60,13 @@ export function init() {
   // "everything interpolated into innerHTML goes through esc()" and an
   // exception you have to remember is not a rule.
   setHTML(host, `
-    <nav class="mnav" aria-label="Views">
+    <nav class="mnav" aria-label="${esc(t("Views"))}">
       ${views.map(v => `
         <button type="button" class="mnavbtn" data-view="${esc(v.id)}">
           <svg viewBox="0 0 24 24" aria-hidden="true">${v.icon}</svg>
           <span>${esc(v.label)}</span>
           <span class="mdot" hidden></span>
-          <span class="vh" data-alert hidden>needs attention</span>
+          <span class="vh" data-alert hidden>${esc(t("needs attention"))}</span>
         </button>`).join("")}
     </nav>`);
 

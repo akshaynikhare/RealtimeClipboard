@@ -35,9 +35,33 @@ const walk = (d) =>
       : e.name.endsWith(".js") ? [join(d, e.name)] : []);
 
 /* Only a literal first argument can be a key. `t(someVariable)` is invisible to
-   this and would silently never translate, so it is reported as a hazard. */
-const CALL = /\bt\(\s*(["'])((?:\\.|(?!\1)[^\\])*)\1/g;
-const DYNAMIC = /\bt\(\s*[A-Za-z_$]/g;
+   this and would silently never translate, so it is reported as a hazard.
+ *
+ * A key may be written as adjacent literals joined by `+` — long sentences are
+ * wrapped that way to stay inside the line length. The runtime key is the
+ * concatenation, so this has to read it the same way: matching only the first
+ * literal reported a fragment as used and the real key as orphaned, which is
+ * exactly backwards and made nine correct translations look dead. */
+const LITERAL = String.raw`"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'`;
+const PIECE = new RegExp(LITERAL, "g");
+
+/* The helper may be imported under another name. files/transfer.js already
+   calls its live transfer object `t`, so it imports the translator as `tt`;
+   assuming the name meant 22 real keys read as orphans. Read the binding out of
+   the import instead of assuming it. */
+const bindingIn = (src) => {
+  const m = src.match(/import\s*\{[^}]*?\bt(?:\s+as\s+([A-Za-z_$][\w$]*))?[^}]*\}\s*from\s*["'][^"']*core\/i18n\.js["']/);
+  return m ? (m[1] || "t") : null;
+};
+const callRe = (name) =>
+  new RegExp(String.raw`\b${name}\(\s*((?:${LITERAL})(?:\s*\+\s*(?:${LITERAL}))*)`, "g");
+const dynamicRe = (name) => new RegExp(String.raw`\b${name}\(\s*[A-Za-z_$]`, "g");
+
+/* Join the literals back into the key the running app will look up. */
+const joinLiterals = (expr) =>
+  (expr.match(PIECE) || [])
+    .map((lit) => lit.slice(1, -1).replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\n/g, "\n"))
+    .join("");
 
 const used = new Map();          // key -> [files]
 let dynamic = [];
@@ -46,12 +70,14 @@ for (const file of walk(join(ROOT, "src"))) {
   const rel = file.slice(ROOT.length + 1);
   if (rel === "src/core/i18n.js") continue;   // it defines t(), it does not call it
   const src = readFileSync(file, "utf8");
-  for (const m of src.matchAll(CALL)) {
-    const key = m[2].replace(/\\"/g, '"').replace(/\\'/g, "'");
+  const name = bindingIn(src);
+  if (!name) continue;                       // this module does not translate
+  for (const m of src.matchAll(callRe(name))) {
+    const key = joinLiterals(m[1]);
     if (!used.has(key)) used.set(key, []);
     used.get(key).push(rel);
   }
-  if (DYNAMIC.test(src)) dynamic.push(rel);
+  if (dynamicRe(name).test(src)) dynamic.push(rel);
 }
 
 const placeholders = (s) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join(",");

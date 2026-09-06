@@ -16,6 +16,7 @@ import * as registry from "../../files/registry.js";
 import { formatSize } from "../../files/thumbs.js";
 import * as modal from "../primitives/modal.js";
 import { esc, lazyStyle } from "../primitives/dom.js";
+import { t } from "../../core/i18n.js";
 
 /* Loaded on first open: sessions that never preview never fetch it. */
 const ensureStyles = () => lazyStyle("preview.css");
@@ -44,9 +45,9 @@ export function openPreview(id) {
         <div class="preview-name" id="previewName">${esc(f.name)}
           <span class="preview-size">${esc(formatSize(f.size))}</span>
         </div>
-        <button class="btn" type="button" data-save>Download</button>
+        <button class="btn" type="button" data-save>${t("Download")}</button>
         <button class="preview-x" type="button" data-modal-dismiss
-                title="Close" aria-label="Close the preview">×</button>
+                title="${t("Close")}" aria-label="${t("Close the preview")}">×</button>
       </div>
       <div class="preview-body">${isImage(f)
         ? `<img class="preview-img" src="${esc(url)}" alt="${esc(f.name)}">`

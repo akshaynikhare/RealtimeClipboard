@@ -18,6 +18,7 @@ import * as history from "../../core/history.js";
 import { write as writeClipboard } from "../../clipboard/os.js";
 import { upgrade as upgradeHeader, sync as syncHeader } from "../shell/panes.js";
 import { $, esc, on as bind, setHTML } from "../primitives/dom.js";
+import { t } from "../../core/i18n.js";
 
 const PREVIEW_CHARS = 70;
 const TITLE_CHARS = 300;
@@ -46,7 +47,7 @@ export function init() {
 
   bind("histClear", "click", e => {
     e.stopPropagation();                 // header click toggles the pane; this must not
-    emit(EV.TOAST, history.clear() ? "History cleared" : "History is already empty");
+    emit(EV.TOAST, history.clear() ? t("History cleared") : t("History is already empty"));
   });
 
   on(history.EVENTS.CHANGED, render);
@@ -75,18 +76,17 @@ function mount() {
   pane.id = "paneHistory";
   setHTML(pane, `
     <div class="paneh" id="histHead">
-      <span class="chev"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8L12 16L20 8"/></svg></span> History
+      <span class="chev"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8L12 16L20 8"/></svg></span> ${t("History")}
       <span class="spacer"></span>
-      <span class="soft"><span id="histCount">0</span><span class="vh"> clips</span></span>
-      <button class="ibtn" type="button" id="histClear" title="Clear history" aria-label="Clear history">
+      <span class="soft"><span id="histCount">0</span><span class="vh"> ${t("clips")}</span></span>
+      <button class="ibtn" type="button" id="histClear" title="${t("Clear history")}" aria-label="${t("Clear history")}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13a1 1 0 001 1h8a1 1 0 001-1l1-13M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg>
       </button>
     </div>
     <div class="paneb">
       <div class="hist" id="histList"></div>
       <div class="none" id="histEmpty">
-        Clips you send and receive appear here. Memory and <code>sessionStorage</code>
-        only — history is gone when this tab closes, and cleared when the key changes.
+        ${t("Clips you send and receive appear here. Memory and <code>sessionStorage</code> only — history is gone when this tab closes, and cleared when the key changes.")}
       </div>
     </div>`);
 
@@ -133,16 +133,18 @@ function render() {
     const sent = c.direction === "sent";
     const at = hhmm(c.at);
     const gist = preview(c.text);
-    const said = `${sent ? "sent" : "received"} at ${at}: ${gist}`;
+    const said = sent
+      ? t("sent at {time}: {text}", { time: at, text: gist })
+      : t("received at {time}: {text}", { time: at, text: gist });
     return `
     <div class="row hrow" data-id="${esc(c.id)}" role="button" tabindex="0"
-         aria-label="Load into the editor — clip ${esc(said)}"
+         aria-label="${t("Load into the editor — clip {said}", { said: esc(said) })}"
          title="${esc(clamp(c.text, TITLE_CHARS))}">
-      <span class="pill ${sent ? "sent" : "recv"}" aria-hidden="true">${sent ? "SENT" : "RECV"}</span>
+      <span class="pill ${sent ? "sent" : "recv"}" aria-hidden="true">${sent ? t("SENT") : t("RECV")}</span>
       <div class="l"><b class="hprev">${esc(gist)}</b></div>
       <span class="htime" aria-hidden="true">${esc(at)}</span>
-      <button class="ibtn hcopy" type="button" title="Copy this clip"
-              aria-label="Copy clip ${esc(said)}">
+      <button class="ibtn hcopy" type="button" title="${t("Copy this clip")}"
+              aria-label="${t("Copy clip {said}", { said: esc(said) })}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>
       </button>
     </div>`;
@@ -184,7 +186,7 @@ async function copy(id) {
   const entry = history.get(id);
   if (!entry) return;
   if (await writeClipboard(entry.text)) {
-    emit(EV.TOAST, `Copied ${entry.chars.toLocaleString()} characters`);
+    emit(EV.TOAST, t("Copied {chars} characters", { chars: entry.chars.toLocaleString() }));
   }
 }
 

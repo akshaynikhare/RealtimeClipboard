@@ -27,29 +27,39 @@ import { emit, on, EV } from "../../core/bus.js";
 import * as state from "../../core/state.js";
 import * as capture from "../../clipboard/capture.js";
 import { $, esc, setHTML } from "../primitives/dom.js";
+import { t } from "../../core/i18n.js";
 
 /**
  * Order IS the ladder, least connected first. Rendering, the arrow keys and the
  * status-bar menu all walk this array, so the visual order and the conceptual
  * one cannot drift apart.
+ *
+ * label/hint/note are getters, not stored strings: this array is built once, at
+ * import — before the catalogue has a chance to load — so a stored string would
+ * freeze in English. sessionPanel.js reads RUNGS[i].label and noteFor() as plain
+ * values, so a function here would break that call site too; a getter reads
+ * through t() on every access while still looking like a plain property.
  */
 const OPTIONS = [
-  { mode: SYNC_MODES.OFF, label: "Off",
-    hint: "Nothing is shared from this device",
-    note: "Nothing leaves this device, and nothing arrives" },
-  { mode: SYNC_MODES.MANUAL, label: "App",
-    hint: "Text syncs in this window only",
-    note: "Text syncs in this window — your system clipboard is not touched" },
-  { mode: SYNC_MODES.LIVE, label: "Clipboard",
-    hint: "What you copy is shared, and what arrives is copied here",
-    note: "What you copy is shared, and what arrives is copied here" },
+  { mode: SYNC_MODES.OFF,
+    get label() { return t("Off"); },
+    get hint() { return t("Nothing is shared from this device"); },
+    get note() { return t("Nothing leaves this device, and nothing arrives"); } },
+  { mode: SYNC_MODES.MANUAL,
+    get label() { return t("App"); },
+    get hint() { return t("Text syncs in this window only"); },
+    get note() { return t("Text syncs in this window — your system clipboard is not touched"); } },
+  { mode: SYNC_MODES.LIVE,
+    get label() { return t("Clipboard"); },
+    get hint() { return t("What you copy is shared, and what arrives is copied here"); },
+    get note() { return t("What you copy is shared, and what arrives is copied here"); } },
 ];
 
 /** The status bar says what the app is doing; this says how far it reaches. */
 const BAR_LABEL = {
-  [SYNC_MODES.OFF]: "Sync off",
-  [SYNC_MODES.MANUAL]: "App only",
-  [SYNC_MODES.LIVE]: "Clipboard sync",
+  [SYNC_MODES.OFF]: () => t("Sync off"),
+  [SYNC_MODES.MANUAL]: () => t("App only"),
+  [SYNC_MODES.LIVE]: () => t("Clipboard sync"),
 };
 
 export const RUNGS = OPTIONS;
@@ -63,7 +73,7 @@ export function init() {
   // unconditionally keeps the repo-wide rule true with no exceptions to
   // remember, and costs nothing.
   setHTML(host, `
-    <div class="modeswitch" role="radiogroup" aria-label="How far sync reaches on this device">
+    <div class="modeswitch" role="radiogroup" aria-label="${t("How far sync reaches on this device")}">
       ${OPTIONS.map(o => `
         <button class="modebtn" role="radio" data-mode="${esc(o.mode)}"
                 aria-checked="false" title="${esc(o.hint)}">${esc(o.label)}</button>`).join("")}
@@ -141,5 +151,5 @@ function paint(mode) {
     btn.tabIndex = active ? 0 : -1;
   });
   const bar = $("sbMode");
-  if (bar) bar.textContent = BAR_LABEL[mode] ?? BAR_LABEL[SYNC_MODES.LIVE];
+  if (bar) bar.textContent = (BAR_LABEL[mode] ?? BAR_LABEL[SYNC_MODES.LIVE])();
 }

@@ -14,7 +14,23 @@
  * same principle: it sharpens what the markup says, or does nothing.
  */
 
+import { t, pick, load } from "../core/i18n.js";
+
 const byId = id => document.getElementById(id);
+
+/**
+ * The language of the page this is running on, not of the reader.
+ *
+ * A landing page has already committed to a language — /zh/download/ is Chinese
+ * whatever the browser asks for — so the <html lang> is the answer and
+ * navigator.languages is not. Getting this backwards would put Chinese chrome
+ * on the English page for a Chinese reader who deliberately opened it.
+ */
+const PAGE_LANG = pick("", [document.documentElement.lang || "en"]);
+
+/* The install guides are translated, so a card on /zh/download/ must send the
+   reader to /zh/help/install/mac/ rather than dropping them into English. */
+const localised = path => (PAGE_LANG === "en" ? path : `/${PAGE_LANG}${path}`);
 
 /**
  * `navigator.userAgentData` where it exists, the string where it does not.
@@ -42,16 +58,19 @@ function detect() {
   return null;
 }
 
+/* name and lead are read at render time, after the catalogue has loaded. The
+   platform names stay Latin in every language; only "iPhone or iPad" is a
+   phrase rather than a brand, so only it goes through t(). */
 const COPY = {
-  windows: { name: "Windows", lead: "The installer for Windows 10 and 11.", to: "#desktop",
+  windows: { name: () => "Windows", lead: () => t("The installer for Windows 10 and 11."), to: "#desktop",
              icon: "#i-windows", doc: "/help/install/windows/" },
-  mac:     { name: "macOS",   lead: "One download for Intel and Apple Silicon.", to: "#desktop",
+  mac:     { name: () => "macOS",   lead: () => t("One download for Intel and Apple Silicon."), to: "#desktop",
              icon: "#i-apple",   doc: "/help/install/mac/" },
-  linux:   { name: "Linux",   lead: ".deb, .rpm and AppImage.", to: "#desktop",
+  linux:   { name: () => "Linux",   lead: () => t(".deb, .rpm and AppImage."), to: "#desktop",
              icon: "#i-linux",   doc: "/help/install/linux/" },
-  android: { name: "Android", lead: "No app to install — add it to your home screen from Chrome.", to: "#mobile",
+  android: { name: () => "Android", lead: () => t("No app to install — add it to your home screen from Chrome."), to: "#mobile",
              icon: "#i-android", doc: "/help/install/android/" },
-  ios:     { name: "iPhone or iPad", lead: "No app to install — add it to your home screen from Safari.", to: "#mobile",
+  ios:     { name: () => t("iPhone or iPad"), lead: () => t("No app to install — add it to your home screen from Safari."), to: "#mobile",
              icon: "#i-apple",   doc: "/help/install/iphone/" },
 };
 
@@ -85,6 +104,12 @@ function mark(href) {
 const os = detect();
 const host = byId("pick");
 
+/* Awaited before the card is built, not after: every label below is written
+   once with textContent, so a catalogue arriving late would leave English on
+   screen with nothing to redraw it. The card is purely additive, so waiting on
+   it delays nothing the page already showed. */
+if (os && host && COPY[os]) await load(PAGE_LANG);
+
 if (os && host && COPY[os]) {
   const { name, lead, to, icon, doc } = COPY[os];
   const card = document.createElement("div");
@@ -96,26 +121,26 @@ if (os && host && COPY[os]) {
   // injection either way, which is the better habit to leave behind.
   const h = document.createElement("p");
   h.className = "pickhead";
-  h.textContent = `Looks like you are on ${name}`;
+  h.textContent = t("Looks like you are on {name}", { name: name() });
 
   const p = document.createElement("p");
-  p.textContent = lead;
+  p.textContent = lead();
 
   const a = document.createElement("a");
   a.className = "btn";
   a.href = to;
-  a.textContent = to === "#mobile" ? "How to add it" : `Get it for ${name}`;
+  a.textContent = to === "#mobile" ? t("How to add it") : t("Get it for {name}", { name: name() });
 
   const guide = document.createElement("p");
   guide.className = "doclink";
   const guideLink = document.createElement("a");
-  guideLink.href = doc;
-  guideLink.textContent = `${name} install guide`;
+  guideLink.href = localised(doc);
+  guideLink.textContent = t("{name} install guide", { name: name() });
   guide.append(guideLink);
 
   const alt = document.createElement("p");
   alt.className = "hint";
-  alt.textContent = "Not right? Every platform is listed below.";
+  alt.textContent = t("Not right? Every platform is listed below.");
 
   card.append(mark(icon), h, p, a, guide, alt);
   host.append(card);

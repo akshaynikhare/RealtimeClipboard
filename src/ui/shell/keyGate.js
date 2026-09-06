@@ -21,6 +21,7 @@ import { on, emit, EV } from "../../core/bus.js";
 import { KEY, LINKS } from "../../core/config.js";
 import { entropyBits } from "../../core/keys.js";
 import { esc } from "../primitives/dom.js";
+import { t } from "../../core/i18n.js";
 import * as gate from "./gate.js";
 
 const ICON = `<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5M12 16.2h.01"/>`;
@@ -34,25 +35,31 @@ const grouped = key => String(key).replace(/(.{5})(?=.)/g, "$1 ");
 
 function raise(key, reason) {
   const n = String(key).length;
+  const min = KEY.MIN_LENGTH;
 
   const body = reason === "long"
-    ? `That is ${n} characters. A share key can be at most ${KEY.MAX_LENGTH}.`
-    : `That is ${n} character${n === 1 ? "" : "s"}, worth about `
-      + `${Math.round(entropyBits(n))} bits. The room's name is a hash of the key, `
-      + `so a short one is quick for someone else to guess their way into. `
-      + `A key needs at least ${KEY.MIN_LENGTH} characters.`;
+    ? t("That is {n} characters. A share key can be at most {max}.", { n, max: KEY.MAX_LENGTH })
+    : n === 1
+      ? t("That is 1 character, worth about {bits} bits. The room's name is a hash of the key, "
+        + "so a short one is quick for someone else to guess their way into. A key needs at "
+        + "least {min} characters.", { bits: Math.round(entropyBits(n)), min })
+      : t("That is {n} characters, worth about {bits} bits. The room's name is a hash of the "
+        + "key, so a short one is quick for someone else to guess their way into. A key needs "
+        + "at least {min} characters.", { n, bits: Math.round(entropyBits(n)), min });
+
+  const link = `<a href="${esc(LINKS.NEW_ISSUE)}" target="_blank" `
+    + `rel="noopener noreferrer">${t("report it on GitHub")}</a>`;
 
   gate.raise({
     icon: ICON,
-    title: reason === "long" ? "That key is too long" : "That key is too short",
+    title: reason === "long" ? t("That key is too long") : t("That key is too short"),
     body,
     subject: grouped(key),
     actions: [
-      { label: "Start a new session", onClick: () => emit("session:rotate") },
+      { label: t("Start a new session"), onClick: () => emit("session:rotate") },
     ],
-    note: `Nothing was opened and nothing was sent. If you believe this key `
-        + `should work, <a href="${esc(LINKS.NEW_ISSUE)}" target="_blank" `
-        + `rel="noopener noreferrer">report it on GitHub</a> — but never paste a `
-        + `key you are actually using into an issue.`,
+    note: t("Nothing was opened and nothing was sent. If you believe this key "
+        + "should work, {link} — but never paste a "
+        + "key you are actually using into an issue.", { link }),
   });
 }
