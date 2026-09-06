@@ -12,6 +12,7 @@ import { TRANSPORT, RELAY_URL } from "../../core/config.js";
 import * as state from "../../core/state.js";
 import * as capture from "../../clipboard/capture.js";
 import { $, esc, setHTML, autoDismiss, nextFrame } from "../primitives/dom.js";
+import { t } from "../../core/i18n.js";
 
 const banners = new Map();
 /** key -> a function that cancels that banner's auto-dismiss timer. */
@@ -45,8 +46,8 @@ export function init() {
       // Not a dead end — the paste tier always works and needs no permission.
       show("perm", {
         tone: "info",
-        title: "Clipboard reading is blocked",
-        body: "Paste into the editor with Ctrl/Cmd+V — that always works, no permission needed.",
+        title: t("Clipboard reading is blocked"),
+        body: t("Paste into the editor with Ctrl/Cmd+V — that always works, no permission needed."),
       });
       return;
     }
@@ -54,9 +55,9 @@ export function init() {
     if (state === "prompt") {
       show("perm", {
         tone: "info",
-        title: "Allow clipboard access",
-        body: "Lets RealtimeClipboard pick up what you copied when you switch back to this window.",
-        action: { label: "Allow", onClick: () => capture.requestPermission() },
+        title: t("Allow clipboard access"),
+        body: t("Lets RealtimeClipboard pick up what you copied when you switch back to this window."),
+        action: { label: t("Allow"), onClick: () => capture.requestPermission() },
       });
     }
   });
@@ -73,12 +74,12 @@ export function init() {
     if (risk) {
       return show("pending", {
         tone: "warn",
-        title: "A clip is asking to run something",
-        body: `Someone in this session sent text that looks like a command — ${risk}.`
-            + ` It has NOT been put on your clipboard.${preview}`,
+        title: t("A clip is asking to run something"),
+        body: t("Someone in this session sent text that looks like a command — {risk}. It has NOT been put on your clipboard.{preview}",
+                { risk, preview }),
         action: [
-          { label: "Discard", onClick: () => capture.discardPending() },
-          { label: "Put it on my clipboard", onClick: () => capture.confirmPending() },
+          { label: t("Discard"), onClick: () => capture.discardPending() },
+          { label: t("Put it on my clipboard"), onClick: () => capture.confirmPending() },
         ],
       });
     }
@@ -89,10 +90,10 @@ export function init() {
     // above has something to warn about.
     show("pending", {
       tone: "info",
-      title: "1 clip waiting",
-      body: `Focus this window and it lands on your clipboard automatically.${preview}`
-          + (altered ? " Hidden control characters were removed from it." : ""),
-      action: { label: "Apply now", onClick: () => capture.confirmPending() },
+      title: t("1 clip waiting"),
+      body: t("Focus this window and it lands on your clipboard automatically.{preview}", { preview })
+          + (altered ? " " + t("Hidden control characters were removed from it.") : ""),
+      action: { label: t("Apply now"), onClick: () => capture.confirmPending() },
     });
   });
 
@@ -107,12 +108,12 @@ export function init() {
     // or while unfocused, it did not — and this banner used to claim it had.
     show("offered", {
       tone: "info",
-      title: "New clip received",
-      body: (onClipboard ? "It is on your clipboard. " : "")
-          + `Applying it here replaces what you have typed. `
-          + `“${text.slice(0, 70)}${text.length > 70 ? "…" : ""}”`,
+      title: t("New clip received"),
+      body: (onClipboard ? t("It is on your clipboard.") + " " : "")
+          + t("Applying it here replaces what you have typed. {clip}",
+              { clip: `“${text.slice(0, 70)}${text.length > 70 ? "…" : ""}”` }),
       action: {
-        label: "Show it",
+        label: t("Show it"),
         onClick: () => { emit("clip:accept", { text }); dismiss("offered"); },
       },
     });
@@ -128,7 +129,7 @@ export function init() {
   on("ui:banner", ({ key, ...opts }) => { if (key) show(key, opts); });
 
   on(EV.PEER_JOINED, ({ name }) => {
-    const who = name || "An unnamed device";
+    const who = name || t("An unnamed device");
     // In a locked session the arrival means more, not less: reaching this room
     // at all required the PIN, so this device is not somebody who merely found
     // the link. That is worth saying, because the open-session wording would
@@ -136,15 +137,13 @@ export function init() {
     const locked = state.get().locked;
     show("joined", {
       tone: "warn",
-      title: "A device joined this session",
+      title: t("A device joined this session"),
       body: locked
-        ? `${who} has the PIN as well as the link, and can now read what you `
-          + `copy and request your files. If that was not you, change the PIN.`
-        : `${who} can now read what you copy and `
-          + `request your files. If that was not you, generate a new key.`,
+        ? t("{who} has the PIN as well as the link, and can now read what you copy and request your files. If that was not you, change the PIN.", { who })
+        : t("{who} can now read what you copy and request your files. If that was not you, generate a new key.", { who }),
       action: locked
-        ? { label: "Change PIN", onClick: () => emit("session:repin") }
-        : { label: "New key", onClick: () => emit("session:rotate") },
+        ? { label: t("Change PIN"), onClick: () => emit("session:repin") }
+        : { label: t("New key"), onClick: () => emit("session:rotate") },
       // Fifteen seconds is comfortable if you saw it arrive; the clock stops
       // while it holds focus or the pointer — autoDismiss() in primitives/dom.js.
       dismissAfter: 15000,
@@ -182,11 +181,9 @@ export function init() {
       if (!(s.relayCaps ?? []).includes("verify")) {
         return show("lock", {
           tone: "warn",
-          title: "This relay cannot confirm the PIN",
-          body: `${relayHost()} is running a build from before locked sessions `
-              + "could prove themselves. The session is encrypted and works "
-              + "normally — it just cannot tell you whether anyone else is on "
-              + "the same PIN. Redeploying the relay fixes it.",
+          title: t("This relay cannot confirm the PIN"),
+          body: t("{host} is running a build from before locked sessions could prove themselves. The session is encrypted and works normally — it just cannot tell you whether anyone else is on the same PIN. Redeploying the relay fixes it.",
+                  { host: relayHost() }),
         });
       }
       // Two ways out, because the app cannot tell which one is needed: this is
@@ -196,12 +193,11 @@ export function init() {
       // is alone in it would be wrong far more often than right.
       show("lock", {
         tone: "warn",
-        title: "Nobody else is here yet",  // kept true by the PEERS_CHANGED handler below
-        body: "If someone should be, the PIN may not match theirs — a different "
-            + "PIN is a different session, so neither of you would see the other.",
+        title: t("Nobody else is here yet"),  // kept true by the PEERS_CHANGED handler below
+        body: t("If someone should be, the PIN may not match theirs — a different PIN is a different session, so neither of you would see the other."),
         action: [
-          { label: "Re-enter PIN", onClick: () => emit("session:relock") },
-          { label: "New session", onClick: () => emit("session:rotate") },
+          { label: t("Re-enter PIN"), onClick: () => emit("session:relock") },
+          { label: t("New session"), onClick: () => emit("session:rotate") },
         ],
       });
     }, LOCK_DOUBT_MS);
@@ -239,10 +235,8 @@ export function init() {
       // debugging it in exactly the wrong direction.
       show("transport", {
         tone: "bad",
-        title: "This relay is out of date",
-        body: "WebSockets are blocked here and the relay does not have the HTTP "
-            + "fallback yet. It needs redeploying — the browser will report this as "
-            + "a CORS error, but nothing is wrong with the network.",
+        title: t("This relay is out of date"),
+        body: t("WebSockets are blocked here and the relay does not have the HTTP fallback yet. It needs redeploying — the browser will report this as a CORS error, but nothing is wrong with the network."),
       });
       return;
     }
@@ -253,12 +247,12 @@ export function init() {
       // that gives someone something concrete to take to their IT desk.
       show("transport", {
         tone: "bad",
-        title: "Cannot reach the relay",
+        title: t("Cannot reach the relay"),
         // The host it actually tried, not the one this was built against. A
         // self-hoster, anyone on ?relay=, and a developer on 127.0.0.1 were all
         // told to allowlist a domain their app had never contacted.
-        body: "Neither WebSockets nor HTTP streaming is getting through. If you are on "
-            + `a managed network, ask for ${relayHost()} to be allowed.`,
+        body: t("Neither WebSockets nor HTTP streaming is getting through. If you are on a managed network, ask for {host} to be allowed.",
+                { host: relayHost() }),
       });
       return;
     }
@@ -267,19 +261,17 @@ export function init() {
 
     show("transport", {
       tone: "info",
-      title: "Using the HTTP fallback",
-      body: "WebSockets are blocked on this network, so RealtimeClipboard switched to HTTP "
-          + "streaming. Everything works and is still end-to-end encrypted; sending is "
-          + "a little slower.",
+      title: t("Using the HTTP fallback"),
+      body: t("WebSockets are blocked on this network, so RealtimeClipboard switched to HTTP streaming. Everything works and is still end-to-end encrypted; sending is a little slower."),
     });
   });
 
   on(EV.INSTANCE_CHANGED, ({ from, to }) => {
     show("split", {
       tone: "bad",
-      title: "Relay instance changed",
-      body: `${from} → ${to}. Rooms live in process memory, so devices on `
-          + `different replicas cannot see each other. Pin max replicas to 1.`,
+      title: t("Relay instance changed"),
+      body: t("{from} → {to}. Rooms live in process memory, so devices on different replicas cannot see each other. Pin max replicas to 1.",
+              { from, to }),
     });
   });
 }
@@ -325,7 +317,7 @@ function show(key, { tone, title, body, action, dismissAfter }) {
   close.className = "banner-x";
   // Three banners can be on screen at once, and three buttons all called
   // "Dismiss" are indistinguishable in a screen reader's element list.
-  close.setAttribute("aria-label", `Dismiss: ${title}`);
+  close.setAttribute("aria-label", t("Dismiss: {title}", { title }));
   close.textContent = "×";
   close.onclick = () => dismiss(key);
   el.appendChild(close);

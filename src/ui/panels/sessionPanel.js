@@ -47,10 +47,10 @@ export function init() {
   bind("sbKey", "click", copyLink);
   bind("bQr",   "click", () => showQr());
 
-  menu.attach("sbPeers", { label: "Devices", render: devicesMenu, onEvent: onMenuEvent });
-  menu.attach("sbMode",  { label: "Sync",    render: syncMenu,    onEvent: onMenuEvent });
-  menu.attach("sbP2P",   { label: "Files",   render: filesMenu,   onEvent: onMenuEvent });
-  menu.attach("sbGear",  { label: "Settings", render: gearMenu,   onEvent: onMenuEvent });
+  menu.attach("sbPeers", { label: t("Devices"),  render: devicesMenu, onEvent: onMenuEvent });
+  menu.attach("sbMode",  { label: t("Sync"),     render: syncMenu,    onEvent: onMenuEvent });
+  menu.attach("sbP2P",   { label: t("Files"),    render: filesMenu,   onEvent: onMenuEvent });
+  menu.attach("sbGear",  { label: t("Settings"), render: gearMenu,    onEvent: onMenuEvent });
 
   on(EV.KEY_CHANGED, ({ key }) => renderKey(key));
   // `verified` can flip at any moment — the first frame that decrypts.
@@ -136,8 +136,8 @@ export function showQr() {
   emit("ui:qr", {
     text: keys.shareLink(key, locked),
     note: locked
-      ? "The code carries the key, not the PIN. Whoever scans it still has to be told that separately."
-      : "The link contains the key. Anyone who scans it can read what you copy.",
+      ? t("The code carries the key, not the PIN. Whoever scans it still has to be told that separately.")
+      : t("The link contains the key. Anyone who scans it can read what you copy."),
   });
 }
 
@@ -160,32 +160,35 @@ function devicesMenu() {
   const { peers, settings } = state.get();
   const list = rosterRows();
 
-  return group(`In this session · ${peers}`)
+  return group(t("In this session · {n}", { n: peers }))
     + list
     + (splitBrain ? `
       <div class="swarn" role="alert">
-        Relay instance changed (${esc(splitBrain.from)} → ${esc(splitBrain.to)}).
-        Rooms are per-process, so devices on different replicas cannot see each
-        other. Pin replicas to 1.
+        ${t("Relay instance changed ({from} → {to}). Rooms are per-process, so devices on different replicas cannot see each other. Pin replicas to 1.",
+             { from: esc(splitBrain.from), to: esc(splitBrain.to) })}
       </div>` : "")
     // Copy link, Show QR and New key are in the header at every width, so
     // repeating them made the roster a second copy of a visible toolbar.
     // Leaving is the one action with no other home.
     + `<div class="sacts">
-         <button class="btn ghost" type="button" data-act="leave" data-mi="leave">Leave session</button>
+         <button class="btn ghost" type="button" data-act="leave" data-mi="leave">${t("Leave session")}</button>
        </div>`
-    + (settings.cursors ? "" : `<div class="snote">Pointer sharing is off.</div>`);
+    + (settings.cursors ? "" : `<div class="snote">${t("Pointer sharing is off.")}</div>`);
 }
 
-let roster = [{ name: "This device (you)", mode: "" }];
+/* A function rather than a literal: an array built at module load would capture
+   English before the catalogue arrives. */
+const justMe = () => [{ name: t("This device (you)"), mode: "" }];
+
+let roster = null;
 
 function rosterRows() {
-  return roster.map(p => `
+  return (roster ?? justMe()).map(p => `
     <div class="srow plain">
       <span class="dot on"></span>
-      <div class="l"><b>${esc(p.name || "An unnamed device")}</b></div>
+      <div class="l"><b>${esc(p.name || t("An unnamed device"))}</b></div>
       ${p.mode === "p2p"   ? '<span class="pill p2p">P2P</span>'
-      : p.mode === "relay" ? '<span class="pill relay">RELAY</span>' : ""}
+      : p.mode === "relay" ? `<span class="pill relay">${t("RELAY")}</span>` : ""}
     </div>`).join("");
 }
 
@@ -199,7 +202,7 @@ function syncMenu() {
   const mode = state.get().settings.syncMode;
   const poll = state.get().settings.poll;
 
-  return group("How far sync reaches")
+  return group(t("How far sync reaches"))
     + `<div class="sacts seg">
          ${syncMode.RUNGS.map(r => `
            <button class="btn ghost${r.mode === mode ? " on" : ""}" type="button"
@@ -207,49 +210,47 @@ function syncMenu() {
                    aria-pressed="${r.mode === mode}">${esc(r.label)}</button>`).join("")}
        </div>
        <div class="snote">${esc(syncMode.noteFor(mode))}</div>`
-    + group("Clipboard")
+    + group(t("Clipboard"))
     // Polling substitutes for a clipboard-change event, so it has nothing to do
     // below the rung that reads the clipboard.
     + (mode === SYNC_MODES.LIVE
       ? `<div class="srow">
-           <div class="l"><b>Check clipboard every</b><span>Only while this window has focus</span></div>
-           <select id="poll" data-mi="poll" aria-label="Clipboard poll interval">
+           <div class="l"><b>${t("Check clipboard every")}</b><span>${t("Only while this window has focus")}</span></div>
+           <select id="poll" data-mi="poll" aria-label="${t("Clipboard poll interval")}">
              ${Object.keys(POLL_OPTIONS).map(o =>
                `<option${o === poll ? " selected" : ""}>${esc(o)}</option>`).join("")}
            </select>
          </div>`
-      : `<div class="snote">This device is not reading its clipboard.</div>`)
-    + swRow("images", "Share copied images", "Screenshots you copy appear as previews on your other devices")
+      : `<div class="snote">${t("This device is not reading its clipboard.")}</div>`)
+    + swRow("images", t("Share copied images"), t("Screenshots you copy appear as previews on your other devices"))
     + (mode === SYNC_MODES.LIVE ? "" :
-      `<div class="snote">Below the Clipboard rung nothing is read automatically —
-       but an image you paste or drop in here is still shared.</div>`);
+      `<div class="snote">${t("Below the Clipboard rung nothing is read automatically — but an image you paste or drop in here is still shared.")}</div>`);
 }
 
 function filesMenu() {
-  return group("Files")
-    + swRow("autoaccept", "Let peers fetch without asking", "Otherwise you approve each request")
-    + swRow("thumbs", "Send previews", "Thumbnails travel automatically, before anyone asks")
-    + `<div class="snote">Files move device to device. If that is blocked they go
-        through the relay, encrypted, and the transfer says so.</div>`;
+  return group(t("Files"))
+    + swRow("autoaccept", t("Let peers fetch without asking"), t("Otherwise you approve each request"))
+    + swRow("thumbs", t("Send previews"), t("Thumbnails travel automatically, before anyone asks"))
+    + `<div class="snote">${t("Files move device to device. If that is blocked they go through the relay, encrypted, and the transfer says so.")}</div>`;
 }
 
 function gearMenu() {
-  return group("Security")
-    + swRow("longKeys", "Longer keys", keyStrength())
-    + swRow("rememberKey", "Remember this session on this device",
-            "Off: the key is kept only until this tab closes, and never written to disk")
+  return group(t("Security"))
+    + swRow("longKeys", t("Longer keys"), keyStrength())
+    + swRow("rememberKey", t("Remember this session on this device"),
+            t("Off: the key is kept only until this tab closes, and never written to disk"))
     + lockRows()
-    + group("Presence")
-    + swRow("cursors", "Show other cursors", "See where the other devices are pointing")
+    + group(t("Presence"))
+    + swRow("cursors", t("Show other cursors"), t("See where the other devices are pointing"))
     + (IS_DESKTOP ? desktopRows() : "")
-    + group("Relay")
+    + group(t("Relay"))
     + relayRows()
-    + group("Appearance")
+    + group(t("Appearance"))
     + themeRows()
     + languageRows()
-    + group("About")
+    + group(t("About"))
     + `<div class="sacts">
-         <button class="btn ghost" type="button" data-act="whatsnew" data-mi="whatsnew">What's new</button>
+         <button class="btn ghost" type="button" data-act="whatsnew" data-mi="whatsnew">${t("What's new")}</button>
        </div>`;
 }
 
@@ -260,11 +261,11 @@ function gearMenu() {
  * mean X is the most complained-about behaviour in tray applications.
  */
 function desktopRows() {
-  return group("Desktop")
-    + swRow("closeToTray", "Keep running when I close the window",
-            "Off: the X button quits, and your clipboard stops being watched")
+  return group(t("Desktop"))
+    + swRow("closeToTray", t("Keep running when I close the window"),
+            t("Off: the X button quits, and your clipboard stops being watched"))
     + `<div class="sacts">
-         <button class="btn ghost" type="button" data-act="guide" data-mi="guide">How this works</button>
+         <button class="btn ghost" type="button" data-act="guide" data-mi="guide">${t("How this works")}</button>
        </div>`;
 }
 
@@ -280,14 +281,13 @@ function relayRows() {
   const host = RELAY_URL.replace(/^wss?:\/\//, "");
   return `<div class="srow plain">
       <div class="l"><b>${esc(host)}</b><span>${RELAY_IS_CUSTOM
-        ? "Self-hosted. Clipboard contents are encrypted before they are sent, "
-          + "whichever relay carries them."
-        : "The default relay. It only ever sees a room hash and ciphertext."}</span></div>
+        ? t("Self-hosted. Clipboard contents are encrypted before they are sent, whichever relay carries them.")
+        : t("The default relay. It only ever sees a room hash and ciphertext.")}</span></div>
     </div>
     <div class="sacts">
-      <button class="btn ghost" type="button" data-act="relay" data-mi="relay">Change relay</button>
+      <button class="btn ghost" type="button" data-act="relay" data-mi="relay">${t("Change relay")}</button>
       ${RELAY_IS_CUSTOM
-        ? `<button class="btn ghost" type="button" data-act="relay-reset" data-mi="relay-reset">Use default</button>`
+        ? `<button class="btn ghost" type="button" data-act="relay-reset" data-mi="relay-reset">${t("Use default")}</button>`
         : ""}
     </div>`;
 }
@@ -306,9 +306,9 @@ function relayRows() {
 function themeRows() {
   const choice = state.get().settings.theme;
   const OPTIONS = [
-    [THEMES.SYSTEM, "System"],
-    [THEMES.LIGHT,  "Light"],
-    [THEMES.DARK,   "Dark"],
+    [THEMES.SYSTEM, t("System")],
+    [THEMES.LIGHT,  t("Light")],
+    [THEMES.DARK,   t("Dark")],
   ];
 
   return `<div class="sacts seg">
@@ -318,8 +318,10 @@ function themeRows() {
                 aria-pressed="${value === choice}">${esc(label)}</button>`).join("")}
     </div>
     <div class="snote">${esc(choice === THEMES.SYSTEM
-      ? `Following this device — ${theme.resolved() === THEMES.LIGHT ? "light" : "dark"} right now.`
-      : "Set here, whatever this device is set to.")}</div>`;
+      ? (theme.resolved() === THEMES.LIGHT
+          ? t("Following this device — light right now.")
+          : t("Following this device — dark right now."))
+      : t("Set here, whatever this device is set to."))}</div>`;
 }
 
 /**
@@ -373,19 +375,18 @@ function changeRelay(reset = false) {
     className: "relaymodal",
     labelledBy: "relayTitle",
     html: `
-      <h2 id="relayTitle">Relay address</h2>
-      <p>The server that carries encrypted clips between your devices. It only
-         ever sees a room hash and ciphertext.</p>
-      <p>Leave it blank to use the default, <b>${esc(fallback)}</b>.</p>
+      <h2 id="relayTitle">${t("Relay address")}</h2>
+      <p>${t("The server that carries encrypted clips between your devices. It only ever sees a room hash and ciphertext.")}</p>
+      <p>${t("Leave it blank to use the default, {host}.", { host: `<b>${esc(fallback)}</b>` })}</p>
 
-      <label class="relay-lbl" for="relayUrl">Address</label>
+      <label class="relay-lbl" for="relayUrl">${t("Address")}</label>
       <input id="relayUrl" class="relay-input" type="text" name="realtimeclipboard-relay"
              autocomplete="off" autocapitalize="none" autocorrect="off"
              spellcheck="false" enterkeyhint="go" value="${esc(current)}">
 
       <div class="relay-row">
-        <button class="btn ghost" type="button" data-modal-dismiss>Cancel</button>
-        <button class="btn" type="button" data-ok>Save and reload</button>
+        <button class="btn ghost" type="button" data-modal-dismiss>${t("Cancel")}</button>
+        <button class="btn" type="button" data-ok>${t("Save and reload")}</button>
       </div>`,
   });
 
@@ -401,7 +402,7 @@ function changeRelay(reset = false) {
     // rejecting them. saveRelayUrl returns null if it is not usable at all.
     const saved = storage.saveRelayUrl(
       /^[a-z]+:\/\//i.test(trimmed) ? trimmed : `wss://${trimmed}`);
-    if (!saved) return emit(EV.TOAST, "That is not a usable relay address");
+    if (!saved) return emit(EV.TOAST, t("That is not a usable relay address"));
 
     modal.close();
     location.reload();
@@ -425,36 +426,33 @@ function lockRows() {
     const others = Math.max(0, peers - 1);
 
     return `<div class="srow plain">
-        <div class="l"><b>Lock this session</b><span>Adds a PIN that is not in the
-        link. Starts a new session — your other devices need the new link and the
-        PIN.</span></div>
+        <div class="l"><b>${t("Lock this session")}</b><span>${t("Adds a PIN that is not in the link. Starts a new session — your other devices need the new link and the PIN.")}</span></div>
       </div>
       ${allowed ? `<div class="sacts">
-        <button class="btn ghost" type="button" data-act="lock" data-mi="lock">Lock session</button>
+        <button class="btn ghost" type="button" data-act="lock" data-mi="lock">${t("Lock session")}</button>
       </div>` : ""}
       ${allowed
-        ? (others ? `<div class="snote">The ${others} other device${
-            others === 1 ? "" : "s"} here will be disconnected.</div>` : "")
+        ? (others ? `<div class="snote">${others === 1
+            ? t("The 1 other device here will be disconnected.")
+            : t("The {n} other devices here will be disconnected.", { n: others })}</div>` : "")
         // Not a disabled button: the action will never become available here,
         // and a greyed control invites clicking it to find out why. The answer
         // fits in the space the button was taking up.
-        : `<div class="snote">Only the first device in a session can lock it.
-           Ask whoever started this one.</div>`}`;
+        : `<div class="snote">${t("Only the first device in a session can lock it. Ask whoever started this one.")}</div>`}`;
   }
 
   return `<div class="srow plain">
-      <div class="l"><b>Locked${verified ? "" : " · not yet confirmed"}</b><span>${
+      <div class="l"><b>${verified ? t("Locked") : t("Locked · not yet confirmed")}</b><span>${
         verified
-          ? "Another device in this session has proved it has the same PIN."
-          : "Nothing has been decrypted here yet, so the PIN is unconfirmed."
+          ? t("Another device in this session has proved it has the same PIN.")
+          : t("Nothing has been decrypted here yet, so the PIN is unconfirmed.")
       }</span></div>
     </div>
     <div class="sacts">
-      <button class="btn ghost" type="button" data-act="repin" data-mi="repin">Change PIN</button>
-      <button class="btn ghost" type="button" data-act="unlock" data-mi="unlock">Remove lock</button>
+      <button class="btn ghost" type="button" data-act="repin" data-mi="repin">${t("Change PIN")}</button>
+      <button class="btn ghost" type="button" data-act="unlock" data-mi="unlock">${t("Remove lock")}</button>
     </div>
-    <div class="snote">A locked session hides what you copy, not that you are
-    here — the relay still sees a room with devices in it.</div>`;
+    <div class="snote">${t("A locked session hides what you copy, not that you are here — the relay still sees a room with devices in it.")}</div>`;
 }
 
 /* ------------------------------------------------------------------
@@ -484,16 +482,16 @@ function renderLock() {
   if (!locked) return;
 
   el.classList.toggle("unconfirmed", !verified);
-  el.textContent = verified ? "Private" : "Private · unconfirmed";
+  el.textContent = verified ? t("Private") : t("Private · unconfirmed");
   el.title = verified
-    ? "Locked with a PIN, and another device here has proved it has the same one"
-    : "Locked with a PIN. Nothing has decrypted yet, so no other device has been confirmed";
+    ? t("Locked with a PIN, and another device here has proved it has the same one")
+    : t("Locked with a PIN. Nothing has decrypted yet, so no other device has been confirmed");
 }
 
 function renderPeers(count, list) {
-  roster = list.length ? list : [{ name: "This device (you)", mode: "" }];
+  roster = list.length ? list : justMe();
   const el = $("sbPeers");
-  if (el) el.textContent = `${count} device${count === 1 ? "" : "s"}`;
+  if (el) el.textContent = count === 1 ? t("1 device") : t("{n} devices", { n: count });
   menu.refresh();                        // a device joining while the roster is open
 }
 
@@ -512,7 +510,8 @@ function newKey() {
  */
 function keyStrength() {
   const n = keys.nextLength();
-  return `${n} characters · ~${Math.round(keys.entropyBits(n))} bits · applies to the next key`;
+  return t("{n} characters · ~{bits} bits · applies to the next key",
+           { n, bits: Math.round(keys.entropyBits(n)) });
 }
 
 async function copyLink() {
@@ -522,6 +521,6 @@ async function copyLink() {
   // The only moment the app can say what is now on the clipboard. For a locked
   // session the important half is what is NOT in it.
   emit(EV.TOAST, locked
-    ? "Link copied — the PIN is not in it. Send that separately"
-    : "Link copied — it contains the key");
+    ? t("Link copied — the PIN is not in it. Send that separately")
+    : t("Link copied — it contains the key"));
 }
