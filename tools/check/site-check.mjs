@@ -176,11 +176,16 @@ try {
  * split works until someone writes a link the pattern does not match, and then
  * ships a 404 no test on disk can see. A surviving `app.html` is a needless
  * redirect hop and a sign the rewrite stopped matching.
+ *
+ * The three alternatives below must stay identical to PRETTY in
+ * tools/build/build.mjs. This one was missing `\/` — the root-absolute form,
+ * which is what every link in src/pages/ uses — so the gate could not see the
+ * one shape it most needed to catch.
  */
 const appLinks = htmlPages()
   .concat(["manifest.webmanifest", "src/landing/landing.js", "src/landing/redirect.js"])
   .filter(f => existsSync(join(OUT, f)))
-  .filter(f => /(["'])((?:\.{1,2}\/)*|https:\/\/realtimeclipboard\.com\/)app\.html(?=[#"'])/.test(read(f)));
+  .filter(f => /(["'])((?:\.{1,2}\/)*|\/|https:\/\/realtimeclipboard\.com\/)app\.html(?=[#"'])/.test(read(f)));
 
 appLinks.length
   ? appLinks.forEach(f => fail(`${f} still links to app.html — the /app rewrite missed it`))

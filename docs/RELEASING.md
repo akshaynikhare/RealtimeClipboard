@@ -65,6 +65,18 @@ dashboard rather than in this repo, so they are recorded here:
 | Build comments | Enabled | |
 | `NODE_VERSION` | `22` | plaintext variable, not a secret |
 
+Two more things live in the dashboard and nowhere else, both invisible to every
+check in this repo:
+
+| Setting | Where | Why it matters |
+|---|---|---|
+| `www` → apex Redirect Rule | **Rules → Redirect Rules**, zone level | `_redirects` matches paths, not hostnames, so it cannot express this. Both hostnames point at the same Pages project; without the rule the whole site is served at two URLs and Search Console reports the duplicate half as *Page with redirect* — or, if the rule is ever removed, as duplicate content. |
+| `*.pages.dev` project hostname | Pages project | Always exists and serves the same content, including a `robots.txt` that says `Allow: /`. What keeps it out of the index is that every page's `<link rel="canonical">` is absolute and points at the apex. Do not make canonicals relative. |
+
+Neither can be asserted from the repo. The `www` rule was previously documented
+in a `docs/SEO.md` that was deleted, which left `_redirects:54-57` pointing at
+nothing — this table is where it lives now.
+
 The two *Automatic deployments* rows are one setting seen twice: **Settings →
 Build → Branch control** shows the production half when the environment picker
 at the top of the page says *Production*, and the preview half when it says
