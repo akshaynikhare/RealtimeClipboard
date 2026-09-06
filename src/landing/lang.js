@@ -15,9 +15,11 @@
  * against the browser's list, so there is nothing per-page to keep in sync.
  *
  * The path maps by prefix — /download/ has a twin at /pt/download/, and "/" has
- * one at /pt/ — which holds because every content page is translated into every
- * language. If a translation is ever dropped, drop it from LANGS in the same
- * commit or this will link to a 404.
+ * one at /pt/. UNTRANSLATED lists the pages where that is not true, and every
+ * one of them is deliberate: the legal pages state liability limits and name no
+ * governing language, so a translation of one would be ambiguous about which
+ * version binds. Offering a link that 404s is worse than offering nothing, so
+ * anything added here without a translation belongs in that list too.
  *
  * A file rather than an inline <script> so `script-src 'self'` holds with no
  * hash, and no innerHTML: Trusted Types rejects it outside
@@ -35,6 +37,9 @@ const LANGS = {
   es: { prefix: "/es", name: "Español",    offer: "Esta página también está en español" },
   ru: { prefix: "/ru", name: "Русский",    offer: "Эта страница также доступна на русском" },
 };
+
+/* Paths with no translations. Matched against the language-stripped path. */
+const UNTRANSLATED = ["/privacy/", "/terms/"];
 
 const DISMISSED = "rtc.lang.dismissed";
 const primary = (tag) => String(tag || "").toLowerCase().split("-")[0];
@@ -100,5 +105,6 @@ function show(code) {
   document.body.prepend(bar);
 }
 
-const want = dismissed() ? null : readerLang();
+const want = dismissed() || UNTRANSLATED.includes(basePath())
+  ? null : readerLang();
 if (want && want !== pageLang()) show(want);
