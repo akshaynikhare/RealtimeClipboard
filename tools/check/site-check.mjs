@@ -64,6 +64,7 @@ const REQUIRED = [
   "live-clipboard/index.html",
   "zh/index.html", "pt/index.html", "es/index.html", "ru/index.html",
   "zh/what-is-an-online-clipboard/index.html",
+  "pt/what-is-an-online-clipboard/index.html",
   "privacy/index.html", "about/index.html", "contact/index.html",
   "terms/index.html",
   // Referenced by no page, so a build that stopped copying them looks healthy.
