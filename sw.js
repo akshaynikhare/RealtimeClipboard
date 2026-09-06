@@ -43,7 +43,7 @@
 
 const KILL = false;
 
-const VERSION = "v32";
+const VERSION = "v33";
 const CACHE = `realtimeclipboard-shell-${VERSION}`;
 
 /** Hosts this worker must never touch, whatever the request looks like. */
@@ -96,6 +96,7 @@ const SHELL = [
   "./src/landing/faq.js",
   "./src/landing/globe.js",
   "./src/landing/land.js",
+  "./src/landing/lang.js",
   "./src/landing/landing.css",
   "./src/landing/landing.js",
   "./src/landing/redirect.js",
