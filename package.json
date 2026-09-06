@@ -1,7 +1,7 @@
 {
   "name": "realtimeclipboard",
-  "version": "0.7.1",
-  "description": "Live clipboard sharing. Static frontend of native ES modules \u2014 development needs no build, and `npm run build` exists only to assemble the deploy. Nothing here is needed to READ the app.",
+  "version": "1.0.0",
+  "description": "Live clipboard sharing. Static frontend of native ES modules — development needs no build, and `npm run build` exists only to assemble the deploy. Nothing here is needed to READ the app.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -78,5 +78,5 @@
     "husky": "^9.1.7",
     "jsdom": "^26.1.0"
   },
-  "comment": "esbuild is used ONLY by tools/build/build.mjs, which assembles the deploy \u2014 src/ stays plain ES modules on disk, so `npm run serve` still needs no build and the .husky checks still run against real modules. Tests are filed by what they need to run: tests/unit needs nothing, tests/dom needs jsdom, tests/live needs a relay. `verify` is all of unit plus the three dom suites that need no build, which is what a pre-commit hook can afford; `test` adds dom/bundle.mjs and everything under live. Every suite skips cleanly when its prerequisite is absent. The app itself still ships with zero RUNTIME dependencies."
+  "comment": "esbuild is used ONLY by tools/build/build.mjs, which assembles the deploy — src/ stays plain ES modules on disk, so `npm run serve` still needs no build and the .husky checks still run against real modules. Tests are filed by what they need to run: tests/unit needs nothing, tests/dom needs jsdom, tests/live needs a relay. `verify` is all of unit plus the three dom suites that need no build, which is what a pre-commit hook can afford; `test` adds dom/bundle.mjs and everything under live. Every suite skips cleanly when its prerequisite is absent. The app itself still ships with zero RUNTIME dependencies."
 }

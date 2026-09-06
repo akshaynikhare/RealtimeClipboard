@@ -1,7 +1,35 @@
 {
-  "generated": "2026-09-05",
-  "current": "v0.7.1",
+  "generated": "2026-09-07",
+  "current": "v1.0.0",
   "releases": [
+    {
+      "version": "v1.0.0",
+      "date": "2026-09-07",
+      "breaking": false,
+      "groups": [
+        {
+          "title": "Added",
+          "items": [
+            "i18n: finish the app translation and fix the download card (#76)",
+            "i18n: translate the app, keyed by the English string (#74)",
+            "i18n: translate all eighteen content pages into four languages (#73)",
+            "seo: add Chinese, Portuguese, Spanish and Russian landing pages (#70)",
+            "download: offer the editor extension, now that it exists (#67)",
+            "vscode: make the listing findable for what people search (#66)"
+          ],
+          "more": 0
+        },
+        {
+          "title": "Fixed",
+          "items": [
+            "remediate the 2026-09-06 audit across all seven surfaces (#71)",
+            "seo: redirect /blog/, and let site-check see the links it missed (#72)",
+            "browser: Chromium only, and say how to actually install it (#68)"
+          ],
+          "more": 0
+        }
+      ]
+    },
     {
       "version": "v0.7.1",
       "date": "2026-09-05",
@@ -187,82 +215,6 @@
             "test: keep the fallback suite on a local relay"
           ],
           "more": 0
-        }
-      ]
-    },
-    {
-      "version": "v0.2.0",
-      "date": "2026-08-07",
-      "breaking": false,
-      "groups": [
-        {
-          "title": "Added",
-          "items": [
-            "desktop: scaffold a Tauri shell and native capture tier",
-            "add the download and installation pages",
-            "relay: optional Redis backend for several replicas",
-            "relay: add deployment policy flags",
-            "cli: add a command-line client",
-            "let the relay address be configured",
-            "relay: add deployment policy flags",
-            "cli: add a command-line client",
-            "let the relay address be configured",
-            "security: enforce a CSP and Trusted Types on every page",
-            "implement modal dialog for consistent user experience",
-            "enhance QR code functionality and session locking"
-          ],
-          "more": 0
-        },
-        {
-          "title": "Fixed",
-          "items": [
-            "relay: ship shared.py in the image and the package",
-            "social: regenerate the OG card, which still said Hopboard",
-            "test: point the suites at the relay the hook actually found"
-          ],
-          "more": 0
-        },
-        {
-          "title": "Changed",
-          "items": [
-            "core: resolve asset paths from document.baseURI"
-          ],
-          "more": 0
-        },
-        {
-          "title": "Documentation",
-          "items": [
-            "add a code of conduct and a contributing guide",
-            "add SECURITY.md and funding metadata",
-            "self-hosting, and record why there is now a build step"
-          ],
-          "more": 0
-        },
-        {
-          "title": "Build & deploy",
-          "items": [
-            "relay: ship a Dockerfile, compose stack and Helm chart",
-            "assemble the deploy with esbuild"
-          ],
-          "more": 0
-        },
-        {
-          "title": "Other changes",
-          "items": [
-            "First content page: clipboard sync not working",
-            "Keyword mine from Google Autocomplete, and the ad-revenue arithmetic",
-            "Project links from one constant, and the landing page's globe",
-            "Move the settings out of the sidebar and into the status bar",
-            "SEO doc: real domain prices, and hopboard.com is already taken",
-            "Slide the transport menu up out of the item that opens it",
-            "Pick the transport by hand; stop file requests holding the app hostage",
-            "Fire the rate-limit probe concurrently, not in a loop",
-            "CORS on every response, so a stale relay stops reading as a CORS bug",
-            "Phone layout: one view at a time, behind a bottom tab bar",
-            "Transport failover: SSE + POST when WebSockets are blocked",
-            "Move the session key from the sidebar to the app header"
-          ],
-          "more": 22
         }
       ]
     }
