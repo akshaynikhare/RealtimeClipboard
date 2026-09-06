@@ -26,6 +26,7 @@ import * as os from "../../clipboard/os.js";
 import * as capture from "../../clipboard/capture.js";
 import { paletteIndex } from "../features/cursors.js";
 import { $, on as bind, esc, setHTML, clear } from "../primitives/dom.js";
+import { t } from "../../core/i18n.js";
 
 let ta, gutter;
 
@@ -68,15 +69,15 @@ export function init() {
       // Copying here is a local copy like any other: it earns the grace window
       // that stops an arriving clip taking it straight back off the clipboard.
       state.markLocalCopy();
-      emit(EV.TOAST, "Copied to clipboard");
+      emit(EV.TOAST, t("Copied to clipboard"));
     }
   });
   bind("aPaste",  "click", async () => {
     const text = await os.read();
-    if (text) { setText(text); capture.capture(text, "Pasted from clipboard"); }
-    else emit(EV.TOAST, "Clipboard unreadable — use Ctrl/Cmd+V instead");
+    if (text) { setText(text); capture.capture(text, t("Pasted from clipboard")); }
+    else emit(EV.TOAST, t("Clipboard unreadable — use Ctrl/Cmd+V instead"));
   });
-  bind("tabX",    "click", () => { setText("", { echo: true }); emit(EV.TOAST, "Cleared"); });
+  bind("tabX",    "click", () => { setText("", { echo: true }); emit(EV.TOAST, t("Cleared")); });
 
   // No TEXT_RECEIVED listener here: whether an arriving clip may fill the
   // editor is main.js's call — it applies clean, offers over unsent work.
@@ -205,9 +206,9 @@ function commit() {
     if (!warnedOversize) {
       warnedOversize = true;
       emit(EV.TOAST, value.length > TEXT.MAX_CHARS
-        ? `Over the ${TEXT.MAX_CHARS.toLocaleString()} character limit — not shared`
-        : `Over the ${Math.floor(TEXT.MAX_BYTES / 1024)} KB limit — `
-          + `${value.length.toLocaleString()} characters, but non-Latin text is several bytes each`);
+        ? t("Over the {max} character limit — not shared", { max: TEXT.MAX_CHARS.toLocaleString() })
+        : t("Over the {kb} KB limit — {chars} characters, but non-Latin text is several bytes each",
+            { kb: Math.floor(TEXT.MAX_BYTES / 1024), chars: value.length.toLocaleString() }));
     }
     return;
   }
@@ -218,6 +219,10 @@ function commit() {
   // `source` so main.js does not turn round and setText() the trimmed value
   // back into the textarea the user is still typing in, which would move their
   // caret out from under them.
+  /* `how` is not translated: no consumer reads it off TEXT_CAPTURED — main.js
+     destructures {text, source} and history.js takes {text} — so a catalogue
+     entry here could never render. clipboard/capture.js leaves its three the
+     same way, and translates only the IMAGE_CAPTURED labels, which do show. */
   emit(EV.TEXT_CAPTURED, { text: value, how: "Typed here", source: "editor" });
 }
 
@@ -243,7 +248,7 @@ function onStreamed({ text, caret, name, from }) {
 
   peers.set(from, {
     line: lineOf(text, caret),
-    name: String(name ?? "").slice(0, 40) || "Another device",
+    name: String(name ?? "").slice(0, 40) || t("Another device"),
     tint: paletteIndex(from),
     at: nowMs(),
   });
@@ -292,7 +297,7 @@ function paintTyping() {
   if (!names.length) return clear(el);
 
   setHTML(el, names.map(p =>
-    `<span class="edtyper c${p.tint}">${esc(p.name)} is typing</span>`).join(""));
+    `<span class="edtyper c${p.tint}">${t("{name} is typing", { name: esc(p.name) })}</span>`).join(""));
 }
 
 /* ------------------------------------------------------------------
@@ -353,5 +358,5 @@ function renderCounts() {
   chars.classList.toggle("over", n > TEXT.MAX_CHARS || textBytes(ta.value) > TEXT.MAX_BYTES);
 
   const upto = ta.value.slice(0, ta.selectionStart).split("\n");
-  $("sbLnCol").textContent = `Ln ${upto.length}, Col ${upto.at(-1).length + 1}`;
+  $("sbLnCol").textContent = t("Ln {line}, Col {col}", { line: upto.length, col: upto.at(-1).length + 1 });
 }
