@@ -35,9 +35,23 @@ const walk = (d) =>
       : e.name.endsWith(".js") ? [join(d, e.name)] : []);
 
 /* Only a literal first argument can be a key. `t(someVariable)` is invisible to
-   this and would silently never translate, so it is reported as a hazard. */
-const CALL = /\bt\(\s*(["'])((?:\\.|(?!\1)[^\\])*)\1/g;
+   this and would silently never translate, so it is reported as a hazard.
+ *
+ * A key may be written as adjacent literals joined by `+` — long sentences are
+ * wrapped that way to stay inside the line length. The runtime key is the
+ * concatenation, so this has to read it the same way: matching only the first
+ * literal reported a fragment as used and the real key as orphaned, which is
+ * exactly backwards and made nine correct translations look dead. */
+const LITERAL = String.raw`"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'`;
+const CALL = new RegExp(String.raw`\bt\(\s*((?:${LITERAL})(?:\s*\+\s*(?:${LITERAL}))*)`, "g");
+const PIECE = new RegExp(LITERAL, "g");
 const DYNAMIC = /\bt\(\s*[A-Za-z_$]/g;
+
+/* Join the literals back into the key the running app will look up. */
+const joinLiterals = (expr) =>
+  (expr.match(PIECE) || [])
+    .map((lit) => lit.slice(1, -1).replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\n/g, "\n"))
+    .join("");
 
 const used = new Map();          // key -> [files]
 let dynamic = [];
@@ -47,7 +61,7 @@ for (const file of walk(join(ROOT, "src"))) {
   if (rel === "src/core/i18n.js") continue;   // it defines t(), it does not call it
   const src = readFileSync(file, "utf8");
   for (const m of src.matchAll(CALL)) {
-    const key = m[2].replace(/\\"/g, '"').replace(/\\'/g, "'");
+    const key = joinLiterals(m[1]);
     if (!used.has(key)) used.set(key, []);
     used.get(key).push(rel);
   }
