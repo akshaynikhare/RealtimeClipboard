@@ -90,6 +90,21 @@ and `robots.txt` name the canonical origin, that `app.html` still carries its
 `<meta>` CSP agree. A non-zero exit fails the build, and a failed build is not
 promoted — production keeps serving the previous deploy.
 
+### Telling the search engines
+
+`release.yml`'s `publish-release` job runs `tools/seo/indexnow.mjs` once the
+release is public. One submission reaches Bing, Yandex, Seznam and Naver; Google
+does not participate in IndexNow and is reached through Search Console.
+
+**It is attached to the tag, not to the deploy, and that is a compromise.** The
+site deploys on merge to `main` through Cloudflare with no workflow involved, so
+the accurate hook would be a new push-to-`main` workflow — and a new trigger is a
+recurring bill this repo has otherwise never taken on. A tag is always preceded
+by a merge, so every release is covered. **Content merged without a release is
+not**, and still wants `npm run seo:indexnow` by hand. The step is
+`continue-on-error`: a search engine declining a ping is not a reason to fail a
+release whose artifacts are already published.
+
 ### Preview deployments are off, and that is the build budget
 
 Every non-production branch used to get a preview URL automatically. That is

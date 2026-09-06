@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+The help hub, and it has two jobs pulling in different directions. For a
+  reader it is a contents page: short, and quick to leave. For a crawler it is
+  what makes every help page reachable in two hops from the homepage, which is
+  why it is a real page rather than a row of footer links.
+
+  Each entry carries a one line summary rather than a bare title, because the
+  summary is what tells a reader which page answers their question without
+  opening all of them. Keep the summaries; a list of bare titles here is a
+  directory, not a structure.
+
+  The last entry points at pages that sit at the site root, not under help:
+  they answer "which tool do I want" rather than "mine is broken". They are
+  listed anyway, because a page nothing links to is a page nothing crawls.
+
+  Terminology follows /zh/: 在线剪贴板, 实时剪贴板, 剪贴板同步, 密钥,
+  中继服务器, 端到端加密, 扩展, 安装.
+-->
+
+<title>帮助 —— 剪贴板同步指南与排错</title>
+<meta name="description" content="让剪贴板在你的设备之间跑起来的一组指南：Windows 上的同步为什么是灰的，Android、Mac 和 PC 之间怎么复制粘贴。">
+<link rel="canonical" href="https://realtimeclipboard.com/zh/help/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="帮助 —— 剪贴板同步指南与排错">
+<meta property="og:description" content="剪贴板同步为什么是灰的，以及任意两台设备之间怎么复制粘贴。">
+<meta property="og:url" content="https://realtimeclipboard.com/zh/help/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/zh/help/#article",
+      "headline": "帮助 —— 剪贴板同步指南与排错",
+      "description": "让剪贴板在你的设备之间跑起来的一组指南。",
+      "inLanguage": "zh-Hans",
+      "datePublished": "2026-08-07",
+      "dateModified": "",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/zh/help/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/zh/" },
+        { "@type": "ListItem", "position": 2, "name": "帮助" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/zh/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">打开应用</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="面包屑导航">
+        <a href="/zh/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">帮助</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>帮助</h1>
+
+        <p class="lede">
+          让剪贴板在两台机器之间走动，比它本该有的样子麻烦得多，而大多数原因都不
+          明显。这些页面先修系统自带的功能，实在没得修的地方就直说。
+        </p>
+      </header>
+
+
+        <ul class="hublist">
+          <li>
+            <a href="/zh/help/install/">在任意设备上安装 RealtimeClipboard</a>
+            <p>
+              Windows、macOS、Linux、Android、iPhone 和命令行 —— 每一样该装什么，
+              以及其中哪些能在后台盯着剪贴板。有两个不能，而原因不在这个应用身上。
+            </p>
+            <p>
+              分平台看：
+              <a href="/zh/help/install/windows/">Windows</a> ·
+              <a href="/zh/help/install/mac/">macOS</a> ·
+              <a href="/zh/help/install/linux/">Linux</a> ·
+              <a href="/zh/help/install/android/">Android</a> ·
+              <a href="/zh/help/install/iphone/">iPhone</a> ·
+              <a href="/zh/help/install/cli/">命令行</a> ·
+              <a href="/zh/help/install/relay/">自建中继服务器</a>
+            </p>
+          </li>
+          <li>
+            <a href="/zh/help/clipboard-sync-not-working/">剪贴板同步不工作？</a>
+            <p>
+              Windows 11 上“跨设备同步”为什么是灰的 —— 几乎所有教程都跳过的那个
+              原因 —— 外加三星、Android、Mac 和 iPhone 的对应解法，以及你公司能
+              拦掉哪些东西。
+            </p>
+          </li>
+          <li>
+            <a href="/zh/what-is-an-online-clipboard/">什么是在线剪贴板？</a>
+            <p>
+              它的定义，以及总被拿来和它混为一谈的三样东西 —— 剪贴板管理器、
+              pastebin 和文件互传工具，各自解决的是不同的问题。
+            </p>
+            <p>
+              另外还有：
+              <a href="/zh/live-clipboard/">什么才算实时剪贴板</a> ·
+              <a href="/zh/clipboard-sync-different-networks/">跨不同网络同步</a> ·
+              <a href="/zh/online-clipboard-no-login/">不用登录</a> ·
+              <a href="/zh/snapdrop-alternative/">Snapdrop 替代品</a>
+            </p>
+          </li>
+        </ul>
+
+        <p class="hint">
+          更多指南还在写。如果这里哪里写错了或者已经过时，
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">提个 issue</a>。
+        </p>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>开源项目 — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/">English</a> · <a href="/es/help/">Español</a> · <a href="/pt/help/">Português</a> · <a href="/ru/help/">Русский</a> · <a href="/zh/help/">中文</a></p>
+      <p><a href="/zh/">首页</a> · <a href="/zh/download/">下载</a> · <a href="/zh/help/">帮助</a> · <a href="/zh/about/">关于</a> · <a href="/privacy/">隐私政策</a> · <a href="/terms/">使用条款</a></p>
+      <p>会话只保存在内存中，从不写入磁盘。剪贴板内容在发送前已在你的浏览器里完成加密。</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

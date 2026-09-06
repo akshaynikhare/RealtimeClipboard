@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+A troubleshooting page, so the order of the checks is the content. The Windows
+  steps are ranked by how often each turns out to be the cause, and that ranking
+  is kept exactly as the English has it.
+
+  Windows menu paths use the Spanish localised wording
+  (Configuración › Sistema › Portapapeles, directiva de grupo), because a reader
+  on a Spanish Windows build will not find an English label. Apple keeps Handoff
+  and Portapapeles Universal, the names shown on the device.
+
+  "Móvil" and "portátil" throughout, as in the other es pages.
+
+  Terminology follows /es/: portapapeles en línea, clave corta, cifrado de
+  extremo a extremo.
+-->
+
+<title>¿El portapapeles no se sincroniza? Cómo arreglarlo</title>
+<meta name="description" content="¿La opción de sincronizar el portapapeles sale en gris, o no funciona copiar y pegar entre dispositivos? El orden correcto de comprobación.">
+<link rel="canonical" href="https://realtimeclipboard.com/es/help/clipboard-sync-not-working/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/clipboard-sync-not-working/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/clipboard-sync-not-working/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/clipboard-sync-not-working/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/clipboard-sync-not-working/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/clipboard-sync-not-working/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/clipboard-sync-not-working/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="es_ES">
+<meta property="og:title" content="¿El portapapeles no se sincroniza? Soluciones para Windows, Android, Mac y iPhone">
+<meta property="og:description" content="Por qué la opción «Sincronizar entre tus dispositivos» sale en gris, y cómo arreglar el copiar y pegar entre dispositivos en cada plataforma.">
+<meta property="og:url" content="https://realtimeclipboard.com/es/help/clipboard-sync-not-working/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/es/help/clipboard-sync-not-working/#article",
+      "headline": "¿El portapapeles no se sincroniza? Soluciones para Windows, Android, Mac y iPhone",
+      "description": "Por qué la opción de sincronizar el portapapeles sale en gris en Windows 11, y cómo arreglar el copiar y pegar entre dispositivos en Samsung, Android, Mac y iPhone.",
+      "inLanguage": "es",
+      "datePublished": "2026-08-06",
+      "dateModified": "2026-08-06",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/es/help/clipboard-sync-not-working/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/es/" },
+        { "@type": "ListItem", "position": 2, "name": "El portapapeles no se sincroniza" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/faq.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/es/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir la aplicación</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Ruta de navegación">
+        <a href="/es/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">El portapapeles no se sincroniza</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>¿El portapapeles no se sincroniza?</h1>
+
+        <p class="lede">
+          En Windows, la causa más habitual no es la que la gente espera: la
+          <b>opción «Sincronizar entre tus dispositivos» ni siquiera aparece hasta
+          que está activado el historial del portapapeles</b>. Activa primero el
+          historial y la opción de sincronizar deja de salir en gris. Si sigue en
+          gris después de eso, casi con total seguridad has iniciado sesión con una
+          cuenta local o de empresa, o la directiva de grupo lo tiene desactivado.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <p>
+          Con eso se resuelve la mayoría de los casos. El resto de esta página
+          recorre cada plataforma en el orden que vale la pena probar, y es honesta
+          sobre las situaciones en las que no hay arreglo — en un portátil de
+          trabajo gestionado, sobre todo, muchas veces esto no se puede cambiar en
+          absoluto, y por mucho que hagas clic no va a servir de nada.
+        </p>
+
+        <h2>Windows 11 y 10: «Sincronizar entre tus dispositivos» sale en gris</h2>
+
+        <p>
+          Ve por orden. Cada paso es una causa realmente distinta, y están
+          ordenados por la frecuencia con la que cada uno acaba siendo el problema.
+        </p>
+
+        <ol class="steps">
+          <li>
+            <b>Activa antes el historial del portapapeles.</b> Ve a
+            <code>Configuración › Sistema › Portapapeles</code> y activa el
+            <b>Historial del Portapapeles</b> en la parte de arriba de la página.
+            La opción de sincronizar que hay debajo está inerte hasta que esto esté
+            activado — es con diferencia el motivo más común de que salga en gris,
+            y casi todas las guías se lo saltan porque dan por hecho que ya lo has
+            hecho.
+          </li>
+          <li>
+            <b>Inicia sesión con una cuenta de Microsoft.</b> La sincronización
+            pasa por la nube de Microsoft, así que una cuenta local de Windows no
+            puede usarla. Compruébalo en <code>Configuración › Cuentas</code>. Una
+            cuenta local es un impedimento de raíz, no un fallo.
+          </li>
+          <li>
+            <b>Mira si el PC está gestionado.</b> En una máquina de trabajo o unida
+            a un dominio, la directiva de grupo puede desactivar el historial del
+            portapapeles y su sincronización de golpe, y ese ajuste manda sobre la
+            aplicación Configuración — la opción no va a responder hagas lo que
+            hagas. A mediados de 2026 un cambio de directiva desactivó el historial
+            en una tanda de máquinas de empresa y en algunas domésticas, así que
+            esto es mucho más frecuente de lo que era. <b>Si este es tu caso, nada
+            de esta lista lo va a arreglar.</b>
+          </li>
+          <li>
+            <b>Comprueba que el atajo de teclado funciona siquiera.</b> Pulsa
+            <kbd>Windows</kbd>+<kbd>V</kbd>. Si no aparece ningún panel, el
+            historial del portapapeles está apagado o bloqueado, y la
+            sincronización no puede funcionar de ninguna manera.
+          </li>
+          <li>
+            <b>Confirma que los dos PC usan la misma cuenta de Microsoft.</b> La
+            sincronización ocurre entre máquinas de una sola cuenta. Dos cuentas no
+            van a ver nunca el portapapeles de la otra, y Windows no avisa de ello.
+          </li>
+        </ol>
+
+        <div class="honest">
+          <h3>La limitación que nadie menciona</h3>
+          <p>
+            Incluso funcionando del todo, la sincronización de Windows solo mueve
+            texto entre <b>PC con Windows conectados a la misma cuenta de
+            Microsoft</b>. No va a llegar a tu móvil, a tu Mac, a tu máquina Linux
+            ni al ordenador de un compañero. Si eso era lo que querías de verdad,
+            la función nunca iba a dártelo.
+          </p>
+        </div>
+
+        <h2>Copiar y pegar entre iPhone y Mac no funciona</h2>
+
+        <p>
+          El Portapapeles Universal de Apple tiene cinco requisitos y falla en
+          silencio en cuanto falta uno. Los cinco tienen que cumplirse a la vez:
+        </p>
+
+        <ul class="sq-list">
+          <li>Los dos dispositivos en la <b>misma cuenta de Apple</b></li>
+          <li><b>Wi-Fi encendida</b> en ambos — aunque estén en redes distintas</li>
+          <li><b>Bluetooth encendido</b> en ambos; así es como se encuentran</li>
+          <li><b>Handoff activado</b> en ambos, en los ajustes de General</li>
+          <li>Los dispositivos físicamente <b>cerca uno del otro</b>, dentro del alcance del Bluetooth</li>
+        </ul>
+
+        <p>
+          El Bluetooth es el que se le pasa a todo el mundo, porque copiar un texto
+          da la sensación de que debería viajar por la red. No viaja: la proximidad
+          forma parte del diseño. El Portapapeles Universal también caduca rápido —
+          copia algo, espera unos minutos, y ya no estará ahí para pegarlo.
+        </p>
+
+        <h2>El portapapeles de Samsung y Android no se sincroniza</h2>
+
+        <p>
+          Android no tiene sincronización de portapapeles entre dispositivos a
+          nivel de sistema. Lo que hay es cosa de cada fabricante y solo funciona
+          dentro de un ecosistema: la sincronización propia de Samsung mueve el
+          portapapeles entre dispositivos Samsung con la misma cuenta de Samsung, y
+          Phone Link de Microsoft puede llevar el contenido entre un móvil Android
+          y un PC con Windows en los modelos compatibles.
+        </p>
+
+        <p>
+          Así que si intentas copiar de un móvil Samsung a una tableta que no es
+          Samsung, o de un móvil Android a un Mac, no hay ninguna función integrada
+          que arreglar. No existe para poder activarla.
+        </p>
+
+        <h2>El portapapeles del Chromebook no se sincroniza</h2>
+
+        <p>
+          ChromeOS sincroniza el portapapeles con un móvil Android a través de
+          Phone Hub, que exige los dos dispositivos en la misma cuenta de Google y
+          el Bluetooth encendido. Entre un Chromebook y un PC con Windows o un Mac
+          no hay ninguna vía integrada.
+        </p>
+
+        <h2>Por qué todas se rompen igual</h2>
+
+        <p>
+          Todas las sincronizaciones de portapapeles integradas fallan por las
+          mismas tres condiciones, y en cuanto ves el patrón el diagnóstico deja de
+          ser un misterio:
+        </p>
+
+        <div class="tablewrap" tabindex="0" role="region"
+             aria-label="Qué exige cada sincronización de portapapeles integrada — se desplaza en horizontal">
+          <table class="cmp">
+            <caption class="sr-only">
+              Requisitos y límites de la sincronización de portapapeles integrada
+              de Windows, Apple, Samsung y ChromeOS, comparados con un portapapeles
+              en el navegador.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Función integrada</th>
+                <th scope="col">Exige cuenta</th>
+                <th scope="col">Funciona entre marcas</th>
+                <th scope="col">Exige dispositivos cerca</th>
+                <th scope="col">Bloqueable por TI</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Sincronización de Windows</th>
+                <td class="n">Cuenta de Microsoft</td>
+                <td class="n">Solo Windows</td>
+                <td class="y">No</td>
+                <td class="n">Sí — directiva de grupo</td>
+              </tr>
+              <tr>
+                <th scope="row">Portapapeles Universal de Apple</th>
+                <td class="n">Cuenta de Apple</td>
+                <td class="n">Solo Apple</td>
+                <td class="n">Sí — alcance del Bluetooth</td>
+                <td class="n">Sí — MDM</td>
+              </tr>
+              <tr>
+                <th scope="row">Sincronización de Samsung</th>
+                <td class="n">Cuenta de Samsung</td>
+                <td class="n">Solo Samsung</td>
+                <td class="n">Normalmente</td>
+                <td class="n">Sí</td>
+              </tr>
+              <tr>
+                <th scope="row">Phone Hub de ChromeOS</th>
+                <td class="n">Cuenta de Google</td>
+                <td class="n">ChromeOS + Android</td>
+                <td class="n">Sí — Bluetooth</td>
+                <td class="n">Sí</td>
+              </tr>
+              <tr class="me">
+                <th scope="row">Un portapapeles en el navegador</th>
+                <td class="y">Ninguna</td>
+                <td class="y">Cualquier navegador</td>
+                <td class="y">No</td>
+                <td>Solo si el sitio está bloqueado</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          Tres supuestos recorren todas ellas: <b>tienes dispositivos de una sola
+          marca</b>, <b>has iniciado sesión con la cuenta de esa marca en todos</b>
+          y, a menudo, <b>los dispositivos están en la misma habitación</b>. Rompe
+          cualquiera de ellos — un móvil Android y un portátil de trabajo con
+          Windows, un Mac personal y un PC gestionado, una máquina en la que no
+          puedes iniciar sesión — y la función integrada no tiene nada que
+          ofrecerte.
+        </p>
+
+        <h2>Qué usar cuando la sincronización integrada no colabora</h2>
+
+        <p>
+          Un portapapeles que vive en una página web se salta los tres supuestos,
+          porque no hay nada que instalar ni ninguna cuenta con la que iniciar
+          sesión. Eso es <a href="/es/">RealtimeClipboard</a>: abre la misma página
+          en los dos dispositivos, escribe la misma clave corta, y lo que copias en
+          uno está listo para pegar en el otro.
+        </p>
+
+        <ul class="sq-list">
+          <li><b>Sin cuenta</b> — así que una cuenta local de Windows o un perfil capado dan igual</li>
+          <li><b>Sin instalar nada</b> — así que funciona en una máquina donde no tienes permisos de administrador</li>
+          <li><b>De cualquier marca a cualquier marca</b> — Windows a Android, Mac a Windows, Chromebook a móvil</li>
+          <li><b>En cualquier red</b> — de la Wi-Fi de casa a los datos móviles; <a href="/es/clipboard-sync-different-networks/">los dispositivos no tienen que estar en la misma red</a> ni cerca el uno del otro</li>
+          <li><b>Cifrado de extremo a extremo</b> — el texto se cifra en tu navegador antes de salir, y el servidor no guarda nada</li>
+        </ul>
+
+        <p>
+          Las pegas honestas, ya que esta página va de cosas que no funcionan: está
+          en beta, la clave corta vale por sí sola, así que cualquiera que la
+          averigüe puede leer esa sesión, y un navegador no puede leer tu
+          portapapeles en segundo plano — vuelves a la pestaña y recoge lo que
+          copiaste. Esto último es una regla de seguridad de los navegadores que
+          se aplica a toda aplicación web, no una función que falte.
+        </p>
+
+        <p>
+          <a class="btn" href="/app.html">Abrir el portapapeles</a>
+        </p>
+      </div>
+
+      <div class="faq" id="faq">
+        <div class="faqhead">
+          <h2>Preguntas frecuentes</h2>
+          <button type="button" class="faqall" id="faqAll"
+                  aria-expanded="false" aria-controls="faq" hidden>
+            <span class="faqall-i" aria-hidden="true"></span>
+            <span class="faqall-t">Expandir todo</span>
+          </button>
+        </div>
+
+        <details class="qa">
+          <summary><h3>¿Por qué sale en gris la sincronización del portapapeles en Windows 11?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Casi siempre porque el historial del portapapeles está apagado — la
+            opción de sincronizar sigue inerte hasta que activas el historial que
+            hay encima, en <code>Configuración › Sistema › Portapapeles</code>. Si
+            aun así sigue en gris, has iniciado sesión con una cuenta local en vez
+            de una cuenta de Microsoft, o la máquina está gestionada y la directiva
+            de grupo tiene la función desactivada.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>¿La sincronización de Windows funciona con Android o Mac?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            No. La sincronización del portapapeles de Windows solo funciona entre
+            PC con Windows conectados a la misma cuenta de Microsoft. Phone Link de
+            Microsoft puede llevar el contenido del portapapeles entre algunos
+            móviles Android y un PC con Windows, pero es otra función, con sus
+            propios requisitos de dispositivo.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>¿Por qué no funciona copiar y pegar entre mi iPhone y mi Mac?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            El Portapapeles Universal necesita sus cinco condiciones a la vez: la
+            misma cuenta de Apple, la Wi-Fi encendida, el Bluetooth encendido,
+            Handoff activado y los dispositivos dentro del alcance del Bluetooth. El
+            Bluetooth es el que más se pasa por alto, porque copiar un texto da la
+            sensación de que debería viajar por la red.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>¿Puede mi empresa bloquear la sincronización del portapapeles?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Sí, y es habitual. En una máquina unida a un dominio o gestionada por
+            MDM, la directiva de grupo puede desactivar por completo el historial
+            del portapapeles y su sincronización, y eso manda sobre la aplicación
+            Configuración. No hay ningún apaño del lado del usuario — la opción no
+            responde. Una página web suele ser la única vía que queda, siempre que
+            el sitio en sí no esté bloqueado.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>¿Hay alguna sincronización de portapapeles que funcione sin cuenta?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Sí — un portapapeles en el navegador no necesita cuenta ninguna, porque
+            la sesión se identifica por una clave corta que escribes en los dos
+            dispositivos y no por una identidad con la sesión iniciada. Ese es el
+            enfoque de <a href="/es/">RealtimeClipboard</a>, y es la razón de que
+            funcione entre marcas distintas y en máquinas donde no puedes instalar
+            nada.
+            </p>
+          </div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código abierto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/clipboard-sync-not-working/">English</a> · <a href="/es/help/clipboard-sync-not-working/">Español</a> · <a href="/pt/help/clipboard-sync-not-working/">Português</a> · <a href="/ru/help/clipboard-sync-not-working/">Русский</a> · <a href="/zh/help/clipboard-sync-not-working/">中文</a></p>
+      <p><a href="/es/">Inicio</a> · <a href="/es/download/">Descargas</a> · <a href="/es/help/">Ayuda</a> · <a href="/es/about/">Acerca de</a> · <a href="/privacy/">Privacidad</a> · <a href="/terms/">Términos</a></p>
+      <p>Las sesiones se mantienen en memoria y nunca se escriben en disco. El contenido del portapapeles se cifra en tu navegador antes de enviarse.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

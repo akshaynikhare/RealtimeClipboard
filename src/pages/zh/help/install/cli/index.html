@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Every id here is a deep-link target that other pages point at
+  (/help/install/cli/#install, #pkg, #check, #first, #usage, #trouble,
+  #remove), so the ids stay byte-identical to the English original and only the
+  heading text is translated.
+
+  Every pre and code block is the English original unchanged: the npx and npm
+  invocations, the Homebrew formula name, the option list, the environment
+  variable names and the status line the client actually prints. Those blocks
+  carry a copy button and the CLI is not localised, so a translated command
+  would fail the moment it was pasted. Only the three shell comments inside the
+  worked examples are translated, because nothing executes them.
+
+  The heading that quotes the client's startup error keeps the English string
+  the client prints, with a Chinese gloss after it, so a reader can match what
+  is on their terminal.
+
+  Terminology follows /zh/: 密钥, 中继服务器, 端到端加密, 安装, 卸载, 自建.
+-->
+
+<title>命令行客户端 —— 通过 SSH 同步剪贴板</title>
+<meta name="description" content="给没有剪贴板的机器准备的命令行客户端。用管道送进 send，把 watch 重定向出来，加密和浏览器完全一样。需要 Node 22。">
+<link rel="canonical" href="https://realtimeclipboard.com/zh/help/install/cli/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/install/cli/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/install/cli/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/install/cli/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/install/cli/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/install/cli/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/install/cli/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="在命令行上使用 RealtimeClipboard">
+<meta property="og:description" content="在任何有 Node 22 的机器上把剪贴板管道送进送出。与浏览器相同的加密，相同的协议。">
+<meta property="og:url" content="https://realtimeclipboard.com/zh/help/install/cli/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/zh/help/install/cli/#article",
+      "headline": "RealtimeClipboard 命令行客户端 —— 通过 SSH 同步剪贴板",
+      "description": "给没有剪贴板的机器准备的命令行客户端：用管道送进 send，把 watch 重定向出来，用的是和浏览器完全一样的加密。需要 Node 22。",
+      "inLanguage": "zh-Hans",
+      "datePublished": "",
+      "dateModified": "",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/zh/help/install/cli/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/zh/" },
+        { "@type": "ListItem", "position": 2, "name": "命令行" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/copy.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/zh/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">打开应用</a>
+    </div>
+  </div>
+</header>
+
+<svg class="icons" aria-hidden="true">
+  <symbol id="i-node" viewBox="0 0 24 24"><path d="M11.998,24c-0.321,0-0.641-0.084-0.922-0.247l-2.936-1.737c-0.438-0.245-0.224-0.332-0.08-0.383 c0.585-0.203,0.703-0.25,1.328-0.604c0.065-0.037,0.151-0.023,0.218,0.017l2.256,1.339c0.082,0.045,0.197,0.045,0.272,0l8.795-5.076 c0.082-0.047,0.134-0.141,0.134-0.238V6.921c0-0.099-0.053-0.192-0.137-0.242l-8.791-5.072c-0.081-0.047-0.189-0.047-0.271,0 L3.075,6.68C2.99,6.729,2.936,6.825,2.936,6.921v10.15c0,0.097,0.054,0.189,0.139,0.235l2.409,1.392 c1.307,0.654,2.108-0.116,2.108-0.89V7.787c0-0.142,0.114-0.253,0.256-0.253h1.115c0.139,0,0.255,0.112,0.255,0.253v10.021 c0,1.745-0.95,2.745-2.604,2.745c-0.508,0-0.909,0-2.026-0.551L2.28,18.675c-0.57-0.329-0.922-0.945-0.922-1.604V6.921 c0-0.659,0.353-1.275,0.922-1.603l8.795-5.082c0.557-0.315,1.296-0.315,1.848,0l8.794,5.082c0.57,0.329,0.924,0.944,0.924,1.603 v10.15c0,0.659-0.354,1.273-0.924,1.604l-8.794,5.078C12.643,23.916,12.324,24,11.998,24z M19.099,13.993 c0-1.9-1.284-2.406-3.987-2.763c-2.731-0.361-3.009-0.548-3.009-1.187c0-0.528,0.235-1.233,2.258-1.233 c1.807,0,2.473,0.389,2.747,1.607c0.024,0.115,0.129,0.199,0.247,0.199h1.141c0.071,0,0.138-0.031,0.186-0.081 c0.048-0.054,0.074-0.123,0.067-0.196c-0.177-2.098-1.571-3.076-4.388-3.076c-2.508,0-4.004,1.058-4.004,2.833 c0,1.925,1.488,2.457,3.895,2.695c2.88,0.282,3.103,0.703,3.103,1.269c0,0.983-0.789,1.402-2.642,1.402 c-2.327,0-2.839-0.584-3.011-1.742c-0.02-0.124-0.126-0.215-0.253-0.215h-1.137c-0.141,0-0.254,0.112-0.254,0.253 c0,1.482,0.806,3.248,4.655,3.248C17.501,17.007,19.099,15.91,19.099,13.993z"/></symbol>
+</svg>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="面包屑导航">
+        <a href="/zh/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">命令行</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1><svg class="brandmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-node"/></svg> 命令行客户端</h1>
+
+        <p class="lede">
+          给那些根本没有剪贴板的机器准备的。它读标准输入、写标准输出，所以能和你
+          手上已经在用的一切拼在一起 —— 而且它不是第二份实现，它导入的就是浏览器
+          在跑的那几个加密和传输文件。
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2 id="install">装上它</h2>
+        <pre><code>npx realtimeclipboard D75LV</code></pre>
+        <p>
+          其实没有什么要装的：<code>npx</code> 把它取下来、跑一遍，然后什么都不留。
+          如果你更希望它待在 PATH 上：
+        </p>
+        <pre><code>npm install -g realtimeclipboard</code></pre>
+        <p>
+          <b>需要 Node 22 或更新的版本</b>，因为它用的是内置的
+          <code>WebSocket</code>。在更旧的 Node 上，客户端会立刻退出并说明原因，
+          而不是等到传输到一半才失败。
+        </p>
+
+        <h2 id="pkg">或者用包管理器</h2>
+        <pre><code>brew install akshaynikhare/tap/realtimeclipboard-cli</code></pre>
+        <p>
+          注意名字：CLI 的 formula 叫 <code>realtimeclipboard-cli</code>，桌面应用
+          是 <code>realtimeclipboard</code> cask。它们是两样东西，装了一个不等于
+          有了另一个 —— 服务器要的是管道，不是菜单栏上的图标。
+        </p>
+
+        <h2 id="check">确认它装好了</h2>
+        <pre><code>npx realtimeclipboard --version</code></pre>
+        <p>
+          连接时它会往<b>标准错误</b>打一行状态，从不往标准输出打：
+        </p>
+        <pre><code>realtimeclipboard · room 3f2a91c4…</code></pre>
+        <p>
+          那是被截断的房间哈希，绝不是密钥。因为它走 stderr，所以
+          <code>watch &gt; file</code> 写进文件的仍然只有剪贴内容。加上
+          <code>-q</code> 可以让它完全不出声。
+        </p>
+
+        <h2 id="first">你的第一次同步</h2>
+        <ol class="steps">
+          <li>在浏览器里打开<a href="/app.html">应用</a>，记下那个密钥。</li>
+          <li>在服务器上，往它发点东西：
+            <pre><code>echo "deploy key" | npx realtimeclipboard send D75LV</code></pre></li>
+          <li>它会出现在浏览器里。现在反着走一遍 —— 在浏览器里复制点东西，
+            然后在服务器上执行：
+            <pre><code>npx realtimeclipboard watch D75LV --once &gt; token.txt</code></pre></li>
+        </ol>
+
+        <h2 id="usage">四条命令</h2>
+        <div class="tablewrap">
+          <table class="cmp">
+            <thead><tr><th>命令</th><th>作用</th></tr></thead>
+            <tbody>
+              <tr><td><code>realtimeclipboard &lt;KEY&gt;</code></td><td>双向：收到什么就打出来，你输入什么就发出去</td></tr>
+              <tr><td><code>realtimeclipboard watch &lt;KEY&gt;</code></td><td>打印收到的剪贴内容</td></tr>
+              <tr><td><code>realtimeclipboard send &lt;KEY&gt;</code></td><td>读标准输入到 EOF，然后发出去</td></tr>
+              <tr><td><code>realtimeclipboard new [--long]</code></td><td>打印一个新密钥</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>选项：<code>--relay &lt;url&gt;</code>、<code>--pin &lt;pin&gt;</code>、
+          <code>--once</code>、<code>--json</code>、<code>--timeout &lt;s&gt;</code>、
+          <code>-q</code>、<code>-h</code>、<code>-v</code>。中继服务器和 PIN 也可以
+          从 <code>REALTIMECLIPBOARD_RELAY</code> 和
+          <code>REALTIMECLIPBOARD_PIN</code> 读，传 PIN 就该这么传 —— 写成参数
+          会留在你的 shell 历史里。</p>
+
+        <pre><code># 结构化输出，每行一个 JSON 对象
+npx realtimeclipboard watch D75LV --once --json | jq -r .text
+
+# 在一台你 ssh 上去的机器上
+ssh build-01 'cat /var/log/deploy.log' | npx realtimeclipboard send D75LV
+
+# 指向你自己的中继服务器
+npx realtimeclipboard --relay wss://clip.example.com D75LV</code></pre>
+
+        <h2 id="trouble">它不工作的时候</h2>
+
+        <h3>“this needs Node 22 or newer”（需要 Node 22 或更新的版本）</h3>
+        <p>
+          就是字面意思：客户端用 Node 内置的 <code>WebSocket</code>，而不是为它拉一个
+          依赖进来，而内置的那个是 22 才有的。它在启动时就退出，不会等到传输中途。
+        </p>
+
+        <h3>它挂在那里，什么都不打印</h3>
+        <p>
+          <code>watch</code> 本来就是等剪贴内容的 —— 另一端不复制东西，这边就什么都
+          不会来。在脚本里加 <code>--timeout 30</code>，它就不会无限等下去；加
+          <code>--once</code>，它收到第一条就退出。
+        </p>
+
+        <h3>手动跑没问题，在 CI 里不行</h3>
+        <p>
+          那里没有 TTY，所以加 <code>-q</code> 然后读标准输出。把密钥放进环境变量，
+          不要放在命令行上 —— 命令行会进构建日志。
+        </p>
+
+        <h3>在代理后面连不上</h3>
+        <p>
+          客户端说的协议和浏览器完全一样，可以用 <code>--relay</code> 指向你自己的
+          中继服务器。<a href="/zh/help/install/relay/">自建一个就是一个容器的事。</a>
+        </p>
+
+        <h2 id="remove">卸载</h2>
+        <p>
+          <code>npx</code> 什么都没留下，也就没什么可卸的。全局装过的话用
+          <code>npm uninstall -g realtimeclipboard</code>，或者
+          <code>brew uninstall realtimeclipboard-cli</code>。
+        </p>
+        <p class="honest">
+          <b>密钥本身就是凭证。</b>只要会话还开着，拿到密钥的人就能读它，所以别让它
+          进 shell 历史、别进 CI 日志、也别提交进仓库。剪贴内容在这台机器上加密之后
+          才发出去；中继服务器看到的永远只有房间哈希和密文。
+        </p>
+
+        <p class="hint">
+          其他所有平台：<a href="/zh/help/install/">安装指南</a>。
+          这一页有错或者过时了？
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">提一个 issue</a>。
+        </p>
+      </div>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>开源项目 — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/install/cli/">English</a> · <a href="/es/help/install/cli/">Español</a> · <a href="/pt/help/install/cli/">Português</a> · <a href="/ru/help/install/cli/">Русский</a> · <a href="/zh/help/install/cli/">中文</a></p>
+      <p><a href="/zh/">首页</a> · <a href="/zh/download/">下载</a> · <a href="/zh/help/">帮助</a> · <a href="/zh/about/">关于</a> · <a href="/privacy/">隐私政策</a> · <a href="/terms/">使用条款</a></p>
+      <p>会话只保存在内存中，从不写入磁盘。剪贴板内容在发送前已在你的浏览器里完成加密。</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+No hay formulario de contacto y no lo habrá: un formulario necesita algún sitio
+  al que enviar, y este sitio es estático por diseño — el único servidor del
+  proyecto es el de retransmisión, deliberadamente incapaz de almacenar nada. Una
+  dirección y un gestor de incidencias hacen el mismo trabajo sin dar al sitio un
+  backend que por lo demás no tiene.
+
+  El aviso de no enviar nunca la clave de sesión no es relleno. Una clave
+  compartida es una credencial al portador, así que una clave pegada en un informe
+  de fallo entrega la sesión a todo el que lo lea.
+
+  Terminology follows /es/: portapapeles en línea, clave corta, servidor de
+  retransmisión, cifrado de extremo a extremo, código abierto. Names, GitHub URLs,
+  SECURITY.md and the email address stay as written.
+-->
+
+<title>Contacto de RealtimeClipboard: soporte y seguridad</title>
+<meta name="description" content="Cómo contactar con RealtimeClipboard: correo para consultas generales y comerciales, issues de GitHub para fallos, aviso privado para seguridad.">
+<link rel="canonical" href="https://realtimeclipboard.com/es/contact/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/contact/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/contact/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/contact/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/contact/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/contact/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/contact/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="es_ES">
+<meta property="og:title" content="Contacto de RealtimeClipboard">
+<meta property="og:description" content="Dónde enviar consultas de soporte, informes de fallos, divulgaciones de seguridad y asuntos comerciales, y qué respuesta esperar.">
+<meta property="og:url" content="https://realtimeclipboard.com/es/contact/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/es/contact/#article",
+      "headline": "Contacto",
+      "description": "Cómo llegar al mantenedor de RealtimeClipboard para soporte, informes de seguridad y asuntos comerciales.",
+      "inLanguage": "es",
+      "datePublished": "2026-09-04",
+      "dateModified": "2026-09-04",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/es/contact/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/es/" },
+        { "@type": "ListItem", "position": 2, "name": "Contacto" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/es/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir la aplicación</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Ruta de navegación">
+        <a href="/es/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Contacto</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>Contacto</h1>
+
+        <p class="lede">
+          <b>Escribe a <a href="mailto:info@realtimeclipboard.com">info@realtimeclipboard.com</a>
+          y llega a la persona que mantiene el proyecto.</b> RealtimeClipboard lo
+          lleva un solo mantenedor, así que no hay cola ni niveles de soporte — pero
+          tampoco hay turno de noche, y los plazos de abajo son honestos en lugar de
+          aspiracionales.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2>Antes de escribir: no envíes tu clave de sesión</h2>
+
+        <p>
+          <b>Nunca incluyas una clave compartida ni un PIN de sesión en un correo, en
+          un informe de fallo o en una captura de pantalla.</b> La clave es toda la
+          seguridad: quien la tenga puede abrir la sesión y leerla. Si necesitas
+          demostrar un problema, abre una sesión desechable y usa esa. Una captura de
+          la aplicación vale siempre que el panel de la clave esté recortado o la
+          clave tapada.
+        </p>
+
+        <h2>Soporte y preguntas generales</h2>
+
+        <p>
+          <a href="mailto:info@realtimeclipboard.com">info@realtimeclipboard.com</a>. Cuenta
+          con una respuesta en unos tres días laborables.
+        </p>
+
+        <p>
+          La mayoría de las preguntas del tipo "no sincroniza" tienen una respuesta
+          más rápida de la que puede dar un correo, porque las causas son pocas y
+          están bien entendidas: un navegador que no lee el portapapeles sin permiso,
+          dos dispositivos con claves distintas, o una extensión bloqueando la
+          conexión. La
+          <a href="/es/help/clipboard-sync-not-working/">guía de diagnóstico de
+          sincronización</a> las recorre en orden, y la
+          <a href="/es/help/">sección de ayuda</a> cubre la instalación en cada
+          plataforma. Prueba eso primero y normalmente estarás listo en un minuto.
+        </p>
+
+        <h2>Fallos y peticiones de funciones</h2>
+
+        <p>
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">Abre una
+          issue en GitHub</a>. Es mejor que el correo para cualquier cosa
+          reproducible: es público, así que la siguiente persona con el mismo
+          problema encuentra la respuesta, y es donde se enlazará el arreglo cuando
+          llegue.
+        </p>
+
+        <p>
+          Un informe útil dice qué navegadores y sistemas operativos había en ambos
+          extremos, qué esperabas, qué pasó en su lugar, y cualquier cosa que salga
+          en la consola del navegador. Todo el proyecto es código abierto, así que si
+          prefieres mandar un pull request en vez de una descripción, también sirve.
+        </p>
+
+        <h2>Divulgaciones de seguridad</h2>
+
+        <p>
+          Los problemas de seguridad tienen su propia vía y no deberían ir a una
+          issue pública.
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/security/advisories/new">Abre
+          un aviso privado</a> — queda visible solo para ti y para el mantenedor — o
+          escribe a
+          <a href="mailto:info@realtimeclipboard.com">info@realtimeclipboard.com</a> si ese
+          formulario no está disponible para ti.
+        </p>
+
+        <p>
+          Cuenta con un acuse de recibo en torno a una semana. Los informes válidos se
+          acreditan en el aviso y en el registro de cambios, salvo que prefieras que
+          no. No hay programa de recompensas ni dinero: es una herramienta gratuita
+          con un solo mantenedor, y fingir lo contrario te haría perder el tiempo. La
+          política completa, incluidas las concesiones conocidas que son diseño
+          deliberado y no defectos, está en
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/blob/main/SECURITY.md">SECURITY.md</a>.
+        </p>
+
+        <h2>Solicitudes de privacidad</h2>
+
+        <p>
+          Envíalas a <a href="mailto:info@realtimeclipboard.com">info@realtimeclipboard.com</a>.
+          Ten en cuenta de antemano que la respuesta habitual es que no hay nada que
+          entregar: no hay cuenta, no hay ningún correo registrado y no hay
+          constancia de ninguna sesión en el servidor, así que el material que un
+          servicio guardaría normalmente sobre ti no existe. Para los datos de
+          publicidad y analítica que guarda Google, los enlaces de la
+          <a href="/privacy/">política de privacidad</a> llegan más lejos de lo que
+          podría llegar cualquier solicitud a este sitio.
+        </p>
+
+        <h2>Prensa, publicidad y asuntos comerciales</h2>
+
+        <p>
+          <a href="mailto:info@realtimeclipboard.com">info@realtimeclipboard.com</a>, con
+          "prensa" o "comercial" en el asunto. RealtimeClipboard lo publica
+          CadNative. Los logotipos y el juego de iconos están en el
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">repositorio</a>
+          y pueden usarse para referirse al proyecto.
+        </p>
+
+        <h2>Por qué no hay formulario de contacto</h2>
+
+        <p>
+          Un formulario tiene que enviar a algún sitio, y eso significaría un
+          servidor que guarda mensajes. El único servidor de este proyecto es el de
+          retransmisión, construido para ser incapaz de guardar nada, y es más útil
+          que siga así. Una dirección de correo hace el mismo trabajo y deja la
+          arquitectura honesta.
+        </p>
+      </div>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código abierto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/contact/">English</a> · <a href="/es/contact/">Español</a> · <a href="/pt/contact/">Português</a> · <a href="/ru/contact/">Русский</a> · <a href="/zh/contact/">中文</a></p>
+      <p><a href="/es/">Inicio</a> · <a href="/es/download/">Descargas</a> · <a href="/es/help/">Ayuda</a> · <a href="/es/about/">Acerca de</a> · <a href="/privacy/">Privacidad</a> · <a href="/terms/">Términos</a></p>
+      <p>Las sesiones se mantienen en memoria y nunca se escriben en disco. El contenido del portapapeles se cifra en tu navegador antes de enviarse.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

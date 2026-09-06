@@ -61,3 +61,19 @@
   Cache-Control: public, max-age=0, must-revalidate
 /manifest.webmanifest
   Cache-Control: public, max-age=0, must-revalidate
+
+# The build publishes 25 Markdown files at the origin — README, CHANGELOG and
+# everything under docs/ — because assets/ and docs/ are copied wholesale. They
+# are repo documentation, not pages: raw Markdown renders as plain text and has
+# no title, description or nav, so a search result pointing at one is a worse
+# answer than the page that links it. Search Console has been reporting exactly
+# that as "Discovered - currently not indexed", which is Google agreeing.
+#
+# noindex, NOT Disallow, and the distinction is the whole point. The files stay
+# fetchable, so the four that llms.txt names on purpose
+# (THREAT-MODEL, ARCHITECTURE, PRD, SELF-HOSTING) still answer when an assistant
+# goes and reads them, and the eight in-page links to THREAT-MODEL.md still
+# work. What stops is them competing in search results. A Disallow would have
+# taken the answer engines out with them.
+/*.md
+  X-Robots-Tag: noindex

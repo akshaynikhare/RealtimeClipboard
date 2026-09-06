@@ -7,6 +7,7 @@ Scripts, filed by what they are for. Nothing here runs in the browser or ships t
 | `build/` | Produces artifacts — the deploy, the land mask, the OG card, the icon set |
 | `check/` | Answers yes/no about an artifact and exits non-zero. Never writes to it |
 | `release/` | Version, changelog, tag, package-manager manifests, relay probe |
+| `i18n/` | Generates the translated pages from one template plus a content file each. Writes into `src/pages/`, which `build/` may not — the output is committed so `static-check` can walk it |
 | `seo/` | Run by hand, never by a hook or a build. `kwmine.py` researches; `indexnow.mjs` talks to a search engine, so running it twice is not free — it is the one script here with an effect outside the repo |
 
 Reach for these through `npm run`, not by path — the scripts in `package.json` are the interface,

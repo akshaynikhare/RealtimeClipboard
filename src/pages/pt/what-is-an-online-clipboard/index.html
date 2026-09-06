@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Portuguese is the most engaged cohort in the analytics — 78.6% against 43.7%
+  for English — on about 5% of users, effectively all in Brazil.
+
+  Terminology follows /pt/: área de transferência (clipboard), chave (the share
+  key), retransmissor (relay), criptografia de ponta a ponta. Brazilian
+  technical writing translates "clipboard" rather than borrowing it.
+-->
+
+<title>O que é uma área de transferência online? Como funciona</title>
+<meta name="description" content="Uma área de transferência online leva o que você copia em um aparelho até outro pela internet. Como funciona, no que difere de um pastebin e se é segura.">
+<link rel="canonical" href="https://realtimeclipboard.com/pt/what-is-an-online-clipboard/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/what-is-an-online-clipboard/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/what-is-an-online-clipboard/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/what-is-an-online-clipboard/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/what-is-an-online-clipboard/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/what-is-an-online-clipboard/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/what-is-an-online-clipboard/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="O que é uma área de transferência online? Como funciona">
+<meta property="og:description" content="A definição, no que difere de um gerenciador e de um pastebin, e o que verificar antes de confiar em uma.">
+<meta property="og:url" content="https://realtimeclipboard.com/pt/what-is-an-online-clipboard/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/pt/what-is-an-online-clipboard/#article",
+      "headline": "O que é uma área de transferência online?",
+      "description": "Uma área de transferência online leva o que você copia em um aparelho até outro pela internet. Como funciona, no que difere de um gerenciador e de um pastebin, e quando usar.",
+      "inLanguage": "pt-BR",
+      "datePublished": "2026-08-07",
+      "dateModified": "2026-08-07",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/pt/what-is-an-online-clipboard/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/pt/" },
+        { "@type": "ListItem", "position": 2, "name": "O que é uma área de transferência online" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/faq.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/pt/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir o aplicativo</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Trilha de navegação">
+        <a href="/pt/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">O que é uma área de transferência online</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>O que é uma área de transferência online?</h1>
+
+        <p class="lede">
+          <b>Uma área de transferência online é um serviço que leva o que você copia
+          em um aparelho até a área de transferência de outro, pela internet.</b> Você
+          copia um link no notebook e cola no celular. Substitui a gambiarra que quase
+          todo mundo usa — mandar as coisas para si mesmo por e-mail ou mensagem — e
+          não precisa de cabo nem de estar no mesmo Wi-Fi.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2>Como funciona</h2>
+
+        <p>
+          Seu sistema operacional já tem uma área de transferência: um pedacinho de
+          memória guardando a última coisa copiada, que qualquer programa daquela
+          máquina lê quando você cola. Ela é local por natureza e para na borda do
+          aparelho.
+        </p>
+
+        <p>
+          A versão online acrescenta um segundo passo. Algo observa essa área local
+          e, quando ela muda, envia o conteúdo aos outros aparelhos da sua sessão,
+          onde ele é colocado na área de transferência <em>deles</em>. Daí em diante
+          se comporta como qualquer coisa que você tenha copiado —
+          <kbd>Ctrl</kbd>+<kbd>V</kbd> funciona normalmente.
+        </p>
+
+        <p>
+          Os aparelhos precisam ser informados de que andam juntos. Há duas maneiras
+          de fazer isso, e é a principal diferença entre os serviços:
+        </p>
+
+        <ul>
+          <li><b>Por conta</b> — você entra nos dois aparelhos e o serviço os pareia porque os dois são você. A sincronização do Windows e a Área de Transferência Universal da Apple funcionam assim.</li>
+          <li><b>Por chave compartilhada</b> — você digita o mesmo código curto nos dois, e o serviço os pareia porque ambos o conhecem. Não há identidade envolvida, então não há cadastro.</li>
+        </ul>
+
+        <p>
+          Eles também diferem na velocidade. Uma
+          <a href="/pt/live-clipboard/">área de transferência ao vivo</a> atualiza
+          enquanto você digita, sem apertar nada; outras dão uma caixa de texto e um
+          botão Enviar.
+        </p>
+
+        <h2>O que ela não é</h2>
+
+        <p>
+          Três ferramentas diferentes recebem o mesmo nome, e escolher a errada é o
+          motivo habitual de alguém concluir que isso não funciona.
+        </p>
+
+        <div class="tablewrap" tabindex="0" role="region"
+             aria-label="Área de transferência online comparada com ferramentas parecidas — rola de lado">
+          <table class="cmp">
+            <caption class="sr-only">
+              Área de transferência online comparada com um gerenciador, um pastebin
+              e uma ferramenta de transferência de arquivos: para que serve cada uma,
+              quantos aparelhos envolve e se o conteúdo permanece.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Ferramenta</th>
+                <th scope="col">Para que serve</th>
+                <th scope="col">Aparelhos</th>
+                <th scope="col">Permanece?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="me">
+                <th scope="row">Área de transferência online</th>
+                <td>Levar o que você copia de um aparelho a outro</td>
+                <td>Dois ou mais</td>
+                <td class="y">Não — é uma sessão ao vivo</td>
+              </tr>
+              <tr>
+                <th scope="row">Gerenciador</th>
+                <td>Histórico pesquisável do que você copiou</td>
+                <td class="n">Um</td>
+                <td>Sim, localmente</td>
+              </tr>
+              <tr>
+                <th scope="row">Pastebin</th>
+                <td>Publicar texto em uma URL que dá para compartilhar</td>
+                <td>Quem tiver o link</td>
+                <td class="n">Sim, num servidor</td>
+              </tr>
+              <tr>
+                <th scope="row">Transferência de arquivos</th>
+                <td>Enviar arquivos, geralmente para outra pessoa</td>
+                <td>Dois</td>
+                <td>Varia</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          <b>Um gerenciador</b> — Ditto, CopyQ, Maccy, ou o histórico
+          <kbd>Win</kbd>+<kbd>V</kbd> do Windows — guarda uma lista pesquisável de
+          tudo que você copiou em <em>uma</em> máquina. É sobre tempo, não sobre
+          distância. Alguns ganharam sincronização como recurso, e é daí que vem a
+          confusão.
+        </p>
+
+        <p>
+          <b>Um pastebin</b> — Pastebin, GitHub Gist, privatebin — põe o texto numa
+          URL para você mandar essa URL a alguém. É ferramenta de publicação: o
+          conteúdo fica guardado, tem endereço, e colar do outro lado significa abrir
+          uma página e selecionar o texto na mão.
+        </p>
+
+        <p>
+          <b>Uma ferramenta de transferência</b> — AirDrop, LocalSend, Snapdrop,
+          PairDrop — move arquivos entre aparelhos. Quase todas mandam um trecho de
+          texto também, mas ele chega como mensagem em vez de cair na área de
+          transferência, e essa diferença pequena pesa muito quando você faz isso
+          quarenta vezes por dia.
+        </p>
+
+        <h2>Quando é a ferramenta certa</h2>
+
+        <ul>
+          <li>Levar um link, endereço, código de verificação ou comando entre o seu notebook e o seu celular.</li>
+          <li>Copiar entre aparelhos de <b>fabricantes diferentes</b> — um PC com Windows e um Android, ou um Mac e uma máquina Windows — onde as opções nativas não se falam.</li>
+          <li>Trabalhar numa máquina onde você <b>não pode instalar nada</b>: notebook da empresa, computador compartilhado, Chromebook.</li>
+          <li>Aparelhos <a href="/pt/clipboard-sync-different-networks/">em redes diferentes</a> — um no Wi-Fi, outro nos dados móveis.</li>
+          <li>Tirar texto de uma máquina virtual ou sessão de área de trabalho remota onde a passagem de área de transferência está desligada.</li>
+        </ul>
+
+        <p>
+          É a ferramenta errada para arquivos grandes, para o que você precisa
+          guardar e para conteúdo que quer ter num link permanente. Esses três casos
+          são de uma ferramenta de transferência, de um app de notas e de um
+          pastebin, respectivamente.
+        </p>
+
+        <h2>É seguro?</h2>
+
+        <p>
+          <b>Depende inteiramente de o serviço conseguir ou não ler o que você
+          copia</b>, e essa é a pergunta que vale a pena fazer a qualquer um deles.
+          Senhas, códigos de uso único e links privados passam pela área de
+          transferência, então um serviço que os recebe em texto puro está segurando
+          o fluxo mais sensível da sua máquina.
+        </p>
+
+        <p>Três coisas para verificar:</p>
+
+        <ol class="steps">
+          <li><b>Tem criptografia de ponta a ponta?</b> O texto deve ser criptografado no seu aparelho antes de sair, para o servidor encaminhar algo que não consegue ler.</li>
+          <li><b>O que é guardado, e por quanto tempo?</b> "Nada é gravado em disco" é uma afirmação mais forte que "apagamos depois", e mais fácil de verificar.</li>
+          <li><b>Dá para conferir?</b> Código aberto e a opção de hospedar por conta própria significam que a resposta não é só uma promessa numa página de marketing.</li>
+        </ol>
+
+        <h2>Um exemplo concreto</h2>
+
+        <p>
+          O <a href="/pt/">RealtimeClipboard</a> é uma área de transferência online do
+          tipo chave compartilhada, e serve bem de ilustração da categoria inteira
+          porque faz cada uma dessas escolhas de forma explícita.
+        </p>
+
+        <p>
+          Os dois aparelhos abrem a mesma página e digitam a mesma chave curta. A
+          chave nunca sai do navegador: o que chega ao retransmissor é
+          <code>SHA-256(chave)</code>, usado só como endereço de sala, mais o texto já
+          criptografado com AES-GCM. O retransmissor encaminha texto cifrado entre
+          duas conexões e não grava nada em disco. Arquivos nem passam por ele e vão
+          direto de um navegador ao outro por WebRTC. É
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">licenciado sob MIT</a>,
+          e <a href="/pt/help/install/relay/">você pode rodar o retransmissor você mesmo</a>.
+        </p>
+
+        <p>
+          Os limites fazem parte da ilustração tanto quanto o resto: a chave curta é
+          uma credencial ao portador, arquivos têm teto de 5&nbsp;MB, e a captura
+          automática da área de transferência exige um navegador Chromium — Firefox e
+          Safari enviam e recebem texto colado, mas não leem a área sozinhos. Nenhum
+          navegador lê a área de transferência com a aba em segundo plano; é regra de
+          segurança do navegador e vale para toda ferramenta web desta categoria.
+        </p>
+
+        <p>
+          <a class="btn" href="/app.html">Experimentar</a>
+        </p>
+      </div>
+
+      <div class="faq" id="faq">
+        <div class="faqhead">
+          <h2>Perguntas frequentes</h2>
+          <button type="button" class="faqall" id="faqAll"
+                  aria-expanded="false" aria-controls="faq" hidden>
+            <span class="faqall-i" aria-hidden="true"></span>
+            <span class="faqall-t">Expandir tudo</span>
+          </button>
+        </div>
+
+        <details class="qa">
+          <summary><h3>O que é uma área de transferência online, em palavras simples?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            É um serviço que faz copiar e colar funcionar entre dois aparelhos em vez
+            de dentro de um só. Você copia algo no notebook e aquilo fica disponível
+            para colar no celular, pela internet, sem cabo e sem estar no mesmo Wi-Fi.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Qual a diferença para um gerenciador de área de transferência?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Um gerenciador guarda um histórico pesquisável de tudo que você copiou numa
+            única máquina — resolve "o que foi que eu copiei dez minutos atrás". A
+            versão online leva o que você copiou para outro aparelho — resolve "copiei
+            aqui e preciso disso ali". Um é sobre tempo, o outro sobre distância.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>É a mesma coisa que um pastebin?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Não. Um pastebin guarda seu texto numa URL pública para você compartilhar
+            esse link com alguém, e o texto fica lá até expirar. Uma área de
+            transferência online não tem URL nenhuma segurando seu conteúdo e não há o
+            que compartilhar — ela põe o texto na área de transferência do outro
+            aparelho e não guarda nada depois.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Dá para usar com senhas?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Só se o serviço tiver criptografia de ponta a ponta, e mesmo assim um
+            gerenciador de senhas com sincronização própria é a ferramenta melhor. Se
+            um serviço não criptografa no seu aparelho antes de enviar, presuma que
+            quem o opera consegue ler tudo que você copia — inclusive senhas e códigos
+            de uso único que passaram pela área de transferência enquanto ele rodava.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Funciona entre Android e Windows?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Sim, e esse é um dos principais motivos para usar uma. As opções nativas
+            não atravessam ecossistemas: a sincronização do Windows só funciona entre
+            PCs Windows na mesma conta Microsoft, e a da Apple só entre aparelhos
+            Apple. Uma solução em navegador trata toda plataforma igual porque só
+            precisa de um navegador.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Precisa de conta?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Não necessariamente. Serviços que pareiam aparelhos com uma chave
+            compartilhada não precisam de conta alguma, porque é a chave que
+            identifica a sessão, e não uma identidade conectada. Serviços construídos
+            em torno de conta — como a sincronização embutida no Windows e no macOS —
+            exigem uma, e só funcionam dentro do próprio ecossistema. Veja
+            <a href="/pt/online-clipboard-no-login/">área de transferência online sem login</a>.
+            </p>
+          </div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código aberto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/what-is-an-online-clipboard/">English</a> · <a href="/es/what-is-an-online-clipboard/">Español</a> · <a href="/pt/what-is-an-online-clipboard/">Português</a> · <a href="/ru/what-is-an-online-clipboard/">Русский</a> · <a href="/zh/what-is-an-online-clipboard/">中文</a></p>
+      <p><a href="/pt/">Início</a> · <a href="/pt/download/">Download</a> · <a href="/pt/help/">Ajuda</a> · <a href="/pt/about/">Sobre</a> · <a href="/privacy/">Privacidade</a> · <a href="/terms/">Termos</a></p>
+      <p>As sessões ficam em memória e nunca são gravadas em disco. O conteúdo da área de transferência é criptografado no seu navegador antes de ser enviado.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

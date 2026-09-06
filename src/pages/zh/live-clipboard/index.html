@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Chinese is the second browser language at ~12%, and an undercount: Google
+  Analytics is unreachable from the mainland.
+
+  The terminology table is localised rather than translated. English compares
+  live / realtime / online / cloud; a Chinese reader does not search "live" or
+  "realtime" as separate words, so comparing them would teach nothing. The four
+  compared here are the terms actually typed into cn.bing.com: 实时剪贴板,
+  同步剪贴板, 在线剪贴板, 云剪贴板. The cloud row carries the same trap it does
+  in English, and it is the reason the section exists.
+
+  Terminology follows /zh/: 实时剪贴板, 在线剪贴板, 密钥, 中继服务器, 端到端加密.
+-->
+
+<title>实时剪贴板 —— 打字即同步的在线剪贴板</title>
+<meta name="description" content="实时剪贴板在你打字的同时就同步，没有发送按钮。实时剪贴板同步是怎么工作的，以及它和 pastebin 有什么不同。">
+<link rel="canonical" href="https://realtimeclipboard.com/zh/live-clipboard/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/live-clipboard/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/live-clipboard/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/live-clipboard/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/live-clipboard/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/live-clipboard/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/live-clipboard/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="实时剪贴板 —— 打字即同步的在线剪贴板">
+<meta property="og:description" content="没有发送按钮。你打的字随手出现在另一台设备上，你复制的内容自动跟过去。">
+<meta property="og:url" content="https://realtimeclipboard.com/zh/live-clipboard/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/zh/live-clipboard/#article",
+      "headline": "实时剪贴板 —— 打字即同步的在线剪贴板",
+      "description": "实时剪贴板在你打字的同时就把内容发出去，没有发送按钮。实时剪贴板同步是怎么工作的，以及它的代价是什么。",
+      "inLanguage": "zh-Hans",
+      "datePublished": "2026-08-08",
+      "dateModified": "2026-08-08",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/zh/live-clipboard/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/zh/" },
+        { "@type": "ListItem", "position": 2, "name": "实时剪贴板" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/faq.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/zh/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">打开应用</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="面包屑导航">
+        <a href="/zh/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">实时剪贴板</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>实时剪贴板，打字即同步</h1>
+
+        <p class="lede">
+          <b>实时剪贴板就是没有发送按钮的在线剪贴板：你打的字随手出现在另一台
+          设备上，你复制的内容自动跟过去。</b>这一类工具大多是一个文本框加一个
+          按钮。这个区别听上去像是外观问题，其实不是 —— 它分开的是"你共享的剪贴板"
+          和"你提交的表单"。
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2>什么才算实时</h2>
+
+        <p>
+          <b>判断标准是需不需要按什么。</b>常规的<a href="/zh/what-is-an-online-clipboard/">在线剪贴板</a>
+          给你一个框，你粘进去，按发送，另一台设备刷新或者轮询之后才显示结果。每一步
+          都是一个决定，而这一来一回长到让人不再信任它，转头又去给自己发消息。
+        </p>
+
+        <p>实时剪贴板把这三步都去掉了：</p>
+
+        <ul>
+          <li><b>不用按。</b>你还在打字，按键就已经流向另一台设备。</li>
+          <li><b>不用刷新。</b>连接一直开着，来的内容自己就落下了。</li>
+          <li><b>不用往框里粘。</b>在最高一档上，在这台机器上任何地方复制就够了 —— 被盯着的就是剪贴板本身。</li>
+        </ul>
+
+        <p>
+          最后一条是真正值钱的，也是最该小心的那条：一个什么都同步的剪贴板，会把你
+          因为别的事复制的密码一起同步过去。所以它是你自己爬上去的一档，而不是它
+          唯一的工作方式。
+        </p>
+
+        <h2>实时剪贴板、在线剪贴板、云剪贴板</h2>
+
+        <p>
+          <b>这几个说法指的是同一类东西，差别在侧重，不在种类。</b>搜其中任何一个的
+          人想要的大多是同一样东西，但这些词确实带着不同的预期，值得说清楚哪个是哪个。
+        </p>
+
+        <div class="tablewrap" tabindex="0" role="region"
+             aria-label="实时、同步、在线、云剪贴板几种说法的对比 —— 可横向滚动">
+          <table class="cmp">
+            <caption class="sr-only">
+              实时剪贴板、同步剪贴板、在线剪贴板和云剪贴板的对比：每个说法强调什么，
+              以及这样问的人通常想要什么。
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">说法</th>
+                <th scope="col">这个词强调什么</th>
+                <th scope="col">人们通常指什么</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="me">
+                <th scope="row">实时剪贴板</th>
+                <td>当下就到，不用等</td>
+                <td>它自己更新，而且是双向的</td>
+              </tr>
+              <tr class="me">
+                <th scope="row">同步剪贴板</th>
+                <td>两端保持一致</td>
+                <td>两台设备看到同一份内容</td>
+              </tr>
+              <tr>
+                <th scope="row">在线剪贴板</th>
+                <td>走互联网</td>
+                <td>这一类的统称，实时与否都算</td>
+              </tr>
+              <tr>
+                <th scope="row">云剪贴板</th>
+                <td>绑定账号</td>
+                <td class="n">通常指系统自带的那个 —— Windows、苹果</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          最后一行才是让人栽跟头的地方。<b>云剪贴板</b>是微软和苹果给自家操作系统
+          内置功能起的名字，两者都锁在各自的生态里、锁在一个已登录的账号上：Windows
+          的剪贴板历史在 Windows 电脑之间同步，通用剪贴板在苹果设备之间同步，谁也
+          过不到对面去。如果你来搜索正是因为手机和笔记本出自不同厂商，那么内置的
+          云剪贴板恰恰是帮不上忙的那一个。
+        </p>
+
+        <h2>实时的是打字，不只是粘贴</h2>
+
+        <p>
+          <b>剪贴板能做到"实时"的其实是两件事，而大多数号称实时的工具只做到了后一件。</b>
+          把一段写完的内容快速送到，是容易的那一半。把还在写的文字就显示出来，才是让
+          共享剪贴板像一块屏幕而不是两块的那一半。
+        </p>
+
+        <p>在这里，打字是流式的，剪贴内容是提交的，这两条路是刻意分开的：</p>
+
+        <ol class="steps">
+          <li><b>你打字的时候</b>，编辑器每秒把文本发出去大约十次。另一头把它渲染出来，然后什么也不做 —— 不进历史，不写剪贴板。</li>
+          <li><b>你停下来的时候</b>，安静 800&nbsp;毫秒之后，或者失去焦点时，或者按 <kbd>Ctrl</kbd>+<kbd>Enter</kbd>，它就提交。那一刻它才成为一条真正的剪贴内容：进入历史，并且在最高一档上写进系统剪贴板。</li>
+        </ol>
+
+        <p>
+          超过大约 4&nbsp;KB 就不再流式发送，只在提交时同步；实际用起来看不出来 ——
+          那么长的文字是粘进去的，不是敲进去的。
+        </p>
+
+        <p>
+          <b>两个人同时打字，永远不会被合并。</b>合并并发编辑需要 CRDT，而这是剪贴板，
+          不是文档编辑器。你正在打字时，进来的流会被丢掉；会覆盖未保存内容的剪贴内容，
+          是先问你而不是直接应用。真正避免撞车的，是你能看见它要来：每个人的光标会在
+          行号栏里把自己那一行染成他自己的颜色，你能看着对方先动手，再决定谁提交。
+        </p>
+
+        <h2>实时同步能走多远</h2>
+
+        <p>
+          <b>同步的范围是一个设置，三档，每一档都只比下面一档多做一件事。</b>它放在
+          应用的顶栏里而不是设置菜单里，因为它决定的是什么东西离开这台机器。
+        </p>
+
+        <div class="tablewrap" tabindex="0" role="region"
+             aria-label="三档同步 —— 可横向滚动">
+          <table class="cmp">
+            <caption class="sr-only">
+              三档同步 —— 关闭、应用内、剪贴板 —— 各自会有什么离开设备，以及是否
+              碰系统剪贴板。
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">档位</th>
+                <th scope="col">会发生什么</th>
+                <th scope="col">碰系统剪贴板吗？</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">关闭</th>
+                <td>什么都不离开这台设备，也什么都不进来</td>
+                <td class="n">否</td>
+              </tr>
+              <tr>
+                <th scope="row">应用内</th>
+                <td>文字在窗口里实时同步，双向</td>
+                <td class="n">否</td>
+              </tr>
+              <tr class="me">
+                <th scope="row">剪贴板</th>
+                <td>你复制的会被共享，进来的会复制到这里</td>
+                <td class="y">会，两个方向都会</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          <b>应用内</b>是大多数人在共用电脑或工作电脑上该待的一档：会话完全是实时的，
+          但你操作系统的剪贴板既不被读也不被写，所以你因为别的事复制的东西一概不会
+          出去。<b>剪贴板</b>是那个让"在机器上任何地方复制"就够用的档位，而且它是一个
+          同时管住两个方向的设置 —— 一台已经停止发送的设备，不会还在悄悄接收。
+        </p>
+
+        <h2>实时同步的实际代价</h2>
+
+        <p>
+          <b>自动读取系统剪贴板是浏览器给不给的能力，不是一个网站想有就能有的功能</b>，
+          在你断定哪里坏了之前，这些限制值得先知道。
+        </p>
+
+        <ul>
+          <li><b>自动读取需要 Chromium 内核的浏览器</b> —— Chrome、Edge、Brave、Opera。Firefox 和 Safari 可以发送和接收你粘贴进来的文字，但不能自己读剪贴板。</li>
+          <li><b>标签页在后台时，任何浏览器都不读剪贴板。</b>这是浏览器的安全规则，对这一类里所有基于网页的工具都一样，不只是这一个。窗口必须处于焦点。</li>
+          <li><b>单条剪贴内容上限 24,000 个字符</b>，这是加密之后中继服务器的帧大小，不是随手定的数字。</li>
+          <li><b>文件不是文字</b>，不走流式 —— 它们通过 WebRTC 在浏览器之间直接传输，每个最大 5&nbsp;MB。</li>
+        </ul>
+
+        <p>
+          如果根本收不到同步，原因几乎总在一份很短的名单里 ——
+          <a href="/zh/help/clipboard-sync-not-working/">剪贴板同步不工作</a>
+          按顺序把它们过了一遍。
+        </p>
+
+        <h2>怎么用实时剪贴板</h2>
+
+        <p>
+          <a href="/zh/">RealtimeClipboard</a> 就是共享密钥这一类的实时剪贴板，
+          所以没有什么要注册的：
+        </p>
+
+        <ol class="steps">
+          <li>在两台设备上打开应用。</li>
+          <li>在两边输入同一个短密钥。配对靠的就是这个密钥 —— 不要账号，不要邮箱，<a href="/zh/online-clipboard-no-login/">不用登录</a>。</li>
+          <li>开始打字。它随手出现在另一块屏幕上。</li>
+        </ol>
+
+        <p>
+          密钥从不离开你的浏览器：到达中继服务器的是 <code>SHA-256(密钥)</code>，
+          只用作房间地址，外加已经用 AES-GCM 加密好的文字。中继服务器在连接之间转发
+          密文，不向磁盘写任何东西，所以这里的"实时"不等于"先存在服务器上等你来取"
+          —— 没有任何一份副本可取。它能<a href="/zh/clipboard-sync-different-networks/">跨不同网络</a>
+          工作，而不只是在同一个 Wi-Fi 下，这正是
+          <a href="/zh/snapdrop-alternative/">Snapdrop</a> 这类只在本地网络里工作的
+          工具停下来的那条线。
+        </p>
+
+        <p>
+          <a class="btn" href="/app.html">打开一个实时剪贴板</a>
+        </p>
+      </div>
+
+      <div class="faq" id="faq">
+        <div class="faqhead">
+          <h2>常见问题</h2>
+          <button type="button" class="faqall" id="faqAll"
+                  aria-expanded="false" aria-controls="faq" hidden>
+            <span class="faqall-i" aria-hidden="true"></span>
+            <span class="faqall-t">全部展开</span>
+          </button>
+        </div>
+
+        <details class="qa">
+          <summary><h3>有没有能自动实时同步的在线剪贴板？</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            有。两台设备打开同一个页面，输入同一个短密钥，从这以后文字就在它们之间
+            流动，不用按任何东西 —— 而且是在你还在打字的时候，不是提交之后。在最高
+            一档上，系统剪贴板也被接了进来，于是在机器上任何地方复制，就足以把它发
+            出去。
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>实时剪贴板和同步剪贴板有什么区别？</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            实际上没有区别，它们说的是同一类东西。"实时"强调它当下就到，而不是等下
+            一次刷新；"同步"强调两端始终保持一致，不用你手动去做什么。两个词描述的
+            都是一个保持着连接、而不是让你提交表单的在线剪贴板。
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>实时剪贴板和 pastebin 有什么不同？</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            pastebin 把你的文字存在一个网址上，好让你把这个链接发给别人，文字会一直
+            留到过期。实时剪贴板没有任何网址存着你的内容，也没有什么可分享的 ——
+            它在你写的同时就把文字放到另一台设备上，之后什么也不留。一个是发布，
+            一个是同步。
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>实时剪贴板能在 Windows 和安卓之间用吗？</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            能，而且这正是用它而不用内置方案的主要理由。Windows 的剪贴板同步只在同一
+            个微软账号下的 Windows 电脑之间有效，苹果的通用剪贴板只在苹果设备之间
+            有效。基于浏览器的剪贴板对所有平台一视同仁，因为它只需要一个浏览器。
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>为什么我一切换标签页，剪贴板就不同步了？</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            因为任何浏览器都不允许页面在标签页处于后台时读取系统剪贴板 —— 这是一条
+            安全规则，对所有基于网页的剪贴板工具都成立。已经在会话里的文字照样会到；
+            暂停的是对你在别处复制内容的自动读取。把窗口切回前台就会恢复。
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>如果实时剪贴板能看到我复制的一切，那它安全吗？</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            这完全取决于这个服务能不能读到你复制的东西。在这里，文字在你的浏览器里
+            就完成加密再发出去，所以中继服务器转发的是它解不开的密文，而且不向磁盘
+            写任何东西。这也正是同步范围要做成一档一档由你选的原因：在"应用内"这一
+            档，会话依然完全实时，但系统剪贴板从不被读取，你因为别的事复制的密码根本
+            不会进来。
+            </p>
+          </div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>开源项目 — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/live-clipboard/">English</a> · <a href="/es/live-clipboard/">Español</a> · <a href="/pt/live-clipboard/">Português</a> · <a href="/ru/live-clipboard/">Русский</a> · <a href="/zh/live-clipboard/">中文</a></p>
+      <p><a href="/zh/">首页</a> · <a href="/zh/download/">下载</a> · <a href="/zh/help/">帮助</a> · <a href="/zh/about/">关于</a> · <a href="/privacy/">隐私政策</a> · <a href="/terms/">使用条款</a></p>
+      <p>会话只保存在内存中，从不写入磁盘。剪贴板内容在发送前已在你的浏览器里完成加密。</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+The help hub, and it has two jobs pulling in different directions. For a
+  reader it is a contents page: short, and quick to leave. For a crawler it is
+  what makes every help page reachable in two hops from the homepage, which is
+  why it is a real page rather than a row of footer links.
+
+  Each entry carries a one line summary rather than a bare title, because the
+  summary is what tells a reader which page answers their question without
+  opening all of them. Keep the summaries; a list of bare titles here is a
+  directory, not a structure.
+
+  The last entry points at pages that sit at the site root, not under help:
+  they answer "which tool do I want" rather than "mine is broken". They are
+  listed anyway, because a page nothing links to is a page nothing crawls.
+
+  Terminology follows /ru/: буфер обмена, ключ, ретранслятор, сквозное
+  шифрование, расширение, установка.
+-->
+
+<title>Помощь — синхронизация буфера обмена</title>
+<meta name="description" content="Руководства о том, как заставить буфер обмена ходить между вашими устройствами: почему синхронизация в Windows неактивна и как копировать на Android.">
+<link rel="canonical" href="https://realtimeclipboard.com/ru/help/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="Помощь — синхронизация буфера обмена и её починка">
+<meta property="og:description" content="Почему синхронизация буфера обмена неактивна и как копировать и вставлять между любыми двумя устройствами.">
+<meta property="og:url" content="https://realtimeclipboard.com/ru/help/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/ru/help/#article",
+      "headline": "Помощь — руководства по синхронизации буфера обмена",
+      "description": "Руководства о том, как заставить буфер обмена работать между вашими устройствами.",
+      "inLanguage": "ru",
+      "datePublished": "2026-08-07",
+      "dateModified": "",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/ru/help/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/ru/" },
+        { "@type": "ListItem", "position": 2, "name": "Помощь" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/ru/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Открыть приложение</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Навигационная цепочка">
+        <a href="/ru/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Помощь</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>Помощь</h1>
+
+        <p class="lede">
+          Заставить буфер обмена переходить с одной машины на другую сложнее, чем
+          должно быть, и большинство причин неочевидны. Эти страницы сначала чинят
+          то, что уже встроено в систему, и прямо говорят там, где починить нечего.
+        </p>
+      </header>
+
+
+        <ul class="hublist">
+          <li>
+            <a href="/ru/help/install/">Установка RealtimeClipboard на любое устройство</a>
+            <p>
+              Windows, macOS, Linux, Android, iPhone и командная строка — что ставить
+              на каждом и какие из них умеют следить за буфером обмена в фоне. Двое
+              не умеют, и причина не в этом приложении.
+            </p>
+            <p>
+              По платформам:
+              <a href="/ru/help/install/windows/">Windows</a> ·
+              <a href="/ru/help/install/mac/">macOS</a> ·
+              <a href="/ru/help/install/linux/">Linux</a> ·
+              <a href="/ru/help/install/android/">Android</a> ·
+              <a href="/ru/help/install/iphone/">iPhone</a> ·
+              <a href="/ru/help/install/cli/">командная строка</a> ·
+              <a href="/ru/help/install/relay/">свой ретранслятор</a>
+            </p>
+          </li>
+          <li>
+            <a href="/ru/help/clipboard-sync-not-working/">Синхронизация буфера обмена не работает?</a>
+            <p>
+              Почему «Синхронизация между устройствами» в Windows 11 неактивна — та
+              причина, которую пропускает почти каждое руководство, — плюс решения
+              для Samsung, Android, Mac и iPhone и то, что может заблокировать
+              работодатель.
+            </p>
+          </li>
+          <li>
+            <a href="/ru/what-is-an-online-clipboard/">Что такое онлайн-буфер обмена?</a>
+            <p>
+              Определение и три инструмента, с которыми его постоянно путают:
+              менеджер буфера обмена, pastebin и сервис передачи файлов решают каждый
+              свою задачу.
+            </p>
+            <p>
+              Ещё:
+              <a href="/ru/live-clipboard/">что делает буфер обмена живым</a> ·
+              <a href="/ru/clipboard-sync-different-networks/">синхронизация между разными сетями</a> ·
+              <a href="/ru/online-clipboard-no-login/">без входа в аккаунт</a> ·
+              <a href="/ru/snapdrop-alternative/">замена Snapdrop</a>
+            </p>
+          </li>
+        </ul>
+
+        <p class="hint">
+          Руководства ещё пишутся. Если здесь что-то неверно или устарело,
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">откройте issue</a>.
+        </p>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Открытый исходный код — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/">English</a> · <a href="/es/help/">Español</a> · <a href="/pt/help/">Português</a> · <a href="/ru/help/">Русский</a> · <a href="/zh/help/">中文</a></p>
+      <p><a href="/ru/">Главная</a> · <a href="/ru/download/">Загрузки</a> · <a href="/ru/help/">Помощь</a> · <a href="/ru/about/">О проекте</a> · <a href="/privacy/">Конфиденциальность</a> · <a href="/terms/">Условия</a></p>
+      <p>Сессии хранятся в памяти и никогда не пишутся на диск. Содержимое буфера обмена шифруется в вашем браузере до отправки.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Spanish is the smallest of the four languages in the analytics at ~2%, and the
+  one whose head term is most contested — which is the argument for translating
+  the definitional page rather than a commercial one. It earns a citation rather
+  than a click, and it does not have to outrank anybody to do that.
+
+  Terminology follows /es/: portapapeles en línea, clave corta, servidor de
+  retransmisión, cifrado de extremo a extremo.
+-->
+
+<title>¿Qué es un portapapeles en línea? Cómo funciona</title>
+<meta name="description" content="Un portapapeles en línea lleva lo que copias en un dispositivo a otro por internet. Cómo funciona, en qué se diferencia de un pastebin y si es seguro.">
+<link rel="canonical" href="https://realtimeclipboard.com/es/what-is-an-online-clipboard/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/what-is-an-online-clipboard/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/what-is-an-online-clipboard/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/what-is-an-online-clipboard/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/what-is-an-online-clipboard/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/what-is-an-online-clipboard/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/what-is-an-online-clipboard/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="es_ES">
+<meta property="og:title" content="¿Qué es un portapapeles en línea? Cómo funciona y cuándo usarlo">
+<meta property="og:description" content="La definición, en qué se diferencia de un gestor de portapapeles y de un pastebin, y qué comprobar antes de confiar en uno.">
+<meta property="og:url" content="https://realtimeclipboard.com/es/what-is-an-online-clipboard/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/es/what-is-an-online-clipboard/#article",
+      "headline": "¿Qué es un portapapeles en línea?",
+      "description": "Un portapapeles en línea lleva lo que copias en un dispositivo a otro por internet. Cómo funciona, en qué se diferencia de un gestor de portapapeles y de un pastebin, y cuándo usarlo.",
+      "inLanguage": "es",
+      "datePublished": "2026-08-07",
+      "dateModified": "2026-08-07",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/es/what-is-an-online-clipboard/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/es/" },
+        { "@type": "ListItem", "position": 2, "name": "Qué es un portapapeles en línea" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/faq.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/es/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir la aplicación</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Ruta de navegación">
+        <a href="/es/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Qué es un portapapeles en línea</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>¿Qué es un portapapeles en línea?</h1>
+
+        <p class="lede">
+          <b>Un portapapeles en línea es un servicio que lleva lo que copias en
+          un dispositivo al portapapeles de otro, por internet.</b> Copias un
+          enlace en el portátil y lo pegas en el móvil. Sustituye el apaño que usa
+          casi todo el mundo — mandarse las cosas por correo o por mensaje — y no
+          necesita cable ni una misma red Wi-Fi.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2>Cómo funciona un portapapeles en línea</h2>
+
+        <p>
+          Tu sistema operativo ya tiene un portapapeles: un pequeño espacio de
+          memoria que guarda lo último que copiaste y que cualquier programa de esa
+          máquina puede leer cuando pegas. Es local por diseño y se detiene en el
+          borde del dispositivo.
+        </p>
+
+        <p>
+          Un portapapeles en línea añade un segundo paso. Algo vigila ese
+          portapapeles local y, cuando cambia, envía el contenido a los demás
+          dispositivos de tu sesión, donde queda en <em>su</em> portapapeles local.
+          A partir de ahí se comporta como cualquier otra cosa que hubieras copiado:
+          <kbd>Ctrl</kbd>+<kbd>V</kbd> funciona con normalidad.
+        </p>
+
+        <p>
+          Antes hay que decirles a los dispositivos que van juntos. Los servicios lo
+          hacen de dos maneras, y es lo que más los distingue entre sí:
+        </p>
+
+        <ul>
+          <li><b>Por cuenta</b> — inicias sesión en ambos dispositivos y el servicio los empareja porque los dos son tú. Así funcionan la sincronización del portapapeles de Windows y el Portapapeles Universal de Apple.</li>
+          <li><b>Por clave compartida</b> — escribes el mismo código corto en ambos dispositivos y el servicio los empareja porque los dos lo conocen. No hay identidad de por medio, así que no hace falta registrarse.</li>
+        </ul>
+
+        <p>
+          También se diferencian en la rapidez. Un
+          <a href="/es/live-clipboard/">portapapeles en vivo</a> se actualiza
+          mientras escribes y no requiere pulsar nada; otros te dan un cuadro de
+          texto y un botón de enviar.
+        </p>
+
+        <h2>Lo que no es</h2>
+
+        <p>
+          Tres herramientas distintas reciben el mismo nombre, y elegir la
+          equivocada es la razón habitual por la que alguien concluye que los
+          portapapeles en línea no funcionan.
+        </p>
+
+        <div class="tablewrap" tabindex="0" role="region"
+             aria-label="El portapapeles en línea comparado con herramientas parecidas — se desplaza en horizontal">
+          <table class="cmp">
+            <caption class="sr-only">
+              El portapapeles en línea comparado con un gestor de portapapeles, un
+              pastebin y una herramienta de transferencia de archivos: para qué
+              sirve cada uno, cuántos dispositivos intervienen y si el contenido se
+              conserva.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Herramienta</th>
+                <th scope="col">Para qué sirve</th>
+                <th scope="col">Dispositivos</th>
+                <th scope="col">¿Se conserva?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="me">
+                <th scope="row">Portapapeles en línea</th>
+                <td>Mover entre dispositivos lo que copias</td>
+                <td>Dos o más</td>
+                <td class="y">No — es una sesión en vivo</td>
+              </tr>
+              <tr>
+                <th scope="row">Gestor de portapapeles</th>
+                <td>Historial buscable de todo lo que copiaste</td>
+                <td class="n">Uno</td>
+                <td>Sí, en local</td>
+              </tr>
+              <tr>
+                <th scope="row">Pastebin</th>
+                <td>Publicar texto en una URL que puedes compartir</td>
+                <td>Cualquiera con el enlace</td>
+                <td class="n">Sí, en un servidor</td>
+              </tr>
+              <tr>
+                <th scope="row">Transferencia de archivos</th>
+                <td>Enviar archivos, normalmente a otra persona</td>
+                <td>Dos</td>
+                <td>Depende</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          <b>Un gestor de portapapeles</b> — Ditto, CopyQ, Maccy, o el historial
+          <kbd>Win</kbd>+<kbd>V</kbd> de Windows — mantiene una lista buscable de
+          todo lo que has copiado en <em>una</em> máquina. Va de tiempo, no de
+          distancia. Algunos gestores añaden sincronización, y ahí empieza la
+          confusión.
+        </p>
+
+        <p>
+          <b>Un pastebin</b> — Pastebin, GitHub Gist, privatebin — pone texto en una
+          URL para que puedas enviarle esa URL a alguien. Es una herramienta de
+          publicación: el contenido se guarda, tiene una dirección, y pegarlo al
+          otro lado significa abrir una página y seleccionar el texto a mano.
+        </p>
+
+        <p>
+          <b>Una herramienta de transferencia de archivos</b> — AirDrop, LocalSend,
+          Snapdrop, PairDrop — mueve archivos entre dispositivos. Casi todas envían
+          también un fragmento de texto, pero llega como un mensaje y no al
+          portapapeles, una diferencia pequeña que pesa mucho cuando lo haces
+          cuarenta veces al día.
+        </p>
+
+        <h2>Cuándo un portapapeles en línea es la herramienta adecuada</h2>
+
+        <ul>
+          <li>Mover un enlace, una dirección, un código de verificación o un comando entre tu propio portátil y tu móvil.</li>
+          <li>Copiar entre dispositivos de <b>fabricantes distintos</b> — un PC con Windows y un móvil Android, o un Mac y una máquina Windows — donde las opciones integradas no se hablan entre sí.</li>
+          <li>Trabajar en una máquina donde <b>no puedes instalar software</b>: el portátil del trabajo, un ordenador compartido, un Chromebook.</li>
+          <li>Dispositivos que están <a href="/es/clipboard-sync-different-networks/">en redes distintas</a> — uno en Wi-Fi y otro con datos móviles.</li>
+          <li>Sacar texto de una máquina virtual o un escritorio remoto donde el portapapeles compartido está desactivado.</li>
+        </ul>
+
+        <p>
+          Es la herramienta equivocada para archivos grandes, para cualquier cosa
+          que necesites conservar y para contenido del que quieras un enlace
+          permanente. Eso son trabajos para una herramienta de transferencia, una
+          aplicación de notas y un pastebin, respectivamente.
+        </p>
+
+        <h2>¿Es seguro un portapapeles en línea?</h2>
+
+        <p>
+          <b>Depende por completo de si el servicio puede leer lo que copias</b>, y
+          esa es la única pregunta que merece la pena hacerle a cualquiera de ellos.
+          Por el portapapeles pasan contraseñas, códigos de un solo uso y enlaces
+          privados, así que un servicio que los recibe en texto plano tiene en sus
+          manos el flujo más sensible de tu máquina.
+        </p>
+
+        <p>Tres cosas que comprobar:</p>
+
+        <ol class="steps">
+          <li><b>¿Tiene cifrado de extremo a extremo?</b> El texto debería cifrarse en tu dispositivo antes de salir, de modo que el servidor reenvíe algo que no puede leer.</li>
+          <li><b>¿Qué se guarda, y durante cuánto tiempo?</b> «No se escribe nada en disco» es una afirmación más fuerte que «lo borramos después», y más fácil de verificar.</li>
+          <li><b>¿Puedes comprobarlo?</b> Código abierto y la opción de alojarlo tú mismo significan que la respuesta no es solo una promesa en una página de marketing.</li>
+        </ol>
+
+        <h2>Un ejemplo concreto</h2>
+
+        <p>
+          <a href="/es/">RealtimeClipboard</a> es un portapapeles en línea del tipo
+          de clave compartida, y sirve bien como ejemplo de toda la categoría porque
+          toma cada una de esas decisiones de forma explícita.
+        </p>
+
+        <p>
+          Ambos dispositivos abren la misma página y escriben la misma clave corta.
+          La clave nunca sale del navegador: lo que llega al servidor de
+          retransmisión es <code>SHA-256(clave)</code>, usado solo como dirección de
+          sala, más el texto ya cifrado con AES-GCM. El servidor reenvía texto
+          cifrado entre dos conexiones y no escribe nada en disco. Los archivos lo
+          esquivan y van directos entre los navegadores por WebRTC. Tiene
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">licencia MIT</a>,
+          y <a href="/es/help/install/relay/">puedes ejecutar tú mismo el servidor de
+          retransmisión</a>.
+        </p>
+
+        <p>
+          Los límites forman parte del ejemplo tanto como lo demás: la clave corta
+          es una credencial al portador, los archivos están limitados a 5&nbsp;MB y
+          la captura automática del portapapeles del sistema necesita un navegador
+          basado en Chromium — Firefox y Safari pueden enviar y recibir texto
+          pegado, pero no leer el portapapeles por su cuenta. Ningún navegador puede
+          leer el portapapeles mientras su pestaña está en segundo plano; es una
+          regla de seguridad del navegador que se aplica a todas las herramientas
+          web de esta categoría.
+        </p>
+
+        <p>
+          <a class="btn" href="/app.html">Prueba un portapapeles en línea</a>
+        </p>
+      </div>
+
+      <div class="faq" id="faq">
+        <div class="faqhead">
+          <h2>Preguntas frecuentes</h2>
+          <button type="button" class="faqall" id="faqAll"
+                  aria-expanded="false" aria-controls="faq" hidden>
+            <span class="faqall-i" aria-hidden="true"></span>
+            <span class="faqall-t">Expandir todo</span>
+          </button>
+        </div>
+
+        <details class="qa">
+          <summary><h3>¿Qué es un portapapeles en línea, en pocas palabras?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Es un servicio que hace que copiar y pegar funcione entre dos
+            dispositivos en lugar de dentro de uno solo. Copias algo en el portátil
+            y queda disponible para pegarlo en el móvil, por internet, sin cable y
+            sin una misma red Wi-Fi.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>¿Qué diferencia hay entre un portapapeles en línea y un gestor de portapapeles?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Un gestor de portapapeles guarda un historial buscable de todo lo que
+            has copiado en una sola máquina — resuelve «qué copié hace diez
+            minutos». Un portapapeles en línea lleva lo que copias a otro
+            dispositivo — resuelve «lo copié aquí y lo necesito allí». Uno va de
+            tiempo; el otro, de distancia.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>¿Es lo mismo un portapapeles en línea que un pastebin?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            No. Un pastebin guarda tu texto en una URL pública para que compartas
+            ese enlace con otra persona, y el texto sigue ahí hasta que caduca. Un
+            portapapeles en línea no tiene ninguna URL guardando tu contenido ni
+            nada que compartir: pone el texto en el portapapeles de otro dispositivo
+            y después no conserva nada.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>¿Es seguro usar un portapapeles en línea para contraseñas?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Solo si el servicio tiene cifrado de extremo a extremo, y aun así un
+            gestor de contraseñas con su propia sincronización es la herramienta
+            mejor. Si un servicio de portapapeles no cifra en tu dispositivo antes
+            de enviar, da por hecho que quien lo opera puede leer todo lo que copies
+            — incluidas las contraseñas y los códigos de un solo uso que pasaron por
+            tu portapapeles mientras estaba en marcha.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>¿Funcionan los portapapeles en línea entre Android y Windows?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Sí, y es una de las razones principales para usar uno. Las opciones
+            integradas no cruzan ecosistemas: la sincronización del portapapeles de
+            Windows solo funciona entre PC con Windows en la misma cuenta de
+            Microsoft, y el Portapapeles Universal de Apple solo entre dispositivos
+            Apple. Un portapapeles basado en el navegador trata igual a todas las
+            plataformas porque solo necesita un navegador.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>¿Hace falta una cuenta para usar un portapapeles en línea?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            No necesariamente. Los servicios que emparejan dispositivos con una
+            clave compartida no necesitan cuenta alguna, porque lo que identifica la
+            sesión es la clave y no una identidad con sesión iniciada. Los servicios
+            construidos alrededor de una cuenta — como la sincronización del
+            portapapeles integrada en Windows y macOS — sí la requieren, y solo
+            funcionan dentro de su propio ecosistema. Véase
+            <a href="/es/online-clipboard-no-login/">portapapeles en línea sin registro</a>.
+            </p>
+          </div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código abierto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/what-is-an-online-clipboard/">English</a> · <a href="/es/what-is-an-online-clipboard/">Español</a> · <a href="/pt/what-is-an-online-clipboard/">Português</a> · <a href="/ru/what-is-an-online-clipboard/">Русский</a> · <a href="/zh/what-is-an-online-clipboard/">中文</a></p>
+      <p><a href="/es/">Inicio</a> · <a href="/es/download/">Descargas</a> · <a href="/es/help/">Ayuda</a> · <a href="/es/about/">Acerca de</a> · <a href="/privacy/">Privacidad</a> · <a href="/terms/">Términos</a></p>
+      <p>Las sesiones se mantienen en memoria y nunca se escriben en disco. El contenido del portapapeles se cifra en tu navegador antes de enviarse.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

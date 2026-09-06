@@ -237,7 +237,7 @@ if (!DESKTOP) {
     // Every module an HTML page names in a <script src> must be an entry point: the
     // deploy ships bundles, so one reachable only from markup is invisible to the
     // bundler and 404s on the single page that needs it.
-    entryPoints: ["redirect", "landing", "faq", "download", "copy", "tags"].map(n => join(ROOT, `src/landing/${n}.js`)),
+    entryPoints: ["redirect", "landing", "faq", "download", "copy", "tags", "lang"].map(n => join(ROOT, `src/landing/${n}.js`)),
     outdir: join(OUT, "src/landing"),
   });
 }

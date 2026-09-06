@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Russian is ~3% of browser languages, and it is the one market with a second
+  search engine that matters: Yandex Webmaster was verified once /ru/ went live,
+  and IndexNow reaches Yandex directly. The definitional page is what an answer
+  engine reaches for when a query fans out into «что такое X».
+
+  Terminology follows /ru/: буфер обмена, ключ, ретранслятор, сквозное
+  шифрование.
+-->
+
+<title>Что такое онлайн-буфер обмена и как он работает</title>
+<meta name="description" content="Онлайн-буфер обмена переносит скопированное с одного устройства на другое через интернет. Как он работает, чем отличается от pastebin и безопасен ли он.">
+<link rel="canonical" href="https://realtimeclipboard.com/ru/what-is-an-online-clipboard/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/what-is-an-online-clipboard/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/what-is-an-online-clipboard/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/what-is-an-online-clipboard/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/what-is-an-online-clipboard/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/what-is-an-online-clipboard/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/what-is-an-online-clipboard/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="Что такое онлайн-буфер обмена: как он работает и когда нужен">
+<meta property="og:description" content="Определение, чем он отличается от менеджера буфера обмена и от pastebin, и что проверить, прежде чем ему довериться.">
+<meta property="og:url" content="https://realtimeclipboard.com/ru/what-is-an-online-clipboard/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/ru/what-is-an-online-clipboard/#article",
+      "headline": "Что такое онлайн-буфер обмена?",
+      "description": "Онлайн-буфер обмена переносит скопированное с одного устройства на другое через интернет. Как он работает, чем отличается от менеджера буфера обмена и от pastebin и когда им пользоваться.",
+      "inLanguage": "ru",
+      "datePublished": "2026-08-07",
+      "dateModified": "2026-08-07",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/ru/what-is-an-online-clipboard/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/ru/" },
+        { "@type": "ListItem", "position": 2, "name": "Что такое онлайн-буфер обмена" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/faq.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/ru/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Открыть приложение</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Навигационная цепочка">
+        <a href="/ru/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Что такое онлайн-буфер обмена</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>Что такое онлайн-буфер обмена?</h1>
+
+        <p class="lede">
+          <b>Онлайн-буфер обмена — это сервис, который переносит скопированное на
+          одном устройстве в буфер обмена другого, через интернет.</b> Вы копируете
+          ссылку на ноутбуке и вставляете её на телефоне. Он заменяет обходной путь,
+          которым пользуется большинство — отправить самому себе письмо или
+          сообщение, — и ему не нужны ни кабель, ни общая сеть Wi-Fi.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2>Как работает онлайн-буфер обмена</h2>
+
+        <p>
+          В вашей операционной системе буфер обмена уже есть: небольшой участок
+          памяти, где лежит последнее скопированное и откуда любая программа на этой
+          машине читает его, когда вы вставляете. Он локален по своей природе и
+          заканчивается на границе устройства.
+        </p>
+
+        <p>
+          Онлайн-буфер обмена добавляет второй шаг. Что-то следит за этим локальным
+          буфером и, как только он меняется, отправляет содержимое остальным
+          устройствам сессии, где оно попадает в <em>их</em> локальный буфер. Дальше
+          оно ничем не отличается от всего, что вы копировали сами, —
+          <kbd>Ctrl</kbd>+<kbd>V</kbd> работает как обычно.
+        </p>
+
+        <p>
+          Сначала устройствам нужно сообщить, что они вместе. Сервисы делают это
+          двумя способами, и именно это отличает их друг от друга сильнее всего:
+        </p>
+
+        <ul>
+          <li><b>По учётной записи</b> — вы входите в неё на обоих устройствах, и сервис связывает их, потому что оба — это вы. Так устроены синхронизация буфера обмена в Windows и Универсальный буфер обмена Apple.</li>
+          <li><b>По общему ключу</b> — вы вводите один и тот же короткий код на обоих устройствах, и сервис связывает их, потому что оба его знают. Личность здесь ни при чём, поэтому регистрация не нужна.</li>
+        </ul>
+
+        <p>
+          Различаются они и по скорости.
+          <a href="/ru/live-clipboard/">Живой буфер обмена</a> обновляется прямо во
+          время набора и не требует ничего нажимать; другие дают поле ввода и кнопку
+          отправки.
+        </p>
+
+        <h2>Чем он не является</h2>
+
+        <p>
+          Тремя разными инструментами называют одно и то же, и выбор не того из них
+          — обычная причина, по которой люди решают, что онлайн-буферы обмена не
+          работают.
+        </p>
+
+        <div class="tablewrap" tabindex="0" role="region"
+             aria-label="Сравнение онлайн-буфера обмена с похожими инструментами — прокручивается по горизонтали">
+          <table class="cmp">
+            <caption class="sr-only">
+              Онлайн-буфер обмена в сравнении с менеджером буфера обмена, pastebin и
+              инструментом передачи файлов: для чего нужен каждый, сколько устройств
+              участвует и сохраняется ли содержимое.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Инструмент</th>
+                <th scope="col">Для чего нужен</th>
+                <th scope="col">Устройств</th>
+                <th scope="col">Сохраняется?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="me">
+                <th scope="row">Онлайн-буфер обмена</th>
+                <td>Переносить скопированное между устройствами</td>
+                <td>Два и больше</td>
+                <td class="y">Нет — это живая сессия</td>
+              </tr>
+              <tr>
+                <th scope="row">Менеджер буфера обмена</th>
+                <td>История всего скопированного, с поиском</td>
+                <td class="n">Одно</td>
+                <td>Да, локально</td>
+              </tr>
+              <tr>
+                <th scope="row">Pastebin</th>
+                <td>Опубликовать текст по ссылке, которой можно поделиться</td>
+                <td>Любой, у кого есть ссылка</td>
+                <td class="n">Да, на сервере</td>
+              </tr>
+              <tr>
+                <th scope="row">Передача файлов</th>
+                <td>Отправить файлы, обычно другому человеку</td>
+                <td>Два</td>
+                <td>По-разному</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          <b>Менеджер буфера обмена</b> — Ditto, CopyQ, Maccy или история
+          <kbd>Win</kbd>+<kbd>V</kbd> в Windows — хранит список всего, что вы
+          копировали на <em>одной</em> машине, с поиском по нему. Это про время, а
+          не про расстояние. Некоторые менеджеры добавляют синхронизацию, и вот
+          здесь начинается путаница.
+        </p>
+
+        <p>
+          <b>Pastebin</b> — Pastebin, GitHub Gist, privatebin — размещает текст по
+          ссылке, чтобы вы отправили эту ссылку кому-то. Это инструмент публикации:
+          содержимое сохраняется, у него есть адрес, а «вставить» на другом конце
+          означает открыть страницу и выделить текст руками.
+        </p>
+
+        <p>
+          <b>Инструменты передачи файлов</b> — AirDrop, LocalSend, Snapdrop,
+          PairDrop — перемещают файлы между устройствами. Большинство умеет
+          отправить и короткий текст, но он приходит сообщением, а не в буфер
+          обмена; разница небольшая, но она сильно чувствуется, когда делаешь это
+          сорок раз в день.
+        </p>
+
+        <h2>Когда онлайн-буфер обмена — подходящий инструмент</h2>
+
+        <ul>
+          <li>Перенести ссылку, адрес, код подтверждения или команду между своим ноутбуком и телефоном.</li>
+          <li>Копировать между устройствами <b>разных производителей</b> — компьютером на Windows и телефоном на Android или Mac и машиной на Windows, — где встроенные средства друг с другом не разговаривают.</li>
+          <li>Работать на машине, куда <b>нельзя ставить программы</b>: рабочий ноутбук, общий компьютер, Chromebook.</li>
+          <li>Устройства <a href="/ru/clipboard-sync-different-networks/">в разных сетях</a> — одно по Wi-Fi, другое через мобильный интернет.</li>
+          <li>Вытащить текст из виртуальной машины или удалённого рабочего стола, где проброс буфера обмена отключён.</li>
+        </ul>
+
+        <p>
+          Он не подходит для больших файлов, для того, что нужно сохранить, и для
+          содержимого, на которое нужна постоянная ссылка. Это задачи для
+          инструмента передачи файлов, приложения для заметок и pastebin
+          соответственно.
+        </p>
+
+        <h2>Безопасен ли онлайн-буфер обмена?</h2>
+
+        <p>
+          <b>Всё зависит от того, может ли сервис прочитать скопированное вами</b>,
+          и это единственный вопрос, который стоит задать любому из них. Через буфер
+          обмена проходят пароли, одноразовые коды и приватные ссылки, поэтому
+          сервис, который получает их открытым текстом, держит в руках самый
+          чувствительный поток данных на вашей машине.
+        </p>
+
+        <p>Три вещи, которые стоит проверить:</p>
+
+        <ol class="steps">
+          <li><b>Есть ли сквозное шифрование?</b> Текст должен шифроваться на вашем устройстве до отправки, чтобы сервер пересылал то, что прочитать не может.</li>
+          <li><b>Что сохраняется и на какой срок?</b> «На диск ничего не пишется» — утверждение более сильное, чем «мы потом удалим», и его проще проверить.</li>
+          <li><b>Можете ли вы это проверить?</b> Открытый исходный код и возможность развернуть сервис у себя означают, что ответ — не просто обещание на рекламной странице.</li>
+        </ol>
+
+        <h2>Разобранный пример</h2>
+
+        <p>
+          <a href="/ru/">RealtimeClipboard</a> — онлайн-буфер обмена из тех, что
+          работают по общему ключу, и он хорошо иллюстрирует всю категорию, потому
+          что каждый из этих выборов сделан в нём явно.
+        </p>
+
+        <p>
+          Оба устройства открывают одну и ту же страницу и вводят один и тот же
+          короткий ключ. Ключ никогда не покидает браузер: до ретранслятора доходит
+          <code>SHA-256(ключ)</code> — только как адрес комнаты — и текст, уже
+          зашифрованный AES-GCM. Ретранслятор пересылает шифротекст между двумя
+          соединениями и ничего не пишет на диск. Файлы обходят его и идут напрямую
+          между браузерами по WebRTC. Проект под
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">лицензией MIT</a>,
+          и <a href="/ru/help/install/relay/">ретранслятор можно поднять самому</a>.
+        </p>
+
+        <p>
+          Ограничения — такая же часть примера: короткий ключ является
+          предъявительским, файлы ограничены 5&nbsp;МБ, а автоматическое чтение
+          системного буфера обмена требует браузера на Chromium — Firefox и Safari
+          умеют отправлять и принимать вставленный текст, но сами буфер не читают.
+          Ни один браузер не читает буфер обмена, пока его вкладка в фоне; это
+          правило безопасности браузера, и оно действует для всех веб-инструментов
+          этой категории.
+        </p>
+
+        <p>
+          <a class="btn" href="/app.html">Попробовать онлайн-буфер обмена</a>
+        </p>
+      </div>
+
+      <div class="faq" id="faq">
+        <div class="faqhead">
+          <h2>Частые вопросы</h2>
+          <button type="button" class="faqall" id="faqAll"
+                  aria-expanded="false" aria-controls="faq" hidden>
+            <span class="faqall-i" aria-hidden="true"></span>
+            <span class="faqall-t">Развернуть всё</span>
+          </button>
+        </div>
+
+        <details class="qa">
+          <summary><h3>Что такое онлайн-буфер обмена простыми словами?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Это сервис, благодаря которому копирование и вставка работают между
+            двумя устройствами, а не внутри одного. Вы копируете что-то на ноутбуке,
+            и это можно вставить на телефоне — через интернет, без кабеля и без
+            общей сети Wi-Fi.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Чем онлайн-буфер обмена отличается от менеджера буфера обмена?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Менеджер хранит историю всего, что вы копировали на одной машине, с
+            поиском по ней — он решает задачу «что я скопировал десять минут назад».
+            Онлайн-буфер обмена переносит скопированное на другое устройство — он
+            решает задачу «скопировал здесь, нужно там». Первое про время, второе
+            про расстояние.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Онлайн-буфер обмена — это то же самое, что pastebin?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Нет. Pastebin хранит ваш текст по публичной ссылке, чтобы вы отправили
+            её кому-то, и текст лежит там до истечения срока. У онлайн-буфера обмена
+            нет ссылки, где лежало бы ваше содержимое, и делиться нечем: он кладёт
+            текст в буфер обмена другого устройства и после этого ничего не хранит.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Безопасно ли передавать пароли через онлайн-буфер обмена?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Только если у сервиса сквозное шифрование, да и тогда менеджер паролей с
+            собственной синхронизацией подходит лучше. Если сервис буфера обмена не
+            шифрует на вашем устройстве до отправки, считайте, что его оператор
+            может прочитать всё, что вы копируете, — включая пароли и одноразовые
+            коды, прошедшие через буфер, пока сервис был запущен.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Работают ли онлайн-буферы обмена между Android и Windows?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Да, и это одна из главных причин ими пользоваться. Встроенные средства
+            не выходят за пределы своей экосистемы: синхронизация буфера обмена в
+            Windows работает только между компьютерами на Windows с одной учётной
+            записью Microsoft, а Универсальный буфер обмена Apple — только между
+            устройствами Apple. Браузерный буфер обмена одинаково относится ко всем
+            платформам, потому что ему нужен только браузер.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Нужна ли учётная запись для онлайн-буфера обмена?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Не обязательно. Сервисам, которые связывают устройства общим ключом,
+            учётная запись не нужна вовсе: сессию определяет ключ, а не выполненный
+            вход. Сервисам, построенным вокруг учётной записи — например, встроенной
+            синхронизации буфера обмена в Windows и macOS — она нужна, и работают
+            они только внутри своей экосистемы. См.
+            <a href="/ru/online-clipboard-no-login/">онлайн-буфер обмена без регистрации</a>.
+            </p>
+          </div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Открытый исходный код — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/what-is-an-online-clipboard/">English</a> · <a href="/es/what-is-an-online-clipboard/">Español</a> · <a href="/pt/what-is-an-online-clipboard/">Português</a> · <a href="/ru/what-is-an-online-clipboard/">Русский</a> · <a href="/zh/what-is-an-online-clipboard/">中文</a></p>
+      <p><a href="/ru/">Главная</a> · <a href="/ru/download/">Загрузки</a> · <a href="/ru/help/">Помощь</a> · <a href="/ru/about/">О проекте</a> · <a href="/privacy/">Конфиденциальность</a> · <a href="/terms/">Условия</a></p>
+      <p>Сессии хранятся в памяти и никогда не пишутся на диск. Содержимое буфера обмена шифруется в вашем браузере до отправки.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

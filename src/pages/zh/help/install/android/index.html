@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Every id is a deep-link target used from other pages (#install, #why, #check,
+  #first, #trouble, #remove) and is byte-identical to /help/install/android/.
+  The #i-android symbol in the h1 comes from the sprite the template lifts from
+  the English original.
+
+  Browser menu items are given in the wording each browser actually ships in
+  Simplified Chinese, because the reader is hunting for that exact string on
+  screen: Chrome 添加到主屏幕, Firefox 安装, Samsung Internet 添加页面到 →
+  主屏幕, and Chrome's 设置 → 网站设置. These match the labels already used on
+  /zh/download/.
+
+  The code span keeps T1 · paste only exactly as the English has it: it is a
+  literal status line the reader compares against their screen, and the block
+  carries a copy button.
+
+  Terminology follows /zh/: 在线剪贴板, 剪贴板同步, 密钥, 中继服务器,
+  端到端加密, 主屏幕.
+-->
+
+<title>把在线剪贴板加到 Android 主屏幕</title>
+<meta name="description" content="不用装 App —— 在 Chrome 里点两下把网页应用加到主屏幕。以及为什么 Android 不让任何应用在后台读剪贴板。">
+<link rel="canonical" href="https://realtimeclipboard.com/zh/help/install/android/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/install/android/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/install/android/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/install/android/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/install/android/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/install/android/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/install/android/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="Android 和 ChromeOS 上的 RealtimeClipboard">
+<meta property="og:description" content="在 Chrome 里把它加到主屏幕。为什么没有应用商店条目，以及为什么那是一个决定，而不是一处缺口。">
+<meta property="og:url" content="https://realtimeclipboard.com/zh/help/install/android/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/zh/help/install/android/#article",
+      "headline": "把 RealtimeClipboard 加到 Android 主屏幕",
+      "description": "没有 App 要装 —— 在 Chrome 里点两下把网页应用加进来。为什么 Android 不允许任何应用在后台读剪贴板，以及该怎么办。",
+      "inLanguage": "zh-Hans",
+      "datePublished": "",
+      "dateModified": "",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/zh/help/install/android/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/zh/" },
+        { "@type": "ListItem", "position": 2, "name": "在 Android 上安装" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/copy.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/zh/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">打开应用</a>
+    </div>
+  </div>
+</header>
+
+<svg class="icons" aria-hidden="true">
+  <symbol id="i-android" viewBox="0 0 24 24"><path d="M18.4395 5.5586c-.675 1.1664-1.352 2.3318-2.0274 3.498-.0366-.0155-.0742-.0286-.1113-.043-1.8249-.6957-3.484-.8-4.42-.787-1.8551.0185-3.3544.4643-4.2597.8203-.084-.1494-1.7526-3.021-2.0215-3.4864a1.1451 1.1451 0 0 0-.1406-.1914c-.3312-.364-.9054-.4859-1.379-.203-.475.282-.7136.9361-.3886 1.5019 1.9466 3.3696-.0966-.2158 1.9473 3.3593.0172.031-.4946.2642-1.3926 1.0177C2.8987 12.176.452 14.772 0 18.9902h24c-.119-1.1108-.3686-2.099-.7461-3.0683-.7438-1.9118-1.8435-3.2928-2.7402-4.1836a12.1048 12.1048 0 0 0-2.1309-1.6875c.6594-1.122 1.312-2.2559 1.9649-3.3848.2077-.3615.1886-.7956-.0079-1.1191a1.1001 1.1001 0 0 0-.8515-.5332c-.5225-.0536-.9392.3128-1.0488.5449zm-.0391 8.461c.3944.5926.324 1.3306-.1563 1.6503-.4799.3197-1.188.0985-1.582-.4941-.3944-.5927-.324-1.3307.1563-1.6504.4727-.315 1.1812-.1086 1.582.4941zM7.207 13.5273c.4803.3197.5506 1.0577.1563 1.6504-.394.5926-1.1038.8138-1.584.4941-.48-.3197-.5503-1.0577-.1563-1.6504.4008-.6021 1.1087-.8106 1.584-.4941z"/></symbol>
+</svg>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="面包屑导航">
+        <a href="/zh/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">在 Android 上安装</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1><svg class="brandmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-android"/></svg> 在 Android 和 ChromeOS 上安装</h1>
+
+        <p class="lede">
+          没有东西要下载。把这个网页应用加到主屏幕，它就有了自己的图标和窗口，
+          离线也能用 —— 这已经是一个应用商店里的 App 能有的全部能力，原因在
+          Android，不在我们。
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2 id="install">装上它</h2>
+        <ol class="steps">
+          <li>用 Chrome 打开<a href="/app.html">应用</a>。</li>
+          <li>点菜单 <span aria-hidden="true">⋮</span>，然后选
+            <b>添加到主屏幕</b> —— 如果 Chrome 主动弹了安装提示，点它也一样。</li>
+          <li>确认。图标就落到主屏幕上了。</li>
+        </ol>
+        <p>
+          ChromeOS 是同一套流程，走同一个菜单。Firefox 和 Samsung Internet 也都
+          能做这件事，只是菜单项的叫法不同 —— Firefox 叫<b>安装</b>，Samsung
+          Internet 是<b>添加页面到</b> → <b>主屏幕</b>。
+        </p>
+
+        <h2 id="why">为什么没有应用商店版本</h2>
+        <p>
+          <b>从 Android 10 起，只有你当前正在用的应用、当前启用的输入法，或者一个
+          无障碍服务，才被允许读剪贴板。</b>这条规则之所以存在，是因为一个能悄悄
+          读你剪贴板的应用，会把你复制过的每一个密码、每一个验证码都收走；它对
+          平台上的每一个应用一视同仁，没有例外。
+        </p>
+        <p>
+          所以一个原生的 RealtimeClipboard 应用，能多给你的只有一条分享菜单条目和
+          一条商店条目 —— 除此之外，没有一件事是装好的网页应用做不到的。它没法在
+          后台盯着你的剪贴板，因为没有任何东西能做到。真做出来，多半只是请你再
+          信任一个二进制文件，而换不来任何新能力。
+        </p>
+        <p class="honest">
+          手机上诚实的模型是这样：<b>你把内容带给应用，应用把内容带给你。</b>接收
+          是自动的 —— 你在电脑上复制的任何东西，等你打开它的时候就已经在那儿了。
+          发送则是一次粘贴或者一次分享，以后也一直会是。
+        </p>
+
+        <h2 id="check">确认它装好了</h2>
+        <ul class="sq-list">
+          <li><b>打开时没有地址栏。</b>这就是唯一靠得住的判断依据：主屏幕上的书签
+            快捷方式仍然会显示 Chrome 的界面，装好的网页应用不会。</li>
+          <li><b>状态栏显示 <code>T1 · paste only</code></b>，这是对的，不是故障。
+            在 Android 上，这就是上限。</li>
+          <li>没有网络也能打开，并且能看到你已有的历史记录。</li>
+        </ul>
+
+        <h2 id="first">第一次同步</h2>
+        <ol class="steps">
+          <li>在电脑上打开应用，记下那个短密钥。</li>
+          <li>在手机上输入同一个密钥。</li>
+          <li>在电脑上复制点东西。它会自己出现在手机上，你什么都不用做。</li>
+          <li>反过来：在手机上复制，打开 RealtimeClipboard，在编辑区长按 →
+            <b>粘贴</b>。或者在你正用着的那个应用里，直接走 Android 的分享菜单。</li>
+        </ol>
+
+        <h2 id="trouble">它不工作的时候</h2>
+
+        <h3>没有弹出安装提示</h3>
+        <p>
+          什么时候弹提示由 Chrome 自己决定，它并不总是弹。走菜单那条路任何时候都
+          管用，也是靠得住的那条 —— 别等提示。
+        </p>
+
+        <h3>它是在浏览器里打开的，不是自己的窗口</h3>
+        <p>
+          那你拿到的是一个书签快捷方式，不是装好的应用。把它删掉，从菜单里重新加
+          一次；你要的那一项叫<b>添加到主屏幕</b>，而当 Chrome 真的准备把它装起来
+          时，确认对话框里会显示应用图标。
+        </p>
+
+        <h3>应用关着的时候收不到内容</h3>
+        <p>
+          没错，而且绕不开：你不看着它的时候，网页应用并没有在跑，所以它是在你
+          打开的那一刻，去中继服务器上把等着的内容取回来。什么都不会丢 —— 会话
+          替你存着。
+        </p>
+
+        <h3>在手机上复制，发不出去</h3>
+        <p>
+          就是上面那条 Android 10 规则。粘贴进应用，或者分享给它。
+        </p>
+
+        <h2 id="remove">卸载</h2>
+        <p>
+          长按图标，像卸载任何一个应用那样卸掉它，或者到 Chrome 的
+          <b>设置 → 网站设置</b>里删掉。除了它用来存你的设置和历史记录的那点浏览器
+          存储之外，设备上不会留下别的东西。
+        </p>
+
+        <p class="hint">
+          其他所有平台：<a href="/zh/help/install/">安装指南</a>。
+          如果你的剪贴板不同步，而原因和这个应用无关，
+          <a href="/zh/help/clipboard-sync-not-working/">从这里开始</a>。
+          这一页有错或者过时了？
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">提一个 issue</a>。
+        </p>
+      </div>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>开源项目 — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/install/android/">English</a> · <a href="/es/help/install/android/">Español</a> · <a href="/pt/help/install/android/">Português</a> · <a href="/ru/help/install/android/">Русский</a> · <a href="/zh/help/install/android/">中文</a></p>
+      <p><a href="/zh/">首页</a> · <a href="/zh/download/">下载</a> · <a href="/zh/help/">帮助</a> · <a href="/zh/about/">关于</a> · <a href="/privacy/">隐私政策</a> · <a href="/terms/">使用条款</a></p>
+      <p>会话只保存在内存中，从不写入磁盘。剪贴板内容在发送前已在你的浏览器里完成加密。</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Every id here is a deep-link target other pages point at
+  (/help/install/windows/#install, #pkg, #check, #first, #trouble, #remove), so
+  the ids stay byte-identical to the English original and only the heading text
+  is translated.
+
+  Everything inside pre and code is the English original unchanged: file names,
+  winget commands and the status-bar strings the app actually shows. Those blocks
+  carry a copy button, and the app itself is not localised, so a translated
+  command or status string would send the reader looking for text that is not on
+  their screen.
+
+  Windows UI paths use the shipped Brazilian Portuguese wording (Configurações ›
+  Aplicativos › Aplicativos instalados, “Sincronizar entre seus dispositivos”),
+  because an English menu label is no use on a localised build.
+
+  Terminology follows /pt/: área de transferência, chave curta, retransmissor,
+  criptografia de ponta a ponta, desinstalar.
+-->
+
+<title>Instalar o RealtimeClipboard no Windows 10 e 11</title>
+<meta name="description" content="Rode o instalador, confirme que o ícone na área de notificação está vigiando a área de transferência, sincronize o primeiro trecho e resolva o SmartScreen.">
+<link rel="canonical" href="https://realtimeclipboard.com/pt/help/install/windows/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/install/windows/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/install/windows/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/install/windows/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/install/windows/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/install/windows/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/install/windows/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="Instalar o RealtimeClipboard no Windows">
+<meta property="og:description" content="O .msi, como é uma instalação funcionando, a sua primeira sincronização e as três coisas que impedem tudo.">
+<meta property="og:url" content="https://realtimeclipboard.com/pt/help/install/windows/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/pt/help/install/windows/#article",
+      "headline": "Instalar o RealtimeClipboard no Windows 10 e 11",
+      "description": "Rode o instalador, confirme que o ícone na área de notificação está vigiando a área de transferência, sincronize o primeiro trecho e resolva problemas de SmartScreen, máquina de trabalho e firewall.",
+      "inLanguage": "pt-BR",
+      "datePublished": "2026-08-07",
+      "dateModified": "",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/pt/help/install/windows/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/pt/" },
+        { "@type": "ListItem", "position": 2, "name": "Windows" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/copy.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/pt/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir o aplicativo</a>
+    </div>
+  </div>
+</header>
+
+<svg class="icons" aria-hidden="true">
+  <symbol id="i-windows" viewBox="0 0 24 24"><path d="M3 3h8.2v8.2H3zM12.8 3H21v8.2h-8.2zM3 12.8h8.2V21H3zM12.8 12.8H21V21h-8.2z"/></symbol>
+</svg>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Trilha de navegação">
+        <a href="/pt/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Windows</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1><svg class="brandmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-windows"/></svg> Instalação no Windows</h1>
+
+        <p class="lede">
+          O Windows é a plataforma em que este aplicativo mais vale a pena instalar:
+          é nela que a captura da área de transferência em segundo plano funciona sem
+          ressalvas e sem pedir permissão. Copie em qualquer programa e o conteúdo já
+          está nos seus outros dispositivos.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2 id="install">Instale</h2>
+        <ol class="steps">
+          <li>Baixe o <code>RealtimeClipboard_&lt;version&gt;_x64_en-US.msi</code> na
+            <a href="https://github.com/akshaynikhare/RealtimeClipboard/releases/latest">página de releases</a>,
+            ou use o botão da <a href="/pt/download/">página de download</a>, que
+            escolhe o arquivo por você.</li>
+          <li>Execute. Não há aviso de administrador nem opções a escolher — a
+            instalação é por máquina, não registra serviço e não registra driver.</li>
+          <li>O aplicativo abre uma janela e coloca um ícone na área de notificação.</li>
+        </ol>
+        <p>
+          Há também um <code>-setup.exe</code> no mesmo release. É um instalador NSIS
+          da build idêntica; fique com o <code>.msi</code>, a menos que a sua
+          ferramenta de implantação queira o outro.
+        </p>
+
+        <h2 id="pkg">Ou por um gerenciador de pacotes</h2>
+        <pre><code>winget install AkshayNikhare.RealtimeClipboard</code></pre>
+        <p>
+          <b>Em análise.</b> O manifesto da 0.3.0 está
+          <a href="https://github.com/microsoft/winget-pkgs/pull/413661">enviado</a>
+          e esperando os revisores da Microsoft — pessoas que não trabalham neste
+          projeto — então há um intervalo de dias entre um release e este comando
+          funcionar. Até ele entrar, use o <code>.msi</code> acima; é o mesmo arquivo
+          que o winget buscaria, e o SHA256 dele está fixado naquele manifesto.
+        </p>
+        <p>
+          Não há uma linha de <code>scoop</code> aqui, e isso é proposital. Um bucket
+          do Scoop é um repositório que alguém precisa manter em dia a cada release,
+          e um canal de Windows realmente mantido vale mais que dois que se afastam
+          um do outro. O <code>.msi</code> acima é a mesma build de qualquer jeito.
+        </p>
+
+        <h2 id="check">Confira se deu certo</h2>
+        <p>
+          O aplicativo é uma janela em volta da mesma página que o site serve, então
+          quase tudo o que você vê é o aplicativo web. Duas coisas mostram que a
+          metade <i>nativa</i> está rodando:
+        </p>
+        <ul class="sq-list">
+          <li><b>Um ícone na área de notificação</b>, perto do relógio — pode ser
+            preciso expandir os ícones ocultos para vê-lo. <b>Dois cliques</b> trazem
+            a janela de volta; o <b>botão direito</b> abre o menu. <b>Sair</b> está
+            nesse menu, de propósito: um aplicativo que observa a sua área de
+            transferência tem que ter um jeito visível de parar.</li>
+          <li><b>A barra de status diz <code>T0 · watching the system clipboard</code></b>,
+            no canto inferior direito. Essa linha é toda a diferença entre o
+            aplicativo desktop e uma aba de navegador. Num navegador o mesmo campo
+            diz <code>T3 · auto-capture</code> na melhor das hipóteses, e
+            <code>T1 · paste only</code> na pior.</li>
+        </ul>
+        <p>
+          À esquerda dela, o estado da conexão diz <b>Conectado</b> assim que o
+          retransmissor responde. Um <b>Conectando…</b> que nunca se resolve é
+          problema de rede, não de instalação — veja abaixo.
+        </p>
+
+        <h2 id="first">A sua primeira sincronização</h2>
+        <ol class="steps">
+          <li>No aplicativo, anote a chave que aparece no topo, ou digite uma sua. O
+            aplicativo instalado gera chaves de dez caracteres; o site gera de seis,
+            e as duas funcionam nos dois lados.</li>
+          <li>Num segundo dispositivo — o navegador do celular serve — abra
+            <a href="/app.html">o aplicativo</a> e digite a mesma chave.</li>
+          <li>Copie algo no Windows. Não mude para o RealtimeClipboard: a graça é
+            justamente não precisar. O conteúdo aparece no outro dispositivo.</li>
+        </ol>
+        <p class="honest">
+          Se não apareceu, confira a chave no topo da janela. Em
+          <b>Área de transferência</b> — o padrão — tudo o que você copia é
+          compartilhado. Em <b>Aplicativo</b>, nada sai da máquina até você colar lá
+          dentro. Vale conhecer a opção Aplicativo: o programa lê cada cópia que você
+          faz enquanto está rodando, inclusive senhas copiadas por motivos
+          totalmente alheios. O guia que abre na primeira execução diz isso, e a
+          mesma chave está no menu da área de notificação como
+          <b>Compartilhar o que eu copio</b>.
+        </p>
+
+        <h2 id="trouble">Quando não funciona</h2>
+
+        <h3>O SmartScreen avisa sobre o instalador</h3>
+        <p>
+          É esperado para um publicador novo, e vale levar a sério em geral, em vez
+          de clicar adiante por hábito. Confira se você pegou o arquivo na
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/releases/latest">página oficial de releases</a>
+          e se o publicador confere. O aviso some conforme o certificado acumula
+          reputação, não porque algo na build mudou.
+        </p>
+
+        <h3>É uma máquina de trabalho</h3>
+        <p>
+          O aplicativo não precisa de direitos de administrador e não instala driver
+          nem serviço. Ele faz conexões de saída na 443 para um único nome de host,
+          que é o formato que os departamentos de TI liberam. Se o seu bloquear, a
+          versão de navegador não precisa de nada — e, se a versão de navegador
+          também estiver bloqueada, isso é uma decisão de política, não algo a
+          contornar.
+        </p>
+
+        <h3>O Windows tem a própria “Sincronizar entre seus dispositivos”, e ela está esmaecida</h3>
+        <p>
+          Esse é outro recurso, que pertence ao Windows e não a este aplicativo, e
+          tem o próprio conjunto de motivos para ficar indisponível.
+          <a href="/pt/help/clipboard-sync-not-working/">Essa página está aqui</a>.
+          Nada disso afeta o RealtimeClipboard, que não usa esse recurso.
+        </p>
+
+        <h3>Travado em “Conectando…”</h3>
+        <p>
+          O aplicativo abre primeiro um WebSocket e cai para server-sent events mais
+          POST quando isso é bloqueado, então um proxy que proíbe upgrades continua
+          funcionando — só que mais devagar. Se nenhum dos dois conectar, o nome de
+          host do retransmissor está bloqueado de vez. Você pode apontar o aplicativo
+          para o seu próprio retransmissor em <b>Configurações → Retransmissor</b>;
+          <a href="/pt/help/install/relay/">rodar um é um contêiner só</a>.
+        </p>
+
+        <h2 id="remove">Desinstalar</h2>
+        <p>
+          Configurações → Aplicativos → Aplicativos instalados → RealtimeClipboard →
+          Desinstalar, ou <code>winget uninstall AkshayNikhare.RealtimeClipboard</code>
+          se foi assim que ele chegou.
+        </p>
+        <p>
+          Não há nada para limpar depois. Nenhum conteúdo de área de transferência é
+          gravado em disco pelo aplicativo nem pelo retransmissor, então a
+          desinstalação deixa para trás só as suas configurações e o histórico de
+          trechos, que vivem no armazenamento de navegador do próprio aplicativo e
+          vão embora junto com ele.
+        </p>
+
+        <p class="hint">
+          Pronto para instalar: <a href="/pt/download/">a página de download</a>. Todas
+          as outras plataformas: <a href="/pt/help/install/">o guia de instalação</a>.
+          Algo errado ou desatualizado aqui?
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">Abra uma issue</a>.
+        </p>
+      </div>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código aberto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/install/windows/">English</a> · <a href="/es/help/install/windows/">Español</a> · <a href="/pt/help/install/windows/">Português</a> · <a href="/ru/help/install/windows/">Русский</a> · <a href="/zh/help/install/windows/">中文</a></p>
+      <p><a href="/pt/">Início</a> · <a href="/pt/download/">Download</a> · <a href="/pt/help/">Ajuda</a> · <a href="/pt/about/">Sobre</a> · <a href="/privacy/">Privacidade</a> · <a href="/terms/">Termos</a></p>
+      <p>As sessões ficam em memória e nunca são gravadas em disco. O conteúdo da área de transferência é criptografado no seu navegador antes de ser enviado.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Every id here is a deep-link target other pages point at
+  (/help/install/windows/#install, #pkg, #check, #first, #trouble, #remove), so
+  the ids stay byte-identical to the English original and only the heading text
+  is translated.
+
+  Everything inside pre and code is the English original unchanged: file names,
+  winget commands and the status-bar strings the app actually shows. Those blocks
+  carry a copy button, and the app itself is not localised, so a translated
+  command or status string would send the reader looking for text that is not on
+  their screen.
+
+  Windows UI paths use the shipped Spanish wording (Configuración › Aplicaciones ›
+  Aplicaciones instaladas, «Sincronizar entre tus dispositivos»), because an
+  English menu label is no use on a localised build.
+
+  Terminology follows /es/: portapapeles en línea, clave corta, servidor de
+  retransmisión, cifrado de extremo a extremo, desinstalar.
+-->
+
+<title>Instalar RealtimeClipboard en Windows 10 y 11</title>
+<meta name="description" content="Ejecuta el instalador, comprueba que el icono del área de notificación vigila el portapapeles, sincroniza tu primer texto y arregla SmartScreen.">
+<link rel="canonical" href="https://realtimeclipboard.com/es/help/install/windows/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/install/windows/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/install/windows/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/install/windows/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/install/windows/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/install/windows/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/install/windows/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="es_ES">
+<meta property="og:title" content="Instalar RealtimeClipboard en Windows">
+<meta property="og:description" content="El .msi, qué aspecto tiene una instalación que funciona, tu primera sincronización y las tres cosas que lo impiden.">
+<meta property="og:url" content="https://realtimeclipboard.com/es/help/install/windows/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/es/help/install/windows/#article",
+      "headline": "Instalar RealtimeClipboard en Windows 10 y 11",
+      "description": "Ejecuta el instalador, comprueba que el icono del área de notificación vigila el portapapeles, sincroniza tu primer texto y arregla los problemas de SmartScreen, equipo de trabajo y firewall.",
+      "inLanguage": "es",
+      "datePublished": "2026-08-07",
+      "dateModified": "",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/es/help/install/windows/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/es/" },
+        { "@type": "ListItem", "position": 2, "name": "Windows" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/copy.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/es/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir la aplicación</a>
+    </div>
+  </div>
+</header>
+
+<svg class="icons" aria-hidden="true">
+  <symbol id="i-windows" viewBox="0 0 24 24"><path d="M3 3h8.2v8.2H3zM12.8 3H21v8.2h-8.2zM3 12.8h8.2V21H3zM12.8 12.8H21V21h-8.2z"/></symbol>
+</svg>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Ruta de navegación">
+        <a href="/es/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Windows</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1><svg class="brandmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-windows"/></svg> Instalación en Windows</h1>
+
+        <p class="lede">
+          Windows es la plataforma en la que más merece la pena instalar esta
+          aplicación: es donde la captura del portapapeles en segundo plano funciona
+          sin matices y sin pedir permiso. Copia en cualquier programa y ya está en
+          tus otros dispositivos.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2 id="install">Instálalo</h2>
+        <ol class="steps">
+          <li>Descarga <code>RealtimeClipboard_&lt;version&gt;_x64_en-US.msi</code> desde
+            <a href="https://github.com/akshaynikhare/RealtimeClipboard/releases/latest">la página de releases</a>,
+            o usa el botón de <a href="/es/download/">la página de descargas</a>, que
+            elige el archivo por ti.</li>
+          <li>Ejecútalo. No hay aviso de administrador ni opciones que elegir — se
+            instala por equipo, no registra ningún servicio y ningún controlador.</li>
+          <li>La aplicación abre una ventana y pone un icono en el área de notificación.</li>
+        </ol>
+        <p>
+          En el mismo release hay también un <code>-setup.exe</code>. Es un instalador
+          NSIS de la compilación idéntica; quédate con el <code>.msi</code> salvo que
+          tus herramientas de despliegue quieran el otro.
+        </p>
+
+        <h2 id="pkg">O desde un gestor de paquetes</h2>
+        <pre><code>winget install AkshayNikhare.RealtimeClipboard</code></pre>
+        <p>
+          <b>En revisión.</b> El manifiesto de la 0.3.0 está
+          <a href="https://github.com/microsoft/winget-pkgs/pull/413661">enviado</a>
+          y a la espera de los revisores de Microsoft — gente que no trabaja en este
+          proyecto — así que entre una release y que este comando funcione pasan días.
+          Hasta que se fusione, usa el <code>.msi</code> de arriba; es el mismo archivo
+          que traería winget, y su SHA256 está fijado en ese manifiesto.
+        </p>
+        <p>
+          No hay línea de <code>scoop</code>, y es a propósito. Un bucket de Scoop es
+          un repositorio que alguien tiene que mantener al día con cada release, y un
+          canal de Windows realmente mantenido vale más que dos que se van
+          separando. El <code>.msi</code> de arriba es la misma compilación en
+          cualquier caso.
+        </p>
+
+        <h2 id="check">Comprueba que ha funcionado</h2>
+        <p>
+          La aplicación es una ventana alrededor de la misma página que sirve el sitio
+          web, así que casi todo lo que ves es la aplicación web. Dos cosas te dicen
+          que la mitad <i>nativa</i> está en marcha:
+        </p>
+        <ul class="sq-list">
+          <li><b>Un icono en el área de notificación</b>, junto al reloj — puede que
+            tengas que desplegar los iconos ocultos para verlo. <b>Doble clic</b> para
+            traer de vuelta la ventana, o <b>clic derecho</b> para el menú.
+            <b>Salir</b> está en ese menú, a propósito: una aplicación que vigila tu
+            portapapeles tiene que ofrecer una forma visible de pararla.</li>
+          <li><b>La barra de estado dice <code>T0 · watching the system clipboard</code></b>,
+            abajo a la derecha. Esa línea es toda la diferencia entre la aplicación de
+            escritorio y una pestaña del navegador. En un navegador el mismo campo dice
+            <code>T3 · auto-capture</code> en el mejor de los casos, y
+            <code>T1 · paste only</code> en el peor.</li>
+        </ul>
+        <p>
+          A su izquierda, el estado de la conexión dice <b>Conectado</b> en cuanto
+          responde el servidor de retransmisión. Un <b>Conectando…</b> que nunca
+          termina de asentarse es un problema de red, no de instalación — mira más
+          abajo.
+        </p>
+
+        <h2 id="first">Tu primera sincronización</h2>
+        <ol class="steps">
+          <li>En la aplicación, apunta la clave que aparece arriba, o escribe una tuya.
+            La aplicación instalada genera claves de diez caracteres; la web las genera
+            de seis, y las dos valen en ambos sitios.</li>
+          <li>En un segundo dispositivo — el navegador del móvil sirve — abre
+            <a href="/app.html">la aplicación</a> e introduce la misma clave.</li>
+          <li>Copia algo en Windows. No cambies a RealtimeClipboard: la gracia es
+            justamente que no hace falta. Aparece en el otro dispositivo.</li>
+        </ol>
+        <p class="honest">
+          Si no ha aparecido, mira el interruptor de la parte de arriba de la ventana.
+          En <b>Portapapeles</b> — el valor por defecto — se comparte todo lo que
+          copias. En <b>Aplicación</b>, nada sale de la máquina hasta que lo pegas
+          dentro. Vale la pena conocer Aplicación: el programa lee cada copia que haces
+          mientras está en marcha, incluidas las contraseñas que copiaste por motivos
+          que no tienen nada que ver. La guía que se abre al primer arranque lo dice, y
+          el mismo interruptor está en el menú del área de notificación como
+          <b>Compartir lo que copio</b>.
+        </p>
+
+        <h2 id="trouble">Cuando no funciona</h2>
+
+        <h3>SmartScreen avisa sobre el instalador</h3>
+        <p>
+          Es lo esperable con un editor nuevo, y en general merece tomárselo en serio
+          en lugar de pasar de largo por costumbre. Comprueba que has cogido el archivo
+          de <a href="https://github.com/akshaynikhare/RealtimeClipboard/releases/latest">la página oficial de releases</a>
+          y que el editor coincide. El aviso desaparece a medida que el certificado
+          acumula reputación, no porque haya cambiado nada de la compilación.
+        </p>
+
+        <h3>Es un equipo de trabajo</h3>
+        <p>
+          La aplicación no necesita derechos de administrador y no instala ningún
+          controlador ni servicio. Hace conexiones salientes por el 443 hacia un único
+          nombre de host, que es la forma que los departamentos de TI ponen en lista
+          blanca. Si el tuyo lo bloquea, la versión de navegador no necesita nada — y
+          si la versión de navegador también está bloqueada, eso es una decisión de
+          política y no algo que haya que sortear.
+        </p>
+
+        <h3>Windows tiene su propia «Sincronizar entre tus dispositivos», y sale en gris</h3>
+        <p>
+          Esa es otra función, que pertenece a Windows y no a esta aplicación, y tiene
+          sus propios motivos para no estar disponible.
+          <a href="/es/help/clipboard-sync-not-working/">Esa página está aquí</a>.
+          Nada de eso afecta a RealtimeClipboard, que no la usa.
+        </p>
+
+        <h3>Atascado en «Conectando…»</h3>
+        <p>
+          La aplicación abre primero un WebSocket y cae a server-sent events más POST
+          cuando eso está bloqueado, así que un proxy que prohíbe las actualizaciones
+          de protocolo sigue funcionando — más lento. Si no conecta ninguno de los dos,
+          el nombre de host del servidor de retransmisión está bloqueado del todo.
+          Puedes apuntar la aplicación a tu propio servidor en
+          <b>Configuración → Servidor de retransmisión</b>;
+          <a href="/es/help/install/relay/">montar uno es un contenedor</a>.
+        </p>
+
+        <h2 id="remove">Desinstalar</h2>
+        <p>
+          Configuración → Aplicaciones → Aplicaciones instaladas → RealtimeClipboard →
+          Desinstalar, o <code>winget uninstall AkshayNikhare.RealtimeClipboard</code>
+          si fue así como llegó.
+        </p>
+        <p>
+          Después no queda nada que limpiar. Ni la aplicación ni el servidor de
+          retransmisión escriben en disco ningún contenido del portapapeles, así que
+          una desinstalación solo deja atrás tus ajustes y tu historial de textos, que
+          viven en el almacenamiento de navegador de la propia aplicación y se van con
+          ella.
+        </p>
+
+        <p class="hint">
+          Listo para instalar: <a href="/es/download/">la página de descargas</a>. Todas
+          las demás plataformas: <a href="/es/help/install/">la guía de instalación</a>.
+          ¿Hay algo mal o desactualizado aquí?
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">Abre una issue</a>.
+        </p>
+      </div>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código abierto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/install/windows/">English</a> · <a href="/es/help/install/windows/">Español</a> · <a href="/pt/help/install/windows/">Português</a> · <a href="/ru/help/install/windows/">Русский</a> · <a href="/zh/help/install/windows/">中文</a></p>
+      <p><a href="/es/">Inicio</a> · <a href="/es/download/">Descargas</a> · <a href="/es/help/">Ayuda</a> · <a href="/es/about/">Acerca de</a> · <a href="/privacy/">Privacidad</a> · <a href="/terms/">Términos</a></p>
+      <p>Las sesiones se mantienen en memoria y nunca se escriben en disco. El contenido del portapapeles se cifra en tu navegador antes de enviarse.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

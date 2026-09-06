@@ -1,7 +1,7 @@
 {
   "name": "realtimeclipboard",
   "version": "0.7.1",
-  "description": "Live clipboard sharing. Static frontend of native ES modules — development needs no build, and `npm run build` exists only to assemble the deploy. Nothing here is needed to READ the app.",
+  "description": "Live clipboard sharing. Static frontend of native ES modules \u2014 development needs no build, and `npm run build` exists only to assemble the deploy. Nothing here is needed to READ the app.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -34,7 +34,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "verify": "node tests/unit/static-check.mjs && node tests/unit/relay-url.mjs && node tests/unit/lock.mjs && node tests/unit/session-boundaries.mjs && node tests/unit/verify.mjs && node tests/unit/shared-session.mjs && node tests/unit/files.mjs && node tests/unit/transfer.mjs && node tests/unit/clipsize.mjs && node tests/unit/syncmode.mjs && node tests/unit/pasteguard.mjs && node tests/unit/sharelink.mjs && node tests/unit/keyfloor.mjs && node tests/unit/adpolicy.mjs && node tests/unit/vscode-host.mjs && node tests/unit/browser-worker.mjs && node tests/unit/browser-popup.mjs && node tests/dom/dialog.mjs && node tests/dom/theme.mjs && node tests/dom/whatsnew.mjs && node tests/dom/tiles.mjs && node tests/dom/guide.mjs && node tests/dom/links.mjs && node tests/dom/editor.mjs && node tests/dom/capture.mjs && node tests/dom/offer.mjs",
+    "verify": "node tests/unit/static-check.mjs && node tools/i18n/build-pages.mjs --check && node tests/unit/relay-url.mjs && node tests/unit/lock.mjs && node tests/unit/session-boundaries.mjs && node tests/unit/verify.mjs && node tests/unit/shared-session.mjs && node tests/unit/files.mjs && node tests/unit/transfer.mjs && node tests/unit/clipsize.mjs && node tests/unit/syncmode.mjs && node tests/unit/pasteguard.mjs && node tests/unit/sharelink.mjs && node tests/unit/keyfloor.mjs && node tests/unit/adpolicy.mjs && node tests/unit/vscode-host.mjs && node tests/unit/browser-worker.mjs && node tests/unit/browser-popup.mjs && node tests/dom/dialog.mjs && node tests/dom/theme.mjs && node tests/dom/whatsnew.mjs && node tests/dom/tiles.mjs && node tests/dom/guide.mjs && node tests/dom/links.mjs && node tests/dom/editor.mjs && node tests/dom/capture.mjs && node tests/dom/offer.mjs",
     "test": "npm run verify && npm run build:vscode && npm run build:mcp && npm run build:browser && node tests/dom/bundle.mjs && node tests/dom/extension.mjs && node tests/live/vscode.mjs && node tests/live/mcp.mjs && node tests/live/cli.mjs && node tests/live/e2e.mjs && node tests/live/boot.mjs && node tests/live/boot.mjs --locked && node tests/live/boot.mjs --qr && node tests/live/boot.mjs --locked --qr && node tests/live/fallback.mjs",
     "test:static": "node tests/unit/static-check.mjs",
     "test:lock": "node tests/unit/lock.mjs && node tests/dom/dialog.mjs",
@@ -49,6 +49,7 @@
     "test:editor": "node tests/editor/host.mjs",
     "build": "node tools/build/build.mjs",
     "build:site": "node tools/build/build.mjs _site && node tools/check/site-check.mjs _site",
+    "i18n:pages": "node tools/i18n/build-pages.mjs",
     "size:record": "node tools/build/build.mjs _site --record-size",
     "build:desktop": "node tools/build/build.mjs _desktop --desktop && node tools/check/desktop-check.mjs _desktop",
     "build:vscode": "node tools/build/build-vscode.mjs",
@@ -75,5 +76,5 @@
     "husky": "^9.1.7",
     "jsdom": "^26.1.0"
   },
-  "comment": "esbuild is used ONLY by tools/build/build.mjs, which assembles the deploy — src/ stays plain ES modules on disk, so `npm run serve` still needs no build and the .husky checks still run against real modules. Tests are filed by what they need to run: tests/unit needs nothing, tests/dom needs jsdom, tests/live needs a relay. `verify` is all of unit plus the three dom suites that need no build, which is what a pre-commit hook can afford; `test` adds dom/bundle.mjs and everything under live. Every suite skips cleanly when its prerequisite is absent. The app itself still ships with zero RUNTIME dependencies."
+  "comment": "esbuild is used ONLY by tools/build/build.mjs, which assembles the deploy \u2014 src/ stays plain ES modules on disk, so `npm run serve` still needs no build and the .husky checks still run against real modules. Tests are filed by what they need to run: tests/unit needs nothing, tests/dom needs jsdom, tests/live needs a relay. `verify` is all of unit plus the three dom suites that need no build, which is what a pre-commit hook can afford; `test` adds dom/bundle.mjs and everything under live. Every suite skips cleanly when its prerequisite is absent. The app itself still ships with zero RUNTIME dependencies."
 }

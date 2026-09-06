@@ -513,6 +513,26 @@ jobs:
           gh release view "${{ github.ref_name }}" --json assets \
             --jq '.assets[] | "- \(.name)  (\(.size) bytes)"' >> "$GITHUB_STEP_SUMMARY"
 
+      # Tell the search engines the site moved. One submission fans out to Bing,
+      # Yandex, Seznam and Naver; Google does not participate and is reached
+      # through Search Console instead.
+      #
+      # This is the wrong trigger and it is the affordable one. The SITE deploys
+      # on merge to main, through Cloudflare, with no workflow involved — so the
+      # accurate hook would be a new push-to-main workflow, and a new trigger is
+      # a recurring bill this repo has deliberately never taken on. A tag is
+      # always preceded by a merge, so this catches every release; content
+      # merged without one still needs `npm run seo:indexnow` by hand.
+      #
+      # Never fails the release. The artifacts are published by this point and a
+      # search engine declining a ping is not a reason to go back and unpublish
+      # them.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with: { node-version: 22 }
+      - name: Tell IndexNow the site changed
+        continue-on-error: true
+        run: node tools/seo/indexnow.mjs
+
   # ── the manifests ────────────────────────────────────────────────────────
   # Each of these is a version and a checksum. They run after the artifacts
   # exist, and they are the step that would otherwise be done by hand, once,

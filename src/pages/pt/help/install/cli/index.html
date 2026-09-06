@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Every id here is a deep-link target that other pages point at
+  (/help/install/cli/#install, #pkg, #check, #first, #usage, #trouble,
+  #remove), so the ids stay byte-identical to the English original and only the
+  heading text is translated.
+
+  Every pre and code block is the English original unchanged: the npx and npm
+  invocations, the Homebrew formula name, the option list, the environment
+  variable names and the status line the client actually prints. Those blocks
+  carry a copy button and the CLI is not localised, so a translated command
+  would fail the moment it was pasted. Only the three shell comments inside the
+  worked examples are translated, because nothing executes them.
+
+  The heading that quotes the client's startup error keeps the English string
+  the client prints, with a Portuguese gloss after it, so a reader can match
+  what is on their terminal.
+
+  Terminology follows /pt/: área de transferência, chave, retransmissor,
+  criptografia de ponta a ponta, desinstalar.
+-->
+
+<title>Linha de comando: área de transferência via SSH</title>
+<meta name="description" content="Um cliente de linha de comando para máquinas sem área de transferência. Canalize para send, redirecione o watch e use a criptografia do navegador.">
+<link rel="canonical" href="https://realtimeclipboard.com/pt/help/install/cli/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/install/cli/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/install/cli/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/install/cli/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/install/cli/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/install/cli/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/install/cli/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="RealtimeClipboard na linha de comando">
+<meta property="og:description" content="Canalize sua área de transferência para dentro e para fora de qualquer máquina com Node 22. A mesma criptografia e o mesmo protocolo do navegador.">
+<meta property="og:url" content="https://realtimeclipboard.com/pt/help/install/cli/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/pt/help/install/cli/#article",
+      "headline": "O cliente de linha de comando do RealtimeClipboard — área de transferência via SSH",
+      "description": "Um cliente de linha de comando para máquinas sem área de transferência. Canalize para send, redirecione o watch e use a mesma criptografia do navegador. Precisa do Node 22.",
+      "inLanguage": "pt-BR",
+      "datePublished": "",
+      "dateModified": "",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/pt/help/install/cli/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/pt/" },
+        { "@type": "ListItem", "position": 2, "name": "Linha de comando" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/copy.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/pt/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir o aplicativo</a>
+    </div>
+  </div>
+</header>
+
+<svg class="icons" aria-hidden="true">
+  <symbol id="i-node" viewBox="0 0 24 24"><path d="M11.998,24c-0.321,0-0.641-0.084-0.922-0.247l-2.936-1.737c-0.438-0.245-0.224-0.332-0.08-0.383 c0.585-0.203,0.703-0.25,1.328-0.604c0.065-0.037,0.151-0.023,0.218,0.017l2.256,1.339c0.082,0.045,0.197,0.045,0.272,0l8.795-5.076 c0.082-0.047,0.134-0.141,0.134-0.238V6.921c0-0.099-0.053-0.192-0.137-0.242l-8.791-5.072c-0.081-0.047-0.189-0.047-0.271,0 L3.075,6.68C2.99,6.729,2.936,6.825,2.936,6.921v10.15c0,0.097,0.054,0.189,0.139,0.235l2.409,1.392 c1.307,0.654,2.108-0.116,2.108-0.89V7.787c0-0.142,0.114-0.253,0.256-0.253h1.115c0.139,0,0.255,0.112,0.255,0.253v10.021 c0,1.745-0.95,2.745-2.604,2.745c-0.508,0-0.909,0-2.026-0.551L2.28,18.675c-0.57-0.329-0.922-0.945-0.922-1.604V6.921 c0-0.659,0.353-1.275,0.922-1.603l8.795-5.082c0.557-0.315,1.296-0.315,1.848,0l8.794,5.082c0.57,0.329,0.924,0.944,0.924,1.603 v10.15c0,0.659-0.354,1.273-0.924,1.604l-8.794,5.078C12.643,23.916,12.324,24,11.998,24z M19.099,13.993 c0-1.9-1.284-2.406-3.987-2.763c-2.731-0.361-3.009-0.548-3.009-1.187c0-0.528,0.235-1.233,2.258-1.233 c1.807,0,2.473,0.389,2.747,1.607c0.024,0.115,0.129,0.199,0.247,0.199h1.141c0.071,0,0.138-0.031,0.186-0.081 c0.048-0.054,0.074-0.123,0.067-0.196c-0.177-2.098-1.571-3.076-4.388-3.076c-2.508,0-4.004,1.058-4.004,2.833 c0,1.925,1.488,2.457,3.895,2.695c2.88,0.282,3.103,0.703,3.103,1.269c0,0.983-0.789,1.402-2.642,1.402 c-2.327,0-2.839-0.584-3.011-1.742c-0.02-0.124-0.126-0.215-0.253-0.215h-1.137c-0.141,0-0.254,0.112-0.254,0.253 c0,1.482,0.806,3.248,4.655,3.248C17.501,17.007,19.099,15.91,19.099,13.993z"/></symbol>
+</svg>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Trilha de navegação">
+        <a href="/pt/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Linha de comando</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1><svg class="brandmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-node"/></svg> O cliente de linha de comando</h1>
+
+        <p class="lede">
+          Para as máquinas que não têm área de transferência nenhuma. Ele lê a
+          entrada padrão e escreve na saída padrão, então se encaixa em tudo o que
+          você já usa — e não é uma segunda implementação: importa exatamente os
+          mesmos arquivos de criptografia e transporte que o navegador executa.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2 id="install">Instale</h2>
+        <pre><code>npx realtimeclipboard D75LV</code></pre>
+        <p>
+          Não há nada para instalar: o <code>npx</code> baixa, executa e não deixa
+          nada para trás. Se preferir tê-lo no seu PATH:
+        </p>
+        <pre><code>npm install -g realtimeclipboard</code></pre>
+        <p>
+          <b>É preciso Node 22 ou mais novo</b>, por causa do
+          <code>WebSocket</code> embutido. Num Node mais antigo o cliente sai na
+          hora e diz o motivo, em vez de falhar no meio de uma transferência.
+        </p>
+
+        <h2 id="pkg">Ou por um gerenciador de pacotes</h2>
+        <pre><code>brew install akshaynikhare/tap/realtimeclipboard-cli</code></pre>
+        <p>
+          Repare no nome: a formula do CLI é <code>realtimeclipboard-cli</code> e o
+          aplicativo de desktop é o cask <code>realtimeclipboard</code>. São coisas
+          diferentes, e instalar uma não te dá a outra — um servidor quer o pipe,
+          não um ícone na barra de menus.
+        </p>
+
+        <h2 id="check">Confira se funcionou</h2>
+        <pre><code>npx realtimeclipboard --version</code></pre>
+        <p>
+          Ao conectar, ele imprime uma linha de status na <b>saída de erro</b>,
+          nunca na saída padrão:
+        </p>
+        <pre><code>realtimeclipboard · room 3f2a91c4…</code></pre>
+        <p>
+          Esse é o hash da sala, truncado — nunca a chave. Como vai para o stderr,
+          <code>watch &gt; file</code> continua gravando só o conteúdo. Passe
+          <code>-q</code> para silenciar de vez.
+        </p>
+
+        <h2 id="first">Sua primeira sincronização</h2>
+        <ol class="steps">
+          <li>Abra <a href="/app.html">o aplicativo</a> no navegador e anote a chave.</li>
+          <li>No servidor, mande alguma coisa para ela:
+            <pre><code>echo "deploy key" | npx realtimeclipboard send D75LV</code></pre></li>
+          <li>Aparece no navegador. Agora faça o caminho inverso — copie algo no
+            navegador e, no servidor, rode:
+            <pre><code>npx realtimeclipboard watch D75LV --once &gt; token.txt</code></pre></li>
+        </ol>
+
+        <h2 id="usage">Os quatro comandos</h2>
+        <div class="tablewrap">
+          <table class="cmp">
+            <thead><tr><th>Comando</th><th>O que faz</th></tr></thead>
+            <tbody>
+              <tr><td><code>realtimeclipboard &lt;KEY&gt;</code></td><td>Mão dupla: imprime o que chega, envia o que você digita</td></tr>
+              <tr><td><code>realtimeclipboard watch &lt;KEY&gt;</code></td><td>Imprime o conteúdo que chega</td></tr>
+              <tr><td><code>realtimeclipboard send &lt;KEY&gt;</code></td><td>Lê a entrada padrão até o EOF e envia</td></tr>
+              <tr><td><code>realtimeclipboard new [--long]</code></td><td>Imprime uma chave nova</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Opções: <code>--relay &lt;url&gt;</code>, <code>--pin &lt;pin&gt;</code>,
+          <code>--once</code>, <code>--json</code>, <code>--timeout &lt;s&gt;</code>,
+          <code>-q</code>, <code>-h</code>, <code>-v</code>. O retransmissor e o PIN
+          também são lidos de <code>REALTIMECLIPBOARD_RELAY</code> e
+          <code>REALTIMECLIPBOARD_PIN</code>, que é o jeito certo de passar um PIN —
+          como argumento ele fica no histórico do seu shell.</p>
+
+        <pre><code># saída estruturada, um objeto JSON por linha
+npx realtimeclipboard watch D75LV --once --json | jq -r .text
+
+# de uma máquina em que você entrou por ssh
+ssh build-01 'cat /var/log/deploy.log' | npx realtimeclipboard send D75LV
+
+# apontando para o seu próprio retransmissor
+npx realtimeclipboard --relay wss://clip.example.com D75LV</code></pre>
+
+        <h2 id="trouble">Quando não funciona</h2>
+
+        <h3>“this needs Node 22 or newer” (precisa do Node 22 ou mais novo)</h3>
+        <p>
+          Exatamente o que está escrito: o cliente usa o <code>WebSocket</code>
+          embutido do Node em vez de puxar uma dependência, e ele só chegou na 22.
+          Ele sai na inicialização, não no meio da transferência.
+        </p>
+
+        <h3>Ele trava e nunca imprime nada</h3>
+        <p>
+          O <code>watch</code> espera por conteúdo, é assim mesmo — nada chega
+          enquanto ninguém copiar nada do outro lado. Use
+          <code>--timeout 30</code> num script para ele não esperar para sempre, e
+          <code>--once</code> para sair depois do primeiro conteúdo.
+        </p>
+
+        <h3>Funciona no terminal, mas não na CI</h3>
+        <p>
+          Não há TTY, então passe <code>-q</code> e leia a saída padrão. Ponha a
+          chave numa variável de ambiente em vez da linha de comando, onde ela
+          apareceria nos logs de build.
+        </p>
+
+        <h3>Nada conecta atrás de um proxy</h3>
+        <p>
+          O cliente fala o mesmo protocolo do navegador e pode ser apontado para o
+          seu próprio retransmissor com <code>--relay</code>.
+          <a href="/pt/help/install/relay/">Rodar um é um contêiner.</a>
+        </p>
+
+        <h2 id="remove">Desinstalando</h2>
+        <p>
+          O <code>npx</code> não deixa nada para desinstalar. Use
+          <code>npm uninstall -g realtimeclipboard</code> se você instalou
+          globalmente, ou <code>brew uninstall realtimeclipboard-cli</code>.
+        </p>
+        <p class="honest">
+          <b>A chave é uma credencial ao portador.</b> Quem estiver com ela
+          consegue ler a sessão enquanto ela estiver aberta, então mantenha a chave
+          fora do histórico do shell, fora dos logs de CI e fora de arquivos
+          versionados. O conteúdo é criptografado nesta máquina antes de sair; o
+          retransmissor só vê um hash de sala e texto cifrado.
+        </p>
+
+        <p class="hint">
+          Todas as outras plataformas: <a href="/pt/help/install/">o guia de
+          instalação</a>. Algo errado ou desatualizado aqui?
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">Abra uma issue</a>.
+        </p>
+      </div>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código aberto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/install/cli/">English</a> · <a href="/es/help/install/cli/">Español</a> · <a href="/pt/help/install/cli/">Português</a> · <a href="/ru/help/install/cli/">Русский</a> · <a href="/zh/help/install/cli/">中文</a></p>
+      <p><a href="/pt/">Início</a> · <a href="/pt/download/">Download</a> · <a href="/pt/help/">Ajuda</a> · <a href="/pt/about/">Sobre</a> · <a href="/privacy/">Privacidade</a> · <a href="/terms/">Termos</a></p>
+      <p>As sessões ficam em memória e nunca são gravadas em disco. O conteúdo da área de transferência é criptografado no seu navegador antes de ser enviado.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

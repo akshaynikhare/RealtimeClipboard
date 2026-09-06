@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Página de identidade do publicador. Não é página de SEO nem peça de venda: uma
+  rede de anúncios, um pesquisador de segurança e um visitante de primeira viagem
+  chegam querendo os mesmos três fatos — quem toca isto, como é custeado, e o que
+  o serviço faz com o que você cola.
+
+  Ser específico é o ponto. Uma página que caberia em qualquer produto não
+  descreve nenhum, e vagueza sobre dinheiro é justamente o que esta página existe
+  para remover.
+
+  Terminology follows /pt/: área de transferência, chave curta, retransmissor,
+  criptografia de ponta a ponta, código aberto. Names, the MIT licence, CadNative
+  and the email address stay as written.
+-->
+
+<title>Sobre o RealtimeClipboard: quem faz e como se paga</title>
+<meta name="description" content="Área de transferência online gratuita e criptografada de ponta a ponta, feita por Akshay Nikhare na CadNative. Quem faz, o que não faz e como se paga.">
+<link rel="canonical" href="https://realtimeclipboard.com/pt/about/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/about/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/about/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/about/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/about/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/about/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/about/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="Sobre o RealtimeClipboard">
+<meta property="og:description" content="Quem faz o RealtimeClipboard, como funciona a criptografia, o que ele se recusa a fazer e como um serviço gratuito e sem contas paga o servidor.">
+<meta property="og:url" content="https://realtimeclipboard.com/pt/about/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/pt/about/#article",
+      "headline": "Sobre o RealtimeClipboard",
+      "description": "Quem faz o RealtimeClipboard, como ele funciona, o que se recusa a fazer de propósito e como é custeado.",
+      "inLanguage": "pt-BR",
+      "datePublished": "2026-09-04",
+      "dateModified": "2026-09-04",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/pt/about/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/pt/" },
+        { "@type": "ListItem", "position": 2, "name": "Sobre" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/pt/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir o aplicativo</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Trilha de navegação">
+        <a href="/pt/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Sobre</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>Sobre o RealtimeClipboard</h1>
+
+        <p class="lede">
+          <b>O RealtimeClipboard é uma área de transferência online gratuita que
+          leva texto e arquivos entre os seus próprios aparelhos sem exigir
+          conta.</b> Quem faz e mantém é Akshay Nikhare, na CadNative; o código é
+          público sob a licença MIT; e a conta do servidor sai do espaço de anúncio
+          abaixo do editor. Esta página trata desses três pontos, mais aquilo que
+          ele se recusa a fazer de propósito.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2>Por que ela existe</h2>
+
+        <p>
+          Levar um parágrafo do notebook do trabalho para o celular pessoal só é
+          problema resolvido se os dois aparelhos por acaso concordarem sobre o
+          mesmo ecossistema. Aparelhos da Apple têm a Área de Transferência
+          Universal, e ela para na fronteira da Apple. Ferramentas locais como o
+          Snapdrop exigem as duas máquinas no mesmo Wi-Fi, o que descarta um celular
+          no 4G, uma rede corporativa fechada ou uma máquina a dois países de
+          distância. Todo o resto acaba virando o mesmo contorno: mandar por e-mail
+          para si mesmo, ou colar numa conversa consigo mesmo, e deixar uma empresa
+          que você não escolheu guardar uma cópia para sempre.
+        </p>
+
+        <p>
+          O RealtimeClipboard é a resposta estreita a isso. Você abre a mesma chave
+          curta em dois aparelhos e eles passam a compartilhar uma área de
+          transferência. Não há conta para criar, nada para instalar, nenhuma
+          exigência de rede além de os dois estarem online, e nenhuma cópia deixada
+          para trás quando você fecha a aba.
+        </p>
+
+        <h2>Como funciona</h2>
+
+        <p>
+          O que você copia é criptografado no seu navegador com AES-GCM antes de
+          sair da máquina, sob uma chave derivada da chave curta de sessão que você
+          digita. <b>Essa chave de sessão nunca é transmitida.</b> O servidor recebe
+          um hash SHA-256 dela, o que basta para saber para qual sala encaminhar uma
+          mensagem e não basta para abrir nenhuma, mais um texto cifrado que ele não
+          tem como ler.
+        </p>
+
+        <p>
+          O retransmissor segura as mensagens em memória pelo instante que leva para
+          repassá-las e não grava nada em disco. Arquivos pulam o servidor por
+          completo — vão direto de um aparelho ao outro por WebRTC, então uma
+          transferência grande não custa nada ao serviço e nunca chega a existir no
+          meio do caminho. Uma sessão pode ser trancada com um PIN, que também nunca
+          é transmitido.
+        </p>
+
+        <p>
+          Nada disso exige confiar numa descrição. O
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">código completo</a>
+          é público, o protocolo de rede e o modelo de ameaças estão escritos no
+          repositório, e o retransmissor é um serviço separado que não compartilha
+          código nenhum com o navegador — apenas o protocolo documentado.
+        </p>
+
+        <h2>O que ela não vai fazer</h2>
+
+        <p>
+          Uma lista curta, porque o que um produto recusa diz mais do que aquilo que
+          ele promete:
+        </p>
+
+        <p>
+          <b>Não vai mesclar duas pessoas digitando ao mesmo tempo.</b> Edição
+          colaborativa sem conflitos é uma peça de engenharia real e pesada, e isto
+          aqui é uma área de transferência. Quando dois aparelhos digitam juntos,
+          você vê o outro cursor chegando na cor dele, e um texto que chega é
+          oferecido em vez de aplicado em silêncio por cima do seu trabalho.
+        </p>
+
+        <p>
+          <b>Não vai lembrar de você.</b> Sem conta, sem e-mail, sem perfil, sem
+          histórico no servidor. As configurações e o histórico da área de
+          transferência ficam no armazenamento do seu próprio navegador e nunca são
+          enviados. Esse é também o custo honesto do projeto: perdeu a chave e não
+          existe link de recuperação, porque não há nada no servidor que saiba que a
+          sessão era sua.
+        </p>
+
+        <p>
+          <b>Não vai fingir que a chave é mais do que ela é.</b> A chave
+          compartilhada é uma credencial ao portador — quem a tiver consegue ler a
+          sessão, e é exatamente isso que torna possível uma chave de cinco
+          caracteres sem login. Essa troca está documentada em vez de escondida, e a
+          trava por PIN existe para quando ela for a troca errada.
+        </p>
+
+        <p>
+          <b>Não vai vender o que você cola.</b> Não teria como: o conteúdo é
+          criptografado antes de ser enviado e o servidor não tem a chave.
+        </p>
+
+        <h2>Como ela é paga</h2>
+
+        <p>
+          O retransmissor é um servidor alugado com uma fatura mensal de verdade, e
+          não existe assinatura, plano pago nem conta em que pendurar um. Um único
+          espaço de anúncio abaixo do editor, servido pelo Google AdSense, é o que
+          cobre isso.
+        </p>
+
+        <p>
+          Vale ser preciso sobre o que isso significa, já que as duas afirmações
+          ficam lado a lado. Uma tag de anúncio é código de terceiros rodando dentro
+          da página, e no aplicativo essa página é justamente a que mostra o seu
+          texto já descriptografado — então o script do Google roda onde esse
+          conteúdo está visível, como qualquer script em qualquer página. O que ele
+          não recebe é a sua chave de sessão: o aplicativo tira a chave da barra de
+          endereços antes de a tag de anúncio sequer poder carregar. A criptografia
+          entre os seus aparelhos e o retransmissor não muda em nenhum dos casos. A
+          <a href="/privacy/">política de privacidade</a> detalha tudo isso,
+          inclusive o que o Google Analytics enxerga.
+        </p>
+
+        <h2>Quem faz</h2>
+
+        <p>
+          O RealtimeClipboard é feito por <b>Akshay Nikhare</b>, engenheiro de
+          software, e publicado pela <b>CadNative</b>. Não é uma empresa com capital
+          de risco e não há time por trás — é um mantenedor só, o que explica por que
+          o escopo continua tão estreito e por que um relato de bug é lido por quem
+          pode corrigi-lo.
+        </p>
+
+        <p>
+          O projeto é de código aberto sob a licença MIT. De uma única base de código
+          saem quatro coisas: o aplicativo web, este site, um cliente de linha de
+          comando em Node e uma versão desktop para Windows, macOS e Linux.
+          Contribuições, relatos de bug e divulgações de segurança são todos
+          bem-vindos — veja
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">o repositório</a>
+          para saber como o código está organizado e quais são as regras.
+        </p>
+
+        <h2>Como falar com a gente</h2>
+
+        <p>
+          Dúvidas, correções, imprensa e assuntos comerciais vão todos para
+          <a href="mailto:info@realtimeclipboard.com">info@realtimeclipboard.com</a>. Bugs e
+          pedidos de funcionalidade funcionam melhor como
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">issues no GitHub</a>,
+          e problemas de segurança têm <a href="/pt/contact/">um caminho privado
+          próprio</a>. A <a href="/pt/contact/">página de contato</a> tem o detalhe,
+          inclusive o que esperar e quanto tempo leva.
+        </p>
+
+        <p>
+          Se alguma coisa neste site estiver errada, diga. Ela é corrigida e a
+          mudança fica no histórico público.
+        </p>
+      </div>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código aberto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/about/">English</a> · <a href="/es/about/">Español</a> · <a href="/pt/about/">Português</a> · <a href="/ru/about/">Русский</a> · <a href="/zh/about/">中文</a></p>
+      <p><a href="/pt/">Início</a> · <a href="/pt/download/">Download</a> · <a href="/pt/help/">Ajuda</a> · <a href="/pt/about/">Sobre</a> · <a href="/privacy/">Privacidade</a> · <a href="/terms/">Termos</a></p>
+      <p>As sessões ficam em memória e nunca são gravadas em disco. O conteúdo da área de transferência é criptografado no seu navegador antes de ser enviado.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

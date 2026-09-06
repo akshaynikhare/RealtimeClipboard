@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Формы обратной связи нет и не будет: форме нужно место, куда отправлять, а этот
+  сайт статичен по замыслу — единственный сервер в проекте это ретранслятор,
+  который намеренно не способен ничего хранить. Адрес почты и трекер задач делают
+  ту же работу, не давая сайту бэкенда, которого у него иначе нет.
+
+  Предупреждение «не отправляйте ключ сессии» здесь не для галочки. Общий ключ
+  предъявительский, поэтому ключ, вставленный в сообщение об ошибке, отдаёт сессию
+  каждому, кто это прочтёт.
+
+  Terminology follows /ru/: буфер обмена, ключ, ретранслятор, сквозное шифрование,
+  открытый исходный код. Names, GitHub URLs, SECURITY.md and the email address
+  stay as written.
+-->
+
+<title>Контакты RealtimeClipboard: поддержка и безопасность</title>
+<meta name="description" content="Как связаться с RealtimeClipboard: почта для общих и деловых вопросов, issues на GitHub для ошибок, закрытое уведомление для безопасности.">
+<link rel="canonical" href="https://realtimeclipboard.com/ru/contact/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/contact/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/contact/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/contact/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/contact/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/contact/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/contact/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="Контакты RealtimeClipboard">
+<meta property="og:description" content="Куда писать по вопросам поддержки, об ошибках, об уязвимостях и по деловым предложениям — и какого ответа стоит ждать.">
+<meta property="og:url" content="https://realtimeclipboard.com/ru/contact/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/ru/contact/#article",
+      "headline": "Контакты",
+      "description": "Как связаться с сопровождающим RealtimeClipboard по вопросам поддержки, безопасности и деловым предложениям.",
+      "inLanguage": "ru",
+      "datePublished": "2026-09-04",
+      "dateModified": "2026-09-04",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/ru/contact/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/ru/" },
+        { "@type": "ListItem", "position": 2, "name": "Контакты" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/ru/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Открыть приложение</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Навигационная цепочка">
+        <a href="/ru/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Контакты</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>Контакты</h1>
+
+        <p class="lede">
+          <b>Напишите на <a href="mailto:info@realtimeclipboard.com">info@realtimeclipboard.com</a>,
+          и письмо попадёт к человеку, который сопровождает проект.</b>
+          RealtimeClipboard ведёт один сопровождающий, поэтому здесь нет ни очереди,
+          ни уровней поддержки — но нет и ночной смены, и сроки ниже честные, а не
+          желаемые.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2>Прежде чем писать: не отправляйте ключ сессии</h2>
+
+        <p>
+          <b>Никогда не включайте общий ключ или PIN-код сессии в письмо, в сообщение
+          об ошибке или в снимок экрана.</b> Ключ — это вся защита: любой, у кого он
+          есть, откроет сессию и прочитает её. Если нужно показать проблему,
+          заведите одноразовую сессию и снимайте её. Снимок экрана приложения
+          подойдёт, если панель с ключом обрезана или ключ закрашен.
+        </p>
+
+        <h2>Поддержка и общие вопросы</h2>
+
+        <p>
+          <a href="mailto:info@realtimeclipboard.com">info@realtimeclipboard.com</a>. Ответа
+          стоит ждать примерно за три рабочих дня.
+        </p>
+
+        <p>
+          У большинства вопросов вида «не синхронизируется» ответ находится быстрее,
+          чем его успеет дать письмо, потому что причин немного и все они известны:
+          браузер, который не читает буфер обмена без разрешения, два устройства с
+          разными ключами или расширение, блокирующее соединение.
+          <a href="/ru/help/clipboard-sync-not-working/">Руководство по разбору
+          проблем с синхронизацией</a> проходит их по порядку, а
+          <a href="/ru/help/">раздел помощи</a> описывает установку на каждой
+          платформе. Начните с них — обычно на этом всё и заканчивается за минуту.
+        </p>
+
+        <h2>Ошибки и пожелания</h2>
+
+        <p>
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">Заведите
+          issue на GitHub</a>. Для всего воспроизводимого это лучше письма: issue
+          открыта, поэтому следующий человек с той же бедой найдёт ответ, и именно
+          там появится ссылка на исправление, когда оно выйдет.
+        </p>
+
+        <p>
+          Полезное сообщение называет браузеры и операционные системы с обеих сторон,
+          чего вы ждали, что произошло вместо этого и что было в консоли браузера.
+          Всё в проекте открыто, так что если вам ближе прислать pull request, а не
+          описание, это тоже работает.
+        </p>
+
+        <h2>Сообщения об уязвимостях</h2>
+
+        <p>
+          У проблем безопасности отдельный путь, и в публичной issue им не место.
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/security/advisories/new">Заведите
+          закрытое уведомление</a> — оно видно только вам и сопровождающему — или
+          напишите на
+          <a href="mailto:info@realtimeclipboard.com">info@realtimeclipboard.com</a>, если
+          эта форма вам недоступна.
+        </p>
+
+        <p>
+          Подтверждения получения стоит ждать примерно в течение недели.
+          Подтвердившиеся сообщения упоминаются в уведомлении и в списке изменений,
+          если вы не против. Ни программы вознаграждений, ни денег нет — это
+          бесплатный инструмент с одним сопровождающим, и делать вид, что это не так,
+          значило бы тратить ваше время. Полная политика, включая то, какие известные
+          компромиссы являются намеренным решением, а не дефектом, лежит в
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/blob/main/SECURITY.md">SECURITY.md</a>.
+        </p>
+
+        <h2>Запросы о персональных данных</h2>
+
+        <p>
+          Присылайте их на <a href="mailto:info@realtimeclipboard.com">info@realtimeclipboard.com</a>.
+          Учтите заранее, что обычный ответ — отдавать нечего: нет ни учётной записи,
+          ни почтового адреса в записях, ни серверного следа хоть какой-нибудь
+          сессии, так что материала, который сервис обычно о вас держит, попросту не
+          существует. По рекламным и аналитическим данным, которые хранит Google,
+          ссылки в <a href="/privacy/">политике конфиденциальности</a> уводят дальше,
+          чем мог бы любой запрос к этому сайту.
+        </p>
+
+        <h2>Пресса, реклама и деловые предложения</h2>
+
+        <p>
+          <a href="mailto:info@realtimeclipboard.com">info@realtimeclipboard.com</a>, со
+          словом «пресса» или «сотрудничество» в теме письма. RealtimeClipboard
+          издаёт CadNative. Логотипы и набор иконок лежат в
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">репозитории</a>,
+          и ими можно пользоваться, когда речь идёт о проекте.
+        </p>
+
+        <h2>Почему здесь нет формы обратной связи</h2>
+
+        <p>
+          Форме нужно куда-то отправлять данные, а это означало бы сервер, который
+          хранит сообщения. Единственный сервер в этом проекте — ретранслятор,
+          который сделан неспособным хранить хоть что-нибудь, и полезнее, чтобы он
+          таким и остался. Адрес почты делает ту же работу и оставляет архитектуру
+          честной.
+        </p>
+      </div>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Открытый исходный код — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/contact/">English</a> · <a href="/es/contact/">Español</a> · <a href="/pt/contact/">Português</a> · <a href="/ru/contact/">Русский</a> · <a href="/zh/contact/">中文</a></p>
+      <p><a href="/ru/">Главная</a> · <a href="/ru/download/">Загрузки</a> · <a href="/ru/help/">Помощь</a> · <a href="/ru/about/">О проекте</a> · <a href="/privacy/">Конфиденциальность</a> · <a href="/terms/">Условия</a></p>
+      <p>Сессии хранятся в памяти и никогда не пишутся на диск. Содержимое буфера обмена шифруется в вашем браузере до отправки.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

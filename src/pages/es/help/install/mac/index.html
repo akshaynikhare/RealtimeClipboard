@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Every id on this page is a deep-link target used from /help/install/ and from
+  the other platform guides (#install, #pkg, #check, #first, #trouble, #remove).
+  They are byte-identical to the English original and must stay that way.
+
+  Everything inside pre and code is left exactly as the English has it: those
+  blocks carry a copy button, and a translated command is a command that fails
+  when pasted. The two status-bar strings sit in code for the same reason, and
+  because the desktop app itself is not localised.
+
+  macOS UI uses the Spanish wording shown on the device (Aplicaciones, Papelera,
+  Ajustes del Sistema, Privacidad y seguridad, Abrir igualmente), and the
+  Gatekeeper refusal is quoted as macOS in Spanish phrases it. The app's own
+  labels stay in English, which is what the reader sees on screen.
+
+  "Selector" for the App/Clipboard switch, because "clave" is already the short
+  key on every page of this site.
+
+  Terminology follows /es/: portapapeles en línea, clave corta, servidor de
+  retransmisión, instalación, desinstalar.
+-->
+
+<title>Instalar RealtimeClipboard en macOS</title>
+<meta name="description" content="Un único .dmg universal para Intel y Apple Silicon, cómo confirmar que el ítem de la barra de menús está funcionando y qué dirá Gatekeeper.">
+<link rel="canonical" href="https://realtimeclipboard.com/es/help/install/mac/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/install/mac/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/install/mac/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/install/mac/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/install/mac/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/install/mac/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/install/mac/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="es_ES">
+<meta property="og:title" content="Instalar RealtimeClipboard en macOS">
+<meta property="og:description" content="Una sola descarga para Intel y Apple Silicon, qué aspecto tiene una instalación que funciona y cómo se comporta el ítem de la barra de menús.">
+<meta property="og:url" content="https://realtimeclipboard.com/es/help/install/mac/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/es/help/install/mac/#article",
+      "headline": "Instalar RealtimeClipboard en macOS — Intel y Apple Silicon",
+      "description": "Un único .dmg universal para los dos chips, cómo confirmar que el ítem de la barra de menús está funcionando, la primera sincronización y qué dirá Gatekeeper la primera vez.",
+      "inLanguage": "es",
+      "datePublished": "",
+      "dateModified": "",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/es/help/install/mac/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/es/" },
+        { "@type": "ListItem", "position": 2, "name": "Instalación en macOS" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/copy.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/es/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir la aplicación</a>
+    </div>
+  </div>
+</header>
+
+<svg class="icons" aria-hidden="true">
+  <symbol id="i-apple" viewBox="0 0 24 24"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></symbol>
+</svg>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Ruta de navegación">
+        <a href="/es/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Instalación en macOS</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1><svg class="brandmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-apple"/></svg> Instalación en macOS</h1>
+
+        <p class="lede">
+          Una sola descarga cubre Intel y Apple Silicon. macOS no pide ningún
+          permiso para leer el portapapeles, lo que vuelve trivial la instalación
+          — y es exactamente por eso que la aplicación se explica sola la primera
+          vez que la abres.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2 id="install">Instálalo</h2>
+        <ol class="steps">
+          <li>Descarga <code>RealtimeClipboard_&lt;version&gt;_universal.dmg</code> desde
+            <a href="https://github.com/akshaynikhare/RealtimeClipboard/releases/latest">la página de releases</a>.</li>
+          <li>Ábrelo y arrastra RealtimeClipboard a Aplicaciones.</li>
+          <li>Ábrelo. Requiere macOS 11 o posterior.</li>
+        </ol>
+        <p>
+          <b>Hay una sola descarga, no dos.</b> El flujo de publicación compila con
+          <code>--target universal-apple-darwin</code>, así que el mismo archivo se
+          ejecuta de forma nativa en las dos arquitecturas. Si estabas buscando una
+          versión aparte para Apple Silicon, ya la tienes.
+        </p>
+
+        <h2 id="pkg">O desde un gestor de paquetes</h2>
+        <pre><code>brew install --cask akshaynikhare/tap/realtimeclipboard</code></pre>
+        <p>
+          El cask vive en
+          <a href="https://github.com/akshaynikhare/homebrew-tap">akshaynikhare/homebrew-tap</a>
+          y se genera en cada publicación con <code>tools/release/manifest.mjs</code>,
+          así que su versión y su suma de comprobación salen de un artefacto que
+          realmente se compiló. No hace falta un <code>brew tap</code> previo:
+          nombrar el tap en el comando de instalación es suficiente.
+        </p>
+        <p>
+          Es además la forma más cómoda de sortear el problema de Gatekeeper: el
+          cask retira el atributo de cuarentena después de instalar, así que la
+          aplicación abre sin pasar por Privacidad y seguridad. Eso es Homebrew
+          haciendo por ti lo que harías a mano, no una firma — la compilación sigue
+          sin firmar.
+        </p>
+        <p>
+          El cliente de línea de comandos es otra fórmula,
+          <code>realtimeclipboard-cli</code>, y no es lo mismo que la aplicación de
+          escritorio — mira <a href="/es/help/install/cli/">la guía de la línea de comandos</a>.
+        </p>
+
+        <h2 id="check">Comprueba que ha funcionado</h2>
+        <ul class="sq-list">
+          <li><b>Aparece un ítem en la barra de menús.</b> Haz clic y el menú se
+            abre, como debe hacerlo un ítem de la barra de menús — <b>Open
+            RealtimeClipboard</b> es la primera entrada y <b>Quit</b> es la última,
+            a propósito: una aplicación que vigila tu portapapeles tiene que
+            ofrecer una forma visible de pararla. Cerrar la ventana con el botón
+            rojo no la cierra del todo; la deja en la barra de menús para que pueda
+            seguir vigilando.</li>
+          <li><b>La barra de estado dice <code>T0 · watching the system clipboard</code></b>,
+            abajo a la derecha de la ventana. Ese es el vigilante nativo
+            confirmándose. Safari en la misma máquina dice
+            <code>T1 · paste only</code>, y esa diferencia es justo por lo que has
+            instalado esto.</li>
+        </ul>
+
+        <h2 id="first">Tu primera sincronización</h2>
+        <ol class="steps">
+          <li>Apunta la clave corta que hay arriba en la aplicación, o escribe la
+            tuya.</li>
+          <li>Abre <a href="/app.html">la aplicación</a> en un segundo dispositivo e
+            introduce la misma clave.</li>
+          <li>Copia algo en el Mac, sin cambiar a RealtimeClipboard. Aparece en el
+            otro dispositivo.</li>
+        </ol>
+        <p class="honest">
+          ¿No ha pasado nada? Comprueba que el selector de arriba de la ventana está
+          en <b>Clipboard</b>. En <b>App</b>, nada sale del Mac hasta que lo pegas
+          dentro. Merece la pena saber que ese selector existe: macOS concede acceso
+          al portapapeles a cualquier aplicación en ejecución sin preguntar nada, así
+          que nada en el sistema operativo te diría que esta aplicación ha empezado a
+          leer todo lo que copias — por eso lo dice ella misma la primera vez que se
+          abre, y pone el mismo selector en la barra de menús como
+          <b>Share what I copy</b>.
+        </p>
+
+        <h2 id="trouble">Cuando no funciona</h2>
+
+        <h3>«No se puede abrir RealtimeClipboard porque no se puede verificar al desarrollador»</h3>
+        <p>
+          Es lo esperado, y no es señal de que la descarga esté rota. La compilación
+          no está firmada ni notarizada, porque ambas cosas exigen una cuenta de
+          pago de Apple Developer que este proyecto todavía no tiene. Gatekeeper
+          rechaza la primera vez cualquier cosa sin notarizar.
+        </p>
+        <ol class="steps-list">
+          <li>Intenta abrir la aplicación una vez y deja que la rechace.</li>
+          <li><b>Ajustes del Sistema → Privacidad y seguridad</b>, baja hasta el
+            final: ahora hay una línea que nombra a RealtimeClipboard, con un botón
+            <b>Abrir igualmente</b>.</li>
+        </ol>
+        <p>
+          En macOS 14 y anteriores, hacer clic derecho en la aplicación y elegir
+          <b>Abrir</b> hace lo mismo en un solo paso. Ese atajo se retiró en macOS
+          15, y por eso el camino largo va primero.
+        </p>
+        <p>
+          Cualquiera de los dos registra una excepción solo para esta aplicación —
+          algo mucho más estrecho que bajar Gatekeeper de forma global, que no
+          deberías hacer. Hazlo únicamente con un archivo que hayas obtenido de
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/releases/latest">la página oficial de releases</a>
+          y, si quieres estar seguro, contrasta el SHA256 publicado en la release
+          con el archivo.
+        </p>
+
+        <h3>No ha aparecido ninguna petición de permiso</h3>
+        <p>
+          No hay ninguna que pueda aparecer. A diferencia de la cámara, el micrófono
+          o la pantalla, el portapapeles de macOS lo puede leer cualquier aplicación
+          en ejecución sin pedir permiso. La aplicación no puede enseñarte un aviso
+          del sistema que no existe, así que decirlo ella misma la primera vez que se
+          abre es el sustituto de ese aviso.
+        </p>
+
+        <h3>Los contenidos llegan al Mac, pero no salen de él</h3>
+        <p>
+          Eso es el ajuste App/Clipboard, no un fallo: recibir funciona siempre,
+          enviar es lo que eliges tú.
+        </p>
+
+        <h3>Se queda en «Connecting…»</h3>
+        <p>
+          La aplicación prueba primero un WebSocket y recurre a server-sent events
+          más POST donde el upgrade está bloqueado. Si no conecta ninguno de los dos,
+          el host del servidor de retransmisión está bloqueado por completo — apunta
+          la aplicación al tuyo propio en <b>Settings → Relay</b>.
+          <a href="/es/help/install/relay/">Levantar uno es un contenedor.</a>
+        </p>
+
+        <h2 id="remove">Desinstalar</h2>
+        <p>
+          Sal desde la barra de menús y arrastra la aplicación de Aplicaciones a la
+          Papelera, o usa <code>brew uninstall --cask realtimeclipboard</code>.
+        </p>
+        <p>
+          El contenido del portapapeles no se escribe nunca en disco, así que no
+          queda nada que buscar y borrar después. Tus ajustes y tu historial viven en
+          el almacenamiento del propio navegador de la aplicación y se van con ella.
+        </p>
+
+        <p class="hint">
+          Listo para instalar: <a href="/es/download/">la página de descargas</a>.
+          El resto de plataformas: <a href="/es/help/install/">la guía de instalación</a>.
+          ¿Hay algo mal o desactualizado aquí?
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">Abre una issue</a>.
+        </p>
+      </div>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código abierto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/install/mac/">English</a> · <a href="/es/help/install/mac/">Español</a> · <a href="/pt/help/install/mac/">Português</a> · <a href="/ru/help/install/mac/">Русский</a> · <a href="/zh/help/install/mac/">中文</a></p>
+      <p><a href="/es/">Inicio</a> · <a href="/es/download/">Descargas</a> · <a href="/es/help/">Ayuda</a> · <a href="/es/about/">Acerca de</a> · <a href="/privacy/">Privacidad</a> · <a href="/terms/">Términos</a></p>
+      <p>Las sesiones se mantienen en memoria y nunca se escriben en disco. El contenido del portapapeles se cifra en tu navegador antes de enviarse.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Spanish keeps the English shape of the terminology table: «en vivo» and «en
+  tiempo real» are separate terms a Spanish reader searches separately, so the
+  comparison carries over rather than needing to be rebuilt the way the Chinese
+  one did.
+
+  Terminology follows /es/: portapapeles en línea, clave corta, servidor de
+  retransmisión, cifrado de extremo a extremo.
+-->
+
+<title>Portapapeles en vivo, sincronizado en tiempo real</title>
+<meta name="description" content="Un portapapeles en vivo se sincroniza en cuanto escribes, sin botón de enviar. Cómo funciona en tiempo real y en qué se diferencia de un pastebin.">
+<link rel="canonical" href="https://realtimeclipboard.com/es/live-clipboard/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/live-clipboard/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/live-clipboard/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/live-clipboard/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/live-clipboard/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/live-clipboard/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/live-clipboard/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="es_ES">
+<meta property="og:title" content="Portapapeles en vivo, sincronizado en tiempo real">
+<meta property="og:description" content="Sin botón de enviar. El texto aparece en el otro dispositivo mientras lo escribes, y lo que copias va detrás solo.">
+<meta property="og:url" content="https://realtimeclipboard.com/es/live-clipboard/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/es/live-clipboard/#article",
+      "headline": "Portapapeles en vivo — un portapapeles en línea que se sincroniza en tiempo real",
+      "description": "Un portapapeles en vivo envía lo que escribes mientras lo escribes, sin botón de enviar. Cómo funciona la sincronización en tiempo real y qué cuesta.",
+      "inLanguage": "es",
+      "datePublished": "2026-08-08",
+      "dateModified": "2026-08-08",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/es/live-clipboard/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/es/" },
+        { "@type": "ListItem", "position": 2, "name": "Portapapeles en vivo" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/faq.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/es/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir la aplicación</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Ruta de navegación">
+        <a href="/es/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Portapapeles en vivo</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>Portapapeles en vivo, sincronizado en tiempo real</h1>
+
+        <p class="lede">
+          <b>Un portapapeles en vivo es un portapapeles en línea sin botón de
+          enviar: el texto aparece en tu otro dispositivo mientras lo escribes, y
+          lo que copias va detrás solo.</b> Casi todas las herramientas de esta
+          categoría son un cuadro de texto y un botón. La diferencia suena
+          cosmética y no lo es — es lo que separa un portapapeles que compartes de
+          un formulario que envías.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2>Qué hace que un portapapeles esté en vivo</h2>
+
+        <p>
+          <b>La prueba es si hay que pulsar algo.</b> Un
+          <a href="/es/what-is-an-online-clipboard/">portapapeles en línea</a>
+          corriente te da un cuadro, pegas en él, pulsas Enviar, y el otro
+          dispositivo muestra el resultado cuando recarga o consulta al servidor.
+          Cada paso es una decisión, y la ida y vuelta es lo bastante larga como
+          para que la gente deje de fiarse y vuelva a mandarse mensajes a sí misma.
+        </p>
+
+        <p>Un portapapeles en vivo elimina los tres pasos:</p>
+
+        <ul>
+          <li><b>Nada que pulsar.</b> Las teclas viajan al otro dispositivo mientras aún estás escribiendo.</li>
+          <li><b>Nada que recargar.</b> La conexión sigue abierta, así que el texto que llega aparece solo.</li>
+          <li><b>Nada donde pegar.</b> En el nivel más alto basta con copiar en cualquier parte de la máquina — lo que se vigila es el portapapeles mismo.</li>
+        </ul>
+
+        <p>
+          Lo último es el premio de verdad y también lo que hay que mirar con más
+          cuidado, porque un portapapeles que lo sincroniza todo sincroniza también
+          las contraseñas que copiaste por motivos que no vienen al caso. Por eso es
+          un peldaño al que subes, y no la única forma en que funciona.
+        </p>
+
+        <h2>En vivo, en tiempo real, en línea</h2>
+
+        <p>
+          <b>Son tres nombres para la misma categoría, y la diferencia está en el
+          énfasis, no en la naturaleza.</b> Quien busca cualquiera de ellos suele
+          querer lo mismo, pero las palabras arrastran expectativas distintas y vale
+          la pena decir cuál es cuál.
+        </p>
+
+        <div class="tablewrap" tabindex="0" role="region"
+             aria-label="Los términos en vivo, en tiempo real, en línea y en la nube comparados — se desplaza en horizontal">
+          <table class="cmp">
+            <caption class="sr-only">
+              Los términos portapapeles en vivo, en tiempo real, en línea y en la
+              nube comparados por lo que subraya cada palabra y por lo que suele
+              querer quien la busca.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Término</th>
+                <th scope="col">Qué subraya la palabra</th>
+                <th scope="col">Qué suele querer decir la gente</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="me">
+                <th scope="row">En vivo</th>
+                <td>Ningún paso manual</td>
+                <td>Se actualiza solo, en los dos sentidos</td>
+              </tr>
+              <tr class="me">
+                <th scope="row">En tiempo real</th>
+                <td>Ningún retraso</td>
+                <td>Llega ahora, no en la próxima recarga</td>
+              </tr>
+              <tr>
+                <th scope="row">En línea</th>
+                <td>Por internet</td>
+                <td>La categoría en general, en vivo o no</td>
+              </tr>
+              <tr>
+                <th scope="row">En la nube</th>
+                <td>Atado a una cuenta</td>
+                <td class="n">Normalmente el integrado — Windows, Apple</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          La última fila es la que hace tropezar. <b>Portapapeles en la nube</b> es
+          como llaman Microsoft y Apple a la función integrada en sus propios
+          sistemas operativos, y las dos están atadas a un solo ecosistema y a una
+          cuenta con sesión iniciada: el historial de Windows se sincroniza entre PC
+          con Windows, el Portapapeles Universal entre dispositivos Apple, y ninguno
+          cruza al otro lado. Si estás buscando precisamente porque tu móvil y tu
+          portátil son de fabricantes distintos, el portapapeles en la nube
+          integrado es justo el que no puede ayudarte.
+        </p>
+
+        <h2>Escritura en tiempo real, no solo pegado en tiempo real</h2>
+
+        <p>
+          <b>Hay dos cosas distintas que un portapapeles puede hacer en tiempo real,
+          y la mayoría de las herramientas que reclaman la palabra solo hacen la
+          segunda.</b> Entregar rápido un fragmento ya terminado es la mitad fácil.
+          Mostrar el texto mientras todavía se está escribiendo es la mitad que hace
+          que dos pantallas parezcan una sola.
+        </p>
+
+        <p>Aquí la escritura se transmite y los fragmentos se confirman, y son dos caminos deliberadamente distintos:</p>
+
+        <ol class="steps">
+          <li><b>Mientras escribes</b>, el editor envía el texto unas diez veces por segundo. El otro lado lo dibuja y no hace nada más con él — ni historial, ni escritura en el portapapeles.</li>
+          <li><b>Cuando paras</b>, tras 800&nbsp;ms de silencio, al perder el foco, o con <kbd>Ctrl</kbd>+<kbd>Intro</kbd>, se confirma. Ese es el momento en que se convierte en un fragmento de verdad: entra en el historial y, en el nivel más alto, va al portapapeles del sistema.</li>
+        </ol>
+
+        <p>
+          Por encima de unos 4&nbsp;KB la transmisión se detiene y el texto solo se
+          sincroniza al confirmar, lo que en la práctica es invisible — un texto así
+          de largo se pega, no se teclea.
+        </p>
+
+        <p>
+          <b>Dos personas escribiendo a la vez nunca se fusionan.</b> Fusionar
+          ediciones simultáneas exige un CRDT, y esto es un portapapeles, no un
+          editor de documentos. Lo que llega mientras escribes se descarta, y un
+          fragmento que sobrescribiría trabajo sin guardar se ofrece en lugar de
+          aplicarse. Lo que evita la colisión en la práctica es verla venir: el
+          cursor de cada persona tiñe su línea en el margen, con su propio color,
+          así que ves al otro empezar antes de que ambos confirméis.
+        </p>
+
+        <h2>Hasta dónde llega la sincronización en vivo</h2>
+
+        <p>
+          <b>El alcance de la sincronización es un único ajuste con tres peldaños, y
+          cada uno añade exactamente una cosa al de abajo.</b> Está en la cabecera
+          de la aplicación y no en un menú de ajustes, porque es el control que
+          decide qué sale de la máquina.
+        </p>
+
+        <div class="tablewrap" tabindex="0" role="region"
+             aria-label="Los tres peldaños de sincronización — se desplaza en horizontal">
+          <table class="cmp">
+            <caption class="sr-only">
+              Los tres peldaños de sincronización — Desactivada, Aplicación y
+              Portapapeles — según qué sale del dispositivo y si se toca el
+              portapapeles del sistema.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Peldaño</th>
+                <th scope="col">Qué ocurre</th>
+                <th scope="col">¿Toca el portapapeles del sistema?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Desactivada</th>
+                <td>Nada sale de este dispositivo, y nada llega</td>
+                <td class="n">No</td>
+              </tr>
+              <tr>
+                <th scope="row">Aplicación</th>
+                <td>El texto se sincroniza dentro de la ventana, en vivo, en ambos sentidos</td>
+                <td class="n">No</td>
+              </tr>
+              <tr class="me">
+                <th scope="row">Portapapeles</th>
+                <td>Lo que copias se comparte, y lo que llega se copia aquí</td>
+                <td class="y">Sí, en ambos sentidos</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          <b>Aplicación</b> es el peldaño en el que debería quedarse la mayoría en
+          máquinas compartidas o de trabajo: la sesión está plenamente en vivo, pero
+          el portapapeles del sistema operativo ni se lee ni se escribe, así que
+          nada de lo que copies por otro motivo sale de ahí. <b>Portapapeles</b> es
+          el que hace que baste con copiar en cualquier parte de la máquina, y es un
+          único ajuste que gobierna los dos sentidos — un dispositivo que ha dejado
+          de enviar no sigue recibiendo en silencio.
+        </p>
+
+        <h2>Lo que cuesta de verdad la sincronización en vivo</h2>
+
+        <p>
+          <b>Leer el portapapeles del sistema de forma automática es un permiso del
+          navegador, no una función que una web pueda decidir tener sin más</b>, y
+          conviene conocer los límites antes de concluir que algo está roto.
+        </p>
+
+        <ul>
+          <li><b>La captura automática necesita un navegador basado en Chromium</b> — Chrome, Edge, Brave, Opera. Firefox y Safari envían y reciben el texto que pegas, pero no pueden leer el portapapeles por su cuenta.</li>
+          <li><b>Ningún navegador lee el portapapeles con la pestaña en segundo plano.</b> Es una regla de seguridad del navegador y se aplica a todas las herramientas web de esta categoría, no solo a esta. La ventana tiene que tener el foco.</li>
+          <li><b>Un fragmento está limitado a 24.000 caracteres</b>, que es el tamaño de trama del servidor de retransmisión una vez cifrado, no un límite arbitrario.</li>
+          <li><b>Los archivos no son texto</b> y no se transmiten así — van directos entre los navegadores por WebRTC, hasta 5&nbsp;MB cada uno.</li>
+        </ul>
+
+        <p>
+          Si la sincronización no llega en absoluto, la causa está casi siempre en
+          una lista corta —
+          <a href="/es/help/clipboard-sync-not-working/">la sincronización del
+          portapapeles no funciona</a> las recorre en orden.
+        </p>
+
+        <h2>Usar un portapapeles en vivo</h2>
+
+        <p>
+          <a href="/es/">RealtimeClipboard</a> es un portapapeles en vivo del tipo
+          de clave compartida, así que no hay nada que registrar:
+        </p>
+
+        <ol class="steps">
+          <li>Abre la aplicación en ambos dispositivos.</li>
+          <li>Escribe la misma clave corta en cada uno. Esa clave es lo que los empareja — sin cuenta, sin correo, <a href="/es/online-clipboard-no-login/">sin registro</a>.</li>
+          <li>Escribe. Aparece en la otra pantalla según avanzas.</li>
+        </ol>
+
+        <p>
+          La clave nunca sale de tu navegador: lo que llega al servidor de
+          retransmisión es <code>SHA-256(clave)</code>, usado solo como dirección de
+          sala, más el texto ya cifrado con AES-GCM. El servidor reenvía texto
+          cifrado entre conexiones y no guarda nada en disco, así que «en vivo» aquí
+          no significa «guardado en un servidor para que lo recojas» — no hay copia
+          alguna que recoger. Funciona
+          <a href="/es/clipboard-sync-different-networks/">entre redes distintas</a>,
+          y no solo en la misma Wi-Fi, que es la línea donde se detienen las
+          herramientas solo locales como
+          <a href="/es/snapdrop-alternative/">Snapdrop</a>.
+        </p>
+
+        <p>
+          <a class="btn" href="/app.html">Abrir un portapapeles en vivo</a>
+        </p>
+      </div>
+
+      <div class="faq" id="faq">
+        <div class="faqhead">
+          <h2>Preguntas frecuentes</h2>
+          <button type="button" class="faqall" id="faqAll"
+                  aria-expanded="false" aria-controls="faq" hidden>
+            <span class="faqall-i" aria-hidden="true"></span>
+            <span class="faqall-t">Expandir todo</span>
+          </button>
+        </div>
+
+        <details class="qa">
+          <summary><h3>¿Hay algún portapapeles en línea que se sincronice solo en tiempo real?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Sí. Ambos dispositivos abren la misma página y escriben la misma clave
+            corta, y a partir de ahí el texto va de uno a otro sin nada que pulsar —
+            mientras sigues escribiendo, no después de enviar. En el nivel más alto
+            el portapapeles del sistema también queda conectado, así que basta con
+            copiar en cualquier parte de la máquina.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>¿Qué diferencia hay entre «en vivo» y «en tiempo real»?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            En la práctica, ninguna: nombran la misma categoría. «En vivo» subraya
+            que no hay que pulsar nada para que se actualice, y «en tiempo real»
+            subraya que llega ahora y no en la próxima recarga. Ambos describen un
+            portapapeles en línea que mantiene la conexión abierta en lugar de
+            hacerte enviar un formulario.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>¿En qué se diferencia de un pastebin?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Un pastebin guarda tu texto en una URL para que envíes ese enlace a
+            alguien, y el texto sigue ahí hasta que caduca. Un portapapeles en vivo
+            no tiene ninguna URL guardando tu contenido ni nada que compartir: pone
+            el texto en el otro dispositivo según se escribe y después no conserva
+            nada. Uno publica; el otro sincroniza.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>¿Funciona entre Windows y Android?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Sí, y esa es la razón principal para usar uno en vez de la opción
+            integrada. La sincronización de Windows solo funciona entre PC con
+            Windows en una misma cuenta de Microsoft, y el Portapapeles Universal de
+            Apple solo entre dispositivos Apple. Un portapapeles basado en el
+            navegador trata igual a todas las plataformas, porque lo único que
+            necesita es un navegador.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>¿Por qué deja de sincronizarse al cambiar de pestaña?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Porque ningún navegador deja que una página lea el portapapeles del
+            sistema con la pestaña en segundo plano: es una regla de seguridad y se
+            aplica a todas las herramientas web de este tipo. El texto que ya está en
+            la sesión sigue llegando; lo que se pausa es la captura automática de lo
+            que copias en otro sitio. Devolver el foco a la ventana lo reanuda.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>¿Es seguro si ve todo lo que copio?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Depende por completo de si el servicio puede leer lo que copias. Aquí el
+            texto se cifra en tu navegador antes de enviarse, así que el servidor de
+            retransmisión reenvía un texto cifrado que no puede abrir y no escribe
+            nada en disco. Es también la razón de que el alcance de la
+            sincronización sea un peldaño que eliges: en el nivel Aplicación la
+            sesión sigue plenamente en vivo, pero el portapapeles del sistema no se
+            lee nunca, así que las contraseñas que copias por otros motivos no
+            entran en él.
+            </p>
+          </div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código abierto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/live-clipboard/">English</a> · <a href="/es/live-clipboard/">Español</a> · <a href="/pt/live-clipboard/">Português</a> · <a href="/ru/live-clipboard/">Русский</a> · <a href="/zh/live-clipboard/">中文</a></p>
+      <p><a href="/es/">Inicio</a> · <a href="/es/download/">Descargas</a> · <a href="/es/help/">Ayuda</a> · <a href="/es/about/">Acerca de</a> · <a href="/privacy/">Privacidad</a> · <a href="/terms/">Términos</a></p>
+      <p>Las sesiones se mantienen en memoria y nunca se escriben en disco. El contenido del portapapeles se cifra en tu navegador antes de enviarse.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

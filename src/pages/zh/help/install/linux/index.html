@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Every id on this page is a deep-link target used from /help/install/ and from
+  the other platform guides (#install, #pkg, #check, #wayland, #first, #trouble,
+  #remove). They are byte-identical to the English original and must stay that
+  way; #wayland in particular is linked from the hub.
+
+  Every command inside pre and code is byte-identical to the English: those
+  blocks carry a copy button, and a translated command is a command that fails
+  when pasted. Only the standalone comment lines in the install block are
+  translated, and the trailing comment on the apt remove line is left alone
+  because the line itself is the command. The status-bar strings sit in code for
+  the same reason, and because the desktop app is not localised.
+
+  The Wayland table is the point of the page and its four rows keep the English
+  order and the y/n classes that colour them.
+
+  Terminology follows /zh/: 剪贴板, 密钥, 中继服务器, 扩展, 安装, 卸载.
+-->
+
+<title>在 Linux 上安装 RealtimeClipboard</title>
+<meta name="description" content="Debian、Ubuntu、Fedora 和 Arch 上怎么装，以及 Wayland 后台捕获：KDE 和 wlroots 行，GNOME 不行。">
+<link rel="canonical" href="https://realtimeclipboard.com/zh/help/install/linux/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/install/linux/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/install/linux/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/install/linux/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/install/linux/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/install/linux/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/install/linux/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="在 Linux 上安装 RealtimeClipboard">
+<meta property="og:description" content=".deb、.rpm 和 AppImage，webkit2gtk 那条底线，以及哪些合成器允许后台捕获剪贴板。">
+<meta property="og:url" content="https://realtimeclipboard.com/zh/help/install/linux/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/zh/help/install/linux/#article",
+      "headline": "在 Linux 上安装 RealtimeClipboard —— .deb、.rpm 和 AppImage",
+      "description": "在 Debian、Ubuntu、Fedora 和 Arch 上的安装方法，以及把 Wayland 那条限制直说清楚：X11 可以，KDE 和 wlroots 可以，GNOME 不行。",
+      "inLanguage": "zh-Hans",
+      "datePublished": "",
+      "dateModified": "",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/zh/help/install/linux/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/zh/" },
+        { "@type": "ListItem", "position": 2, "name": "在 Linux 上安装" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/copy.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/zh/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">打开应用</a>
+    </div>
+  </div>
+</header>
+
+<svg class="icons" aria-hidden="true">
+  <symbol id="i-linux" viewBox="0 0 24 24"><path d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333l.003.003c.391.778 1.113 1.132 1.884 1.071.771-.06 1.592-.536 2.257-1.306.631-.765 1.683-1.084 2.378-1.503.348-.199.629-.469.649-.853.023-.4-.2-.811-.714-1.376v-.097l-.003-.003c-.17-.2-.25-.535-.338-.926-.085-.401-.182-.786-.492-1.046h-.003c-.059-.054-.123-.067-.188-.135a.357.357 0 00-.19-.064c.431-1.278.264-2.55-.173-3.694-.533-1.41-1.465-2.638-2.175-3.483-.796-1.005-1.576-1.957-1.56-3.368.026-2.152.236-6.133-3.544-6.139zm.529 3.405h.013c.213 0 .396.062.584.198.19.135.33.332.438.533.105.259.158.459.166.724 0-.02.006-.04.006-.06v.105a.086.086 0 01-.004-.021l-.004-.024a1.807 1.807 0 01-.15.706.953.953 0 01-.213.335.71.71 0 00-.088-.042c-.104-.045-.198-.064-.284-.133a1.312 1.312 0 00-.22-.066c.05-.06.146-.133.183-.198.053-.128.082-.264.088-.402v-.02a1.21 1.21 0 00-.061-.4c-.045-.134-.101-.2-.183-.333-.084-.066-.167-.132-.267-.132h-.016c-.093 0-.176.03-.262.132a.8.8 0 00-.205.334 1.18 1.18 0 00-.09.4v.019c.002.089.008.179.02.267-.193-.067-.438-.135-.607-.202a1.635 1.635 0 01-.018-.2v-.02a1.772 1.772 0 01.15-.768c.082-.22.232-.406.43-.533a.985.985 0 01.594-.2zm-2.962.059h.036c.142 0 .27.048.399.135.146.129.264.288.344.465.09.199.14.4.153.667v.004c.007.134.006.2-.002.266v.08c-.03.007-.056.018-.083.024-.152.055-.274.135-.393.2.012-.09.013-.18.003-.267v-.015c-.012-.133-.04-.2-.082-.333a.613.613 0 00-.166-.267.248.248 0 00-.183-.064h-.021c-.071.006-.13.04-.186.132a.552.552 0 00-.12.27.944.944 0 00-.023.33v.015c.012.135.037.2.08.334.046.134.098.2.166.268.01.009.02.018.034.024-.07.057-.117.07-.176.136a.304.304 0 01-.131.068 2.62 2.62 0 01-.275-.402 1.772 1.772 0 01-.155-.667 1.759 1.759 0 01.08-.668 1.43 1.43 0 01.283-.535c.128-.133.26-.2.418-.2zm1.37 1.706c.332 0 .733.065 1.216.399.293.2.523.269 1.052.468h.003c.255.136.405.266.478.399v-.131a.571.571 0 01.016.47c-.123.31-.516.643-1.063.842v.002c-.268.135-.501.333-.775.465-.276.135-.588.292-1.012.267a1.139 1.139 0 01-.448-.067 3.566 3.566 0 01-.322-.198c-.195-.135-.363-.332-.612-.465v-.005h-.005c-.4-.246-.616-.512-.686-.71-.07-.268-.005-.47.193-.6.224-.135.38-.271.483-.336.104-.074.143-.102.176-.131h.002v-.003c.169-.202.436-.47.839-.601.139-.036.294-.065.466-.065zm2.8 2.142c.358 1.417 1.196 3.475 1.735 4.473.286.534.855 1.659 1.102 3.024.156-.005.33.018.513.064.646-1.671-.546-3.467-1.089-3.966-.22-.2-.232-.335-.123-.335.59.534 1.365 1.572 1.646 2.757.13.535.16 1.104.021 1.67.067.028.135.06.205.067 1.032.534 1.413.938 1.23 1.537v-.043c-.06-.003-.12 0-.18 0h-.016c.151-.467-.182-.825-1.065-1.224-.915-.4-1.646-.336-1.77.465-.008.043-.013.066-.018.135-.068.023-.139.053-.209.064-.43.268-.662.669-.793 1.187-.13.533-.17 1.156-.205 1.869v.003c-.02.334-.17.838-.319 1.35-1.5 1.072-3.58 1.538-5.348.334a2.645 2.645 0 00-.402-.533 1.45 1.45 0 00-.275-.333c.182 0 .338-.03.465-.067a.615.615 0 00.314-.334c.108-.267 0-.697-.345-1.163-.345-.467-.931-.995-1.788-1.521-.63-.4-.986-.87-1.15-1.396-.165-.534-.143-1.085-.015-1.645.245-1.07.873-2.11 1.274-2.763.107-.065.037.135-.408.974-.396.751-1.14 2.497-.122 3.854a8.123 8.123 0 01.647-2.876c.564-1.278 1.743-3.504 1.836-5.268.048.036.217.135.289.202.218.133.38.333.59.465.21.201.477.335.876.335.039.003.075.006.11.006.412 0 .73-.134.997-.268.29-.134.52-.334.74-.4h.005c.467-.135.835-.402 1.044-.7zm2.185 8.958c.037.6.343 1.245.882 1.377.588.134 1.434-.333 1.791-.765l.211-.01c.315-.007.577.01.847.268l.003.003c.208.199.305.53.391.876.085.4.154.78.409 1.066.486.527.645.906.636 1.14l.003-.007v.018l-.003-.012c-.015.262-.185.396-.498.595-.63.401-1.746.712-2.457 1.57-.618.737-1.37 1.14-2.036 1.191-.664.053-1.237-.2-1.574-.898l-.005-.003c-.21-.4-.12-1.025.056-1.69.176-.668.428-1.344.463-1.897.037-.714.076-1.335.195-1.814.12-.465.308-.797.641-.984l.045-.022zm-10.814.049h.01c.053 0 .105.005.157.014.376.055.706.333 1.023.752l.91 1.664.003.003c.243.533.754 1.064 1.189 1.637.434.598.77 1.131.729 1.57v.006c-.057.744-.48 1.148-1.125 1.294-.645.135-1.52.002-2.395-.464-.968-.536-2.118-.469-2.857-.602-.369-.066-.61-.2-.723-.4-.11-.2-.113-.602.123-1.23v-.004l.002-.003c.117-.334.03-.752-.027-1.118-.055-.401-.083-.71.043-.94.16-.334.396-.4.69-.533.294-.135.64-.202.915-.47h.002v-.002c.256-.268.445-.601.668-.838.19-.201.38-.336.663-.336zm7.159-9.074c-.435.201-.945.535-1.488.535-.542 0-.97-.267-1.28-.466-.154-.134-.28-.268-.373-.335-.164-.134-.144-.333-.074-.333.109.016.129.134.199.2.096.066.215.2.36.333.292.2.68.467 1.167.467.485 0 1.053-.267 1.398-.466.195-.135.445-.334.648-.467.156-.136.149-.267.279-.267.128.016.034.134-.147.332a8.097 8.097 0 01-.69.468zm-1.082-1.583V5.64c-.006-.02.013-.042.029-.05.074-.043.18-.027.26.004.063 0 .16.067.15.135-.006.049-.085.066-.135.066-.055 0-.092-.043-.141-.068-.052-.018-.146-.008-.163-.065zm-.551 0c-.02.058-.113.049-.166.066-.047.025-.086.068-.14.068-.05 0-.13-.02-.136-.068-.01-.066.088-.133.15-.133.08-.031.184-.047.259-.005.019.009.036.03.03.05v.02h.003z"/></symbol>
+</svg>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="面包屑导航">
+        <a href="/zh/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">在 Linux 上安装</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1><svg class="brandmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-linux"/></svg> 在 Linux 上安装</h1>
+
+        <p class="lede">
+          三种包格式，外加一条值得你在装任何东西之前先读一遍的限制：后台捕获
+          剪贴板在这里能不能用，是由你的合成器决定的，不是由这个应用决定的。
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2 id="install">安装</h2>
+        <p>从<a href="https://github.com/akshaynikhare/RealtimeClipboard/releases/latest">发布页</a>取一个和你的发行版对得上的文件：</p>
+        <pre><code># Debian、Ubuntu 及其衍生版
+sudo apt install ./RealtimeClipboard_&lt;version&gt;_amd64.deb
+
+# Fedora、RHEL 及其衍生版
+sudo dnf install ./RealtimeClipboard-&lt;version&gt;-1.x86_64.rpm
+
+# 其他任何情况
+chmod +x RealtimeClipboard_&lt;version&gt;_amd64.AppImage
+./RealtimeClipboard_&lt;version&gt;_amd64.AppImage</code></pre>
+        <p>
+          <b>AppImage 那个 <code>chmod</code> 少不了。</b>用浏览器下载会清掉可执行位，
+          而由此产生的故障是：你双击之后文件管理器什么都不做 —— 看起来完全不像是
+          权限问题。
+        </p>
+        <p>
+          <b>发行版底线：</b>应用需要 webkit2gtk 4.1，大致相当于 Ubuntu 22.04 或
+          Fedora 36 及以上。发布版本是特意挑有它的最旧 runner 构建的，好把 glibc 的
+          要求压到最低。比这更老的系统，请用浏览器或者<a href="/zh/help/install/cli/">命令行客户端</a>。
+        </p>
+
+        <h2 id="pkg">这里没有包管理器</h2>
+        <p>
+          没有 Flathub，没有 Snap，没有 AUR —— 这一页也不会写个命令假装有。这些各自
+          都是一个得有人跟着每次发布去更新的仓库，而一个悄悄停止更新的仓库比压根不
+          存在还糟：它递给别人一个旧版本，还告诉人家这是最新的。
+        </p>
+        <p>
+          上面那三个文件就是全部。每一个都是发布里的单个产物，谁都不需要仓库，
+          AppImage 尤其什么都不用装 —— <code>chmod +x</code>，然后运行。
+        </p>
+
+        <h2 id="check">确认装好了</h2>
+        <ul class="sq-list">
+          <li><b>托盘里出现一个图标</b>，前提是你的桌面环境有托盘 —— GNOME 得装一个
+            扩展才能显示托盘图标，那是 GNOME 的决定，和这个应用无关。
+            <b>右键点它打开菜单</b>：在 Linux 上，托盘图标收不到属于自己的点击，
+            所以交互就只有这一种。<b>Open</b> 和 <b>Quit</b> 都在里面。关掉窗口不等于
+            退出 —— 有没有托盘图标，窗口都照常工作，
+            <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd> 也照常。</li>
+          <li><b>右下角的状态栏才是真正的答案。</b>在后台捕获可用的地方，它显示
+            <code>T0 · watching the system clipboard</code>。不可用的地方，它会直说，
+            而不是默默地什么都不做。</li>
+        </ul>
+
+        <h2 id="wayland">Wayland 那条限制，直说</h2>
+        <div class="tablewrap">
+          <table class="cmp">
+            <thead>
+              <tr><th>会话</th><th>后台捕获</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>X11，任意桌面</td><td class="y">可以</td></tr>
+              <tr><td>Wayland，KDE Plasma</td><td class="y">可以</td></tr>
+              <tr><td>Wayland，wlroots（Sway、Hyprland、river）</td><td class="y">可以</td></tr>
+              <tr><td>Wayland，GNOME</td><td class="n">不行 —— 改为在窗口获得焦点时捕获</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          在 X11 上，剪贴板一变，应用就会收到通知。在 Wayland 上，这完全取决于合成器：
+          KDE 和基于 wlroots 的那些提供了对应的协议，GNOME 没有。<b>在 GNOME Wayland
+          上，任何应用都无法监听剪贴板</b> —— 这不是这个应用缺了什么功能，别的工具
+          也一样没能解决。
+        </p>
+        <p>
+          在用不了的地方，应用退回到你切到它时再捕获，跟浏览器里的行为一模一样，并且
+          在状态栏里如实说明。如果后台捕获正是你要装它的理由，那么在 GNOME 上，答案
+          是改用 X11 会话。
+        </p>
+
+        <h2 id="first">第一次同步</h2>
+        <ol class="steps">
+          <li>记下应用顶部那个短密钥，或者自己输一个。</li>
+          <li>在第二台设备上打开<a href="/app.html">应用</a>，输入同一个密钥。</li>
+          <li>复制点什么。如果状态栏写的是 <code>T0</code>，你不需要切换窗口；如果不是，
+            点一下 RealtimeClipboard 窗口，内容会在它获得焦点的那一刻被取走。</li>
+        </ol>
+        <p class="honest">
+          窗口顶部那个开关默认在 <b>Clipboard</b>（剪贴板），也就是说你复制的每一样
+          东西都会被共享。它在运行期间会读取你的每一次复制，这件事值得你知道，而不是
+          稀里糊涂地继承下来 —— 应用在第一次启动时就会说明，而切到 <b>App</b>（应用）
+          之后，你不把内容粘贴进来，就没有东西离开这台机器。
+        </p>
+
+        <h2 id="trouble">不工作的时候</h2>
+
+        <h3>双击 AppImage 没有任何反应</h3>
+        <p>给它 <code>chmod +x</code> —— 见上面。在终端里跑一次，你看到的就是真正的
+          报错，而不是一片安静。</p>
+
+        <h3>安装时报缺少库</h3>
+        <p>
+          <code>.deb</code> 声明了 <code>libwebkit2gtk-4.1-0</code>、
+          <code>libgtk-3-0</code> 和
+          <code>libayatana-appindicator3-1 | libappindicator3-1</code>；
+          用 <code>apt install ./file.deb</code> 而不是 <code>dpkg -i</code> 来装，
+          依赖会帮你解决好。最后那个是画托盘图标的，写成一个“或”的关系是因为：较新的
+          Debian 里已经没有那个普通包，而一些较老的发行版里又没有 ayatana 那个 ——
+          你的发行版会有其中之一。至于老到连 webkit2gtk 4.1 都没有的发行版，那就是
+          上面说的那条底线，没有变通办法。
+        </p>
+
+        <h3>复制没有任何反应，状态栏也不显示 T0</h3>
+        <p>那是 Wayland 那张表，不是故障。见上面。</p>
+
+        <h3>一直停在 “Connecting…”</h3>
+        <p>
+          应用先试 WebSocket，在升级被挡住的地方回退到 server-sent events 加 POST。
+          如果两条都连不上，那就是中继服务器的域名被封了 —— 在 <b>Settings → Relay</b>
+          里把应用指向你自己的一台。
+          <a href="/zh/help/install/relay/">自己跑一个只要一个容器。</a>
+        </p>
+
+        <h2 id="remove">卸载</h2>
+        <pre><code>sudo apt remove realtimeclipboard      # or dnf remove
+yay -R realtimeclipboard-bin</code></pre>
+        <p>
+          AppImage 就是一个文件：删掉就行。别的什么都不会留下 —— 剪贴板内容从来不会
+          写到磁盘上，你的设置和剪贴历史都存在应用自己的浏览器存储里。
+        </p>
+
+        <p class="hint">
+          准备好安装了：<a href="/zh/download/">下载页</a>。其他所有平台：
+          <a href="/zh/help/install/">安装指南</a>。这里有写错或者过时的地方？
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">提一个 issue</a>。
+        </p>
+      </div>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>开源项目 — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/install/linux/">English</a> · <a href="/es/help/install/linux/">Español</a> · <a href="/pt/help/install/linux/">Português</a> · <a href="/ru/help/install/linux/">Русский</a> · <a href="/zh/help/install/linux/">中文</a></p>
+      <p><a href="/zh/">首页</a> · <a href="/zh/download/">下载</a> · <a href="/zh/help/">帮助</a> · <a href="/zh/about/">关于</a> · <a href="/privacy/">隐私政策</a> · <a href="/terms/">使用条款</a></p>
+      <p>会话只保存在内存中，从不写入磁盘。剪贴板内容在发送前已在你的浏览器里完成加密。</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

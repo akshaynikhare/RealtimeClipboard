@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Russian keeps the English shape of the terminology table: «живой» and «в
+  реальном времени» are separate terms a Russian reader searches separately,
+  unlike the Chinese page, where the comparison had to be rebuilt around the
+  terms actually typed.
+
+  Terminology follows /ru/: буфер обмена, ключ, ретранслятор, сквозное
+  шифрование.
+-->
+
+<title>Живой буфер обмена с синхронизацией в реальном времени</title>
+<meta name="description" content="Живой буфер обмена синхронизируется прямо во время набора, без кнопки отправки. Как это работает и чем отличается от pastebin.">
+<link rel="canonical" href="https://realtimeclipboard.com/ru/live-clipboard/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/live-clipboard/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/live-clipboard/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/live-clipboard/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/live-clipboard/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/live-clipboard/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/live-clipboard/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="Живой буфер обмена с синхронизацией в реальном времени">
+<meta property="og:description" content="Без кнопки отправки. Текст появляется на другом устройстве, пока вы его набираете, а скопированное уходит следом само.">
+<meta property="og:url" content="https://realtimeclipboard.com/ru/live-clipboard/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/ru/live-clipboard/#article",
+      "headline": "Живой буфер обмена — онлайн-буфер, который синхронизируется в реальном времени",
+      "description": "Живой буфер обмена отправляет набираемый текст прямо во время набора, без кнопки отправки. Как работает синхронизация в реальном времени и чего она стоит.",
+      "inLanguage": "ru",
+      "datePublished": "2026-08-08",
+      "dateModified": "2026-08-08",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/ru/live-clipboard/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/ru/" },
+        { "@type": "ListItem", "position": 2, "name": "Живой буфер обмена" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/faq.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/ru/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Открыть приложение</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Навигационная цепочка">
+        <a href="/ru/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Живой буфер обмена</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>Живой буфер обмена, синхронный в реальном времени</h1>
+
+        <p class="lede">
+          <b>Живой буфер обмена — это онлайн-буфер обмена без кнопки отправки:
+          текст появляется на другом вашем устройстве, пока вы его набираете, а
+          скопированное уходит следом само.</b> Почти всё в этой категории — поле
+          ввода и кнопка. Разница кажется косметической, но это не так: она
+          отделяет буфер обмена, которым вы делитесь, от формы, которую вы
+          отправляете.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2>Что делает буфер обмена живым</h2>
+
+        <p>
+          <b>Проверка простая: нужно ли что-то нажимать.</b> Обычный
+          <a href="/ru/what-is-an-online-clipboard/">онлайн-буфер обмена</a> даёт
+          вам поле, вы вставляете в него, жмёте «Отправить», а другое устройство
+          показывает результат, когда перезагрузится или опросит сервер. Каждый шаг
+          — это решение, а круг получается настолько долгим, что люди перестают ему
+          доверять и снова начинают писать сами себе.
+        </p>
+
+        <p>Живой буфер обмена убирает все три шага:</p>
+
+        <ul>
+          <li><b>Нечего нажимать.</b> Нажатия клавиш уходят на другое устройство, пока вы ещё печатаете.</li>
+          <li><b>Нечего перезагружать.</b> Соединение остаётся открытым, поэтому приходящий текст появляется сам.</li>
+          <li><b>Некуда вставлять.</b> На верхней ступени достаточно скопировать в любом месте машины — следят за самим буфером обмена.</li>
+        </ul>
+
+        <p>
+          Последнее и есть главный приз, и с ним же нужно быть аккуратнее всего:
+          буфер обмена, который синхронизирует всё, синхронизирует и пароли,
+          скопированные совсем по другому поводу. Поэтому это ступень, на которую вы
+          поднимаетесь сами, а не единственный способ работы.
+        </p>
+
+        <h2>Живой, в реальном времени, онлайн</h2>
+
+        <p>
+          <b>Это три названия одной категории, и разница в акценте, а не в сути.</b>
+          Тот, кто ищет любое из них, обычно хочет одного и того же, но слова несут
+          разные ожидания, и стоит сказать, какое что означает.
+        </p>
+
+        <div class="tablewrap" tabindex="0" role="region"
+             aria-label="Сравнение слов «живой», «в реальном времени», «онлайн» и «облачный» — прокручивается по горизонтали">
+          <table class="cmp">
+            <caption class="sr-only">
+              Слова «живой», «в реальном времени», «онлайн» и «облачный» буфер
+              обмена в сравнении: что подчёркивает каждое и что обычно имеют в виду
+              те, кто его ищет.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Слово</th>
+                <th scope="col">Что оно подчёркивает</th>
+                <th scope="col">Что обычно имеют в виду</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="me">
+                <th scope="row">Живой</th>
+                <td>Никаких ручных действий</td>
+                <td>Обновляется сам, в обе стороны</td>
+              </tr>
+              <tr class="me">
+                <th scope="row">В реальном времени</th>
+                <td>Никакой задержки</td>
+                <td>Приходит сейчас, а не после обновления страницы</td>
+              </tr>
+              <tr>
+                <th scope="row">Онлайн</th>
+                <td>Через интернет</td>
+                <td>Категория в целом, живая или нет</td>
+              </tr>
+              <tr>
+                <th scope="row">Облачный</th>
+                <td>Привязан к учётной записи</td>
+                <td class="n">Обычно встроенный — Windows, Apple</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          Последняя строка и сбивает с толку. <b>Облачный буфер обмена</b> — так
+          Microsoft и Apple называют функцию, встроенную в их собственные
+          операционные системы, и обе привязаны к одной экосистеме и к одной
+          учётной записи с выполненным входом: история Windows синхронизируется
+          между компьютерами на Windows, Универсальный буфер обмена — между
+          устройствами Apple, и ни один не переходит на другую сторону. Если вы
+          ищете как раз потому, что телефон и ноутбук у вас от разных
+          производителей, встроенный облачный буфер — именно то, что помочь не
+          может.
+        </p>
+
+        <h2>В реальном времени набирается, а не только вставляется</h2>
+
+        <p>
+          <b>Буфер обмена может делать в реальном времени две разные вещи, и
+          большинство инструментов, которые заявляют это слово, умеют только
+          вторую.</b> Быстро доставить уже готовый фрагмент — лёгкая половина.
+          Показать текст, пока он ещё пишется, — та половина, из-за которой два
+          экрана начинают ощущаться как один.
+        </p>
+
+        <p>Здесь набор передаётся потоком, а фрагменты фиксируются, и эти два пути разделены намеренно:</p>
+
+        <ol class="steps">
+          <li><b>Пока вы печатаете</b>, редактор отправляет текст примерно десять раз в секунду. Другая сторона рисует его и больше ничего с ним не делает — ни истории, ни записи в буфер обмена.</li>
+          <li><b>Когда вы останавливаетесь</b> — через 800&nbsp;мс тишины, при потере фокуса или по <kbd>Ctrl</kbd>+<kbd>Enter</kbd> — происходит фиксация. Именно тогда это становится настоящим фрагментом: попадает в историю и на верхней ступени уходит в системный буфер обмена.</li>
+        </ol>
+
+        <p>
+          Примерно после 4&nbsp;КБ поток прекращается и текст синхронизируется
+          только при фиксации; на практике это незаметно — такой длины текст
+          вставляют, а не набирают.
+        </p>
+
+        <p>
+          <b>Двое, печатающих одновременно, никогда не сливаются в один текст.</b>
+          Слияние параллельных правок требует CRDT, а это буфер обмена, а не
+          редактор документов. Приходящий поток отбрасывается, пока печатаете вы, а
+          фрагмент, который затёр бы несохранённое, предлагается, а не применяется.
+          Столкновение на практике предотвращает то, что вы видите его заранее:
+          курсор каждого подкрашивает его строку на полях его собственным цветом,
+          так что вы видите, как другой начал, раньше, чем оба зафиксируете.
+        </p>
+
+        <h2>Насколько далеко достаёт живая синхронизация</h2>
+
+        <p>
+          <b>Охват синхронизации — это одна настройка с тремя ступенями, и каждая
+          добавляет ровно одно к предыдущей.</b> Она в шапке приложения, а не в меню
+          настроек, потому что это тот переключатель, который решает, что покидает
+          машину.
+        </p>
+
+        <div class="tablewrap" tabindex="0" role="region"
+             aria-label="Три ступени синхронизации — прокручивается по горизонтали">
+          <table class="cmp">
+            <caption class="sr-only">
+              Три ступени синхронизации — Выключено, Приложение и Буфер обмена — по
+              тому, что покидает устройство и затрагивается ли системный буфер
+              обмена.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Ступень</th>
+                <th scope="col">Что происходит</th>
+                <th scope="col">Трогает системный буфер обмена?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Выключено</th>
+                <td>Ничего не покидает это устройство и ничего не приходит</td>
+                <td class="n">Нет</td>
+              </tr>
+              <tr>
+                <th scope="row">Приложение</th>
+                <td>Текст синхронизируется внутри окна, живьём, в обе стороны</td>
+                <td class="n">Нет</td>
+              </tr>
+              <tr class="me">
+                <th scope="row">Буфер обмена</th>
+                <td>Скопированное вами уходит, а пришедшее копируется сюда</td>
+                <td class="y">Да, в обе стороны</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          <b>Приложение</b> — ступень, на которой большинству стоит оставаться на
+          общих и рабочих машинах: сессия полностью живая, но системный буфер обмена
+          не читается и не пишется, поэтому ничто скопированное по другому поводу
+          наружу не уходит. <b>Буфер обмена</b> — та ступень, на которой достаточно
+          скопировать где угодно на машине, и это одна настройка, управляющая обоими
+          направлениями: устройство, переставшее отправлять, не продолжает молча
+          принимать.
+        </p>
+
+        <h2>Чего живая синхронизация стоит на самом деле</h2>
+
+        <p>
+          <b>Автоматическое чтение системного буфера обмена — это возможность,
+          которую даёт браузер, а не функция, которую сайт может просто решить
+          иметь</b>, и ограничения стоит знать до того, как решить, что что-то
+          сломалось.
+        </p>
+
+        <ul>
+          <li><b>Автоматическое чтение требует браузера на Chromium</b> — Chrome, Edge, Brave, Opera. Firefox и Safari умеют отправлять и принимать вставленный текст, но сами буфер обмена не читают.</li>
+          <li><b>Ни один браузер не читает буфер обмена, пока его вкладка в фоне.</b> Это правило безопасности браузера, и оно действует для всех веб-инструментов этой категории, не только для этого. Окно должно быть в фокусе.</li>
+          <li><b>Один фрагмент ограничен 24 000 символов</b> — это размер кадра ретранслятора после шифрования, а не произвольный предел.</li>
+          <li><b>Файлы — не текст</b> и потоком не идут: они передаются напрямую между браузерами по WebRTC, до 5&nbsp;МБ каждый.</li>
+        </ul>
+
+        <p>
+          Если синхронизация не приходит вовсе, причина почти всегда из короткого
+          списка — <a href="/ru/help/clipboard-sync-not-working/">синхронизация
+          буфера обмена не работает</a> разбирает его по порядку.
+        </p>
+
+        <h2>Как пользоваться живым буфером обмена</h2>
+
+        <p>
+          <a href="/ru/">RealtimeClipboard</a> — живой буфер обмена из тех, что
+          работают по общему ключу, так что регистрировать нечего:
+        </p>
+
+        <ol class="steps">
+          <li>Откройте приложение на обоих устройствах.</li>
+          <li>Введите на каждом один и тот же короткий ключ. Именно он их связывает — без учётной записи, без почты, <a href="/ru/online-clipboard-no-login/">без входа</a>.</li>
+          <li>Печатайте. Текст появляется на другом экране по ходу дела.</li>
+        </ol>
+
+        <p>
+          Ключ никогда не покидает ваш браузер: до ретранслятора доходит
+          <code>SHA-256(ключ)</code> — только как адрес комнаты — и текст, уже
+          зашифрованный AES-GCM. Ретранслятор пересылает шифротекст между
+          соединениями и ничего не пишет на диск, поэтому «живой» здесь не значит
+          «лежит на сервере и ждёт, пока вы заберёте»: забирать нечего, копии нет
+          нигде. Он работает
+          <a href="/ru/clipboard-sync-different-networks/">между разными сетями</a>,
+          а не только в одной Wi-Fi, и это та черта, на которой останавливаются
+          локальные инструменты вроде
+          <a href="/ru/snapdrop-alternative/">Snapdrop</a>.
+        </p>
+
+        <p>
+          <a class="btn" href="/app.html">Открыть живой буфер обмена</a>
+        </p>
+      </div>
+
+      <div class="faq" id="faq">
+        <div class="faqhead">
+          <h2>Частые вопросы</h2>
+          <button type="button" class="faqall" id="faqAll"
+                  aria-expanded="false" aria-controls="faq" hidden>
+            <span class="faqall-i" aria-hidden="true"></span>
+            <span class="faqall-t">Развернуть всё</span>
+          </button>
+        </div>
+
+        <details class="qa">
+          <summary><h3>Есть ли онлайн-буфер обмена, который синхронизируется сам в реальном времени?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Есть. Оба устройства открывают одну и ту же страницу и вводят один и тот
+            же короткий ключ, и дальше текст ходит между ними без единого нажатия —
+            пока вы ещё печатаете, а не после отправки. На верхней ступени подключён
+            и системный буфер обмена, так что достаточно скопировать в любом месте
+            машины.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Чем «живой» отличается от «в реальном времени»?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            На практике ничем — это одна и та же категория. «Живой» подчёркивает,
+            что для обновления ничего не нужно нажимать, «в реальном времени» — что
+            приходит сейчас, а не после следующего обновления страницы. Оба слова
+            описывают онлайн-буфер обмена, который держит открытое соединение вместо
+            того, чтобы заставлять вас отправлять форму.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Чем живой буфер обмена отличается от pastebin?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Pastebin хранит ваш текст по ссылке, чтобы вы отправили её кому-то, и
+            текст лежит там до истечения срока. У живого буфера обмена нет ссылки, где
+            лежало бы ваше содержимое, и делиться нечем: он кладёт текст на другое
+            устройство прямо по мере написания и после этого ничего не хранит. Одно
+            публикует, другое синхронизирует.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Работает ли это между Windows и Android?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Да, и это главная причина пользоваться им вместо встроенного варианта.
+            Синхронизация Windows работает только между компьютерами на Windows с
+            одной учётной записью Microsoft, а Универсальный буфер обмена Apple —
+            только между устройствами Apple. Браузерный буфер обмена одинаково
+            относится ко всем платформам, потому что ему нужен только браузер.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Почему синхронизация останавливается, когда я переключаю вкладку?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Потому что ни один браузер не позволяет странице читать системный буфер
+            обмена, пока её вкладка в фоне, — это правило безопасности, и оно
+            действует для всех веб-инструментов такого рода. Текст, уже попавший в
+            сессию, приходит по-прежнему; приостанавливается автоматическое чтение
+            того, что вы копируете в другом месте. Возврат фокуса на окно возобновляет
+            его.
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>Безопасно ли это, если он видит всё, что я копирую?</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            Всё зависит от того, может ли сервис прочитать скопированное вами. Здесь
+            текст шифруется в вашем браузере до отправки, поэтому ретранслятор
+            пересылает шифротекст, который не может открыть, и ничего не пишет на
+            диск. По той же причине охват синхронизации сделан ступенью, которую вы
+            выбираете: на ступени «Приложение» сессия остаётся полностью живой, но
+            системный буфер обмена не читается никогда, так что пароли, скопированные
+            по другим поводам, в него вообще не попадают.
+            </p>
+          </div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Открытый исходный код — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/live-clipboard/">English</a> · <a href="/es/live-clipboard/">Español</a> · <a href="/pt/live-clipboard/">Português</a> · <a href="/ru/live-clipboard/">Русский</a> · <a href="/zh/live-clipboard/">中文</a></p>
+      <p><a href="/ru/">Главная</a> · <a href="/ru/download/">Загрузки</a> · <a href="/ru/help/">Помощь</a> · <a href="/ru/about/">О проекте</a> · <a href="/privacy/">Конфиденциальность</a> · <a href="/terms/">Условия</a></p>
+      <p>Сессии хранятся в памяти и никогда не пишутся на диск. Содержимое буфера обмена шифруется в вашем браузере до отправки.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

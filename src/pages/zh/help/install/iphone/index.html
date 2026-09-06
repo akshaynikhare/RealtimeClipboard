@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+Every id is a deep-link target used from other pages (#install, #why, #check,
+  #first, #trouble, #remove) and is byte-identical to /help/install/iphone/.
+  The #i-apple symbol in the h1 comes from the sprite the template lifts from
+  the English original.
+
+  iOS menu items use the wording Apple actually ships in Simplified Chinese,
+  because the reader is hunting for that exact string on screen: 分享,
+  添加到主屏幕, 添加, 编辑操作, and 设置 → Safari 浏览器 → 高级 → 网站数据.
+  分享 rather than 共享 keeps step with /zh/download/, which already labels the
+  same step that way.
+
+  The code span keeps T1 · paste only exactly as the English has it: it is a
+  literal status line the reader compares against their screen, and the block
+  carries a copy button.
+
+  Terminology follows /zh/: 在线剪贴板, 剪贴板同步, 密钥, 端到端加密, 主屏幕.
+-->
+
+<title>把在线剪贴板加到 iPhone 主屏幕</title>
+<meta name="description" content="不用装 App —— 用 Safari 的分享菜单加到主屏幕。以及为什么 iOS 从不允许后台读取粘贴板。">
+<link rel="canonical" href="https://realtimeclipboard.com/zh/help/install/iphone/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/install/iphone/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/install/iphone/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/install/iphone/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/install/iphone/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/install/iphone/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/install/iphone/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="iPhone 和 iPad 上的 RealtimeClipboard">
+<meta property="og:description" content="Safari 的分享菜单就是全部机制。为什么没有 App Store 版本，也没有安装提示可等。">
+<meta property="og:url" content="https://realtimeclipboard.com/zh/help/install/iphone/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/zh/help/install/iphone/#article",
+      "headline": "把 RealtimeClipboard 加到 iPhone 或 iPad 主屏幕",
+      "description": "从 Safari 的分享菜单加进来 —— iOS 上的 Chrome 和 Firefox 做不到。为什么 iOS 从不允许后台读取粘贴板，以及那条粘贴横幅是什么。",
+      "inLanguage": "zh-Hans",
+      "datePublished": "",
+      "dateModified": "",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/zh/help/install/iphone/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/zh/" },
+        { "@type": "ListItem", "position": 2, "name": "在 iPhone 上安装" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/copy.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/zh/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">打开应用</a>
+    </div>
+  </div>
+</header>
+
+<svg class="icons" aria-hidden="true">
+  <symbol id="i-apple" viewBox="0 0 24 24"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></symbol>
+</svg>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="面包屑导航">
+        <a href="/zh/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">在 iPhone 上安装</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1><svg class="brandmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-apple"/></svg> 在 iPhone 和 iPad 上安装</h1>
+
+        <p class="lede">
+          没有东西要下载，但有一个细节几乎绊倒了所有人：它必须是 Safari，而分享
+          菜单就是全部机制。不会有任何提示弹出来，你等多久都不会。
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2 id="install">装上它</h2>
+        <ol class="steps">
+          <li>用 <b>Safari</b> 打开<a href="/app.html">应用</a>。</li>
+          <li>点工具栏里的<b>分享</b> <span aria-hidden="true">↑</span>。</li>
+          <li>往下翻，点<b>添加到主屏幕</b>，然后点<b>添加</b>。</li>
+        </ol>
+        <p class="honest">
+          <b>iOS 上的 Chrome 和 Firefox 装不了网页应用。</b>它们都是套了另一层外壳
+          的 Safari 引擎，而苹果并没有把主屏幕安装这件事开放给它们。如果你的分享
+          菜单里找不到<b>添加到主屏幕</b>，那说明的是你在用哪个浏览器 —— 不是某个
+          设置，页面这边也改不了。
+        </p>
+
+        <h2 id="why">为什么没有 App Store 版本</h2>
+        <p>
+          <b>iOS 从来没有允许过任何应用在后台读取粘贴板</b>，而且从 iOS 16 起，
+          只要有应用读了一次剪贴板，系统就弹一条横幅。这两件事都是苹果定的，对
+          平台上的每一个应用都成立，没有任何权限能把它们关掉。
+        </p>
+        <p>
+          所以一个原生的 RealtimeClipboard 应用，能在装好的网页应用之上再加的，
+          只有一个分享菜单按钮和一条商店条目，别的什么都没有。这不足以让我们请你
+          再去信任一个二进制文件。
+        </p>
+        <p>
+          你会看到的那条粘贴横幅 —— “RealtimeClipboard 已从……粘贴” —— 是 iOS 在
+          如实告诉你刚刚发生了什么。它出现，是因为你让应用去读了剪贴板，而任何
+          应用都无法把它压下去。
+        </p>
+
+        <h2 id="check">确认它装好了</h2>
+        <ul class="sq-list">
+          <li><b>打开时没有 Safari 的工具栏</b> —— 全屏，在多任务切换里也是自己的
+            一个窗口。</li>
+          <li><b>状态栏显示 <code>T1 · paste only</code></b>，这在 iOS 上是对的，
+            也是任何应用都碰不破的上限。</li>
+          <li>没有网络也能打开，并且能看到你已有的历史记录。</li>
+        </ul>
+
+        <h2 id="first">第一次同步</h2>
+        <ol class="steps">
+          <li>在电脑上打开应用，记下那个短密钥。</li>
+          <li>在 iPhone 上输入同一个密钥。</li>
+          <li>在电脑上复制点东西。它会自己出现在手机上，你什么都不用做。</li>
+          <li>反过来：在手机上复制，打开 RealtimeClipboard，点一下编辑区，选
+            <b>粘贴</b>。iOS 会弹它那条横幅，这是正常的。</li>
+        </ol>
+
+        <h2 id="trouble">它不工作的时候</h2>
+
+        <h3>分享菜单里没有“添加到主屏幕”</h3>
+        <p>
+          要么你不在 Safari 里，要么这一项在列表里比你以为的更靠下 —— 把下面那
+          一段往上翻一翻。如果它被藏起来了，也可以从<b>编辑操作</b>里把它加回来。
+        </p>
+
+        <h3>没有弹出安装提示</h3>
+        <p>
+          本来就没有。iOS 对任何网页应用都不弹安装提示，从来不弹。如果你在等一条
+          提示，那你要等的其实就是分享菜单。
+        </p>
+
+        <h3>粘贴横幅一直在弹</h3>
+        <p>
+          那是 iOS 16 及以后在如实报告每一次剪贴板读取，对任何应用都一样。它没法
+          从应用内部关掉，而它出现恰恰说明这次读取成功了。
+        </p>
+
+        <h3>应用关着的时候收不到内容</h3>
+        <p>
+          你不看着它的时候，网页应用并没有在跑。它是在你打开的那一刻，把等着的
+          内容取回来；什么都不会丢。
+        </p>
+
+        <h2 id="remove">卸载</h2>
+        <p>
+          长按图标把它删掉，它的存储也跟着一起走。Safari 自己那份站点数据可以在
+          <b>设置 → Safari 浏览器 → 高级 → 网站数据</b>里清掉。
+        </p>
+
+        <p class="hint">
+          其他所有平台：<a href="/zh/help/install/">安装指南</a>。
+          如果你真正要找的是 iPhone 和 Mac 之间的剪贴板同步，
+          <a href="/zh/help/clipboard-sync-not-working/">那是另一个功能，说明在这里</a>。
+          这一页有错或者过时了？
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">提一个 issue</a>。
+        </p>
+      </div>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>开源项目 — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/install/iphone/">English</a> · <a href="/es/help/install/iphone/">Español</a> · <a href="/pt/help/install/iphone/">Português</a> · <a href="/ru/help/install/iphone/">Русский</a> · <a href="/zh/help/install/iphone/">中文</a></p>
+      <p><a href="/zh/">首页</a> · <a href="/zh/download/">下载</a> · <a href="/zh/help/">帮助</a> · <a href="/zh/about/">关于</a> · <a href="/privacy/">隐私政策</a> · <a href="/terms/">使用条款</a></p>
+      <p>会话只保存在内存中，从不写入磁盘。剪贴板内容在发送前已在你的浏览器里完成加密。</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

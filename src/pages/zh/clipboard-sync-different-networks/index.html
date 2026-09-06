@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+This page answers a diagnostic question rather than a definitional one, so it
+  earns the click instead of only the citation. The table is the load-bearing
+  part and translates directly: the tools are the same everywhere, and which of
+  them crosses a subnet is a fact, not a phrasing.
+
+  Terminology follows /zh/: 剪贴板同步, 密钥, 中继服务器, 局域网发现, 子网.
+-->
+
+<title>跨不同网络的剪贴板同步</title>
+<meta name="description" content="大多数剪贴板工具都要求同一个 Wi-Fi，因为设备发现靠的是局域网广播。如何在处于不同网络的设备之间同步剪贴板。">
+<link rel="canonical" href="https://realtimeclipboard.com/zh/clipboard-sync-different-networks/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/clipboard-sync-different-networks/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/clipboard-sync-different-networks/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/clipboard-sync-different-networks/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/clipboard-sync-different-networks/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/clipboard-sync-different-networks/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/clipboard-sync-different-networks/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="跨不同网络的剪贴板同步 —— 不需要同一个 Wi-Fi">
+<meta property="og:description" content="为什么大多数剪贴板工具都要求同一个 Wi-Fi，以及怎样在离得很远的设备之间同步。">
+<meta property="og:url" content="https://realtimeclipboard.com/zh/clipboard-sync-different-networks/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/zh/clipboard-sync-different-networks/#article",
+      "headline": "跨不同网络的剪贴板同步，不需要同一个 Wi-Fi",
+      "description": "为什么局域网设备发现跨不过子网，以及哪些剪贴板工具能在处于不同网络的设备之间工作。",
+      "inLanguage": "zh-Hans",
+      "datePublished": "2026-08-07",
+      "dateModified": "2026-08-07",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/zh/clipboard-sync-different-networks/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/zh/" },
+        { "@type": "ListItem", "position": 2, "name": "跨不同网络的剪贴板同步" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/faq.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/zh/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">打开应用</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="面包屑导航">
+        <a href="/zh/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">跨不同网络的剪贴板同步</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>跨不同网络的剪贴板同步</h1>
+
+        <p class="lede">
+          <b>大多数剪贴板和文件分享工具做不到这件事，原因是它们靠在局域网里
+          喊一嗓子来找到彼此。</b>广播出不了子网，所以用移动数据的手机在连着
+          家里 Wi-Fi 的笔记本眼里就是不存在的，你改什么都没用。要跨网络同步，
+          你需要的是一个改为在中间某个已知地址碰头的工具 —— 基于浏览器的
+          剪贴板做的正是这件事。
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2>同一个 Wi-Fi 这条限制是怎么来的</h2>
+
+        <p>
+          AirDrop、LocalSend、KDE Connect 和最早的 Snapdrop，底下的做法是一样的。
+          你打开它们的时候，每台设备会朝自己所在网段的每一个地址发一条发现消息 ——
+          视工具而定，可能是 mDNS、UDP 广播或者蓝牙 —— 然后等回复。谁答话，谁就
+          出现在列表里。
+        </p>
+
+        <p>
+          正是这个设计让它们不需要账号也不需要配置：没人需要被告知谁在哪里。
+          也正是这个设计让它们停在网络的边界上。路由器不会把广播流量在子网之间
+          转发，所以处于不同网络的两台设备根本听不见对方。这里没有什么可修的，
+          没有端口要开，也没有哪个设置被你漏掉 —— 这就是这套机制按设计在工作。
+        </p>
+
+        <p>
+          有三种常见情况会撞上它，而且哪一种都不是故障：
+        </p>
+
+        <ul>
+          <li><b>手机用移动数据，笔记本连 Wi-Fi。</b>哪怕两台设备贴在一起，它们也在不同的网络上。</li>
+          <li><b>开启了客户端隔离的办公室或校园 Wi-Fi。</b>设备在同一个网络里，但被刻意隔开，这在访客网络和企业网络上是一项安全措施。</li>
+          <li><b>是真的分开</b> —— 家里和公司，或者两个不同的城市。</li>
+        </ul>
+
+        <h2>那什么才管用</h2>
+
+        <p>
+          另一条路是两台设备都朝外连到同一个已知地址，在那里被介绍给对方。谁都
+          不必找到谁，所以它们在同一个房间里还是在地球两端，没有任何区别。代价是
+          中间现在有个东西知道这两台在说话 —— 于是真正要紧的问题变成了
+          <em>那个中间的东西能看见什么</em>。
+        </p>
+
+        <div class="tablewrap" tabindex="0" role="region"
+             aria-label="哪些工具能跨网络 —— 可横向滚动">
+          <table class="cmp">
+            <caption class="sr-only">
+              剪贴板和传输工具的对比：能不能跨不同网络工作，设备之间怎么碰头，
+              以及内容会不会落到系统剪贴板上。
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">工具</th>
+                <th scope="col">跨网络</th>
+                <th scope="col">设备怎么碰头</th>
+                <th scope="col">系统剪贴板</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="me">
+                <th scope="row">RealtimeClipboard</th>
+                <td class="y">可以</td>
+                <td>两边输入同一个短密钥</td>
+                <td class="y">支持</td>
+              </tr>
+              <tr>
+                <th scope="row">PairDrop</th>
+                <td class="y">可以</td>
+                <td>6 位配对码</td>
+                <td class="n">文字是以消息形式到达的</td>
+              </tr>
+              <tr>
+                <th scope="row">Windows 剪贴板同步</th>
+                <td class="y">可以</td>
+                <td>微软账号</td>
+                <td class="y">支持，但只在 Windows 之间</td>
+              </tr>
+              <tr>
+                <th scope="row">苹果通用剪贴板</th>
+                <td class="n">不行</td>
+                <td>蓝牙 + 接力，要在范围内</td>
+                <td class="y">支持，但只在苹果设备之间</td>
+              </tr>
+              <tr>
+                <th scope="row">KDE Connect</th>
+                <td class="n">不行</td>
+                <td>局域网发现</td>
+                <td class="y">支持</td>
+              </tr>
+              <tr>
+                <th scope="row">LocalSend / Snapdrop</th>
+                <td class="n">不行</td>
+                <td>局域网发现</td>
+                <td class="n">不支持</td>
+              </tr>
+              <tr>
+                <th scope="row">AirDrop</th>
+                <td class="n">不行</td>
+                <td>蓝牙 + 点对点 Wi-Fi</td>
+                <td class="n">不支持</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          能跨网络的那三个，各自都要你拿点什么来换。Windows 剪贴板同步要求两台
+          机器都登录微软账号，而且只跟别的 Windows 电脑说话。PairDrop 不要账号，
+          也跨平台，但它把文字当消息发过来，而不是放进你的剪贴板。第三条路是
+          浏览器里的剪贴板，也就是这一页接下来讲的东西。
+        </p>
+
+        <h2>不用账号，在任意两个网络之间同步</h2>
+
+        <ol class="steps">
+          <li>在第一台设备上打开剪贴板。它会生成一个短密钥。</li>
+          <li>在第二台设备上输入这个密钥，或者扫二维码。</li>
+          <li>在任意一台设备上复制点什么。</li>
+          <li>切到另一台粘贴。它已经在系统剪贴板里了。</li>
+        </ol>
+
+        <p>
+          取代设备发现的就是这个密钥。两台设备都朝外连到同一个中继服务器，索要
+          属于这个密钥的房间，于是它们找到了彼此，而谁都不需要知道对方在哪里。
+          家里 Wi-Fi 对移动数据，笔记本对手机，公司对家里 —— 都是同一种情况。
+        </p>
+
+        <h2>中间那台服务器能看见什么</h2>
+
+        <p>
+          这一段值得说具体，因为"它要经过一台服务器"正是跨网络的真实代价，而这
+          一点通常被含糊带过。
+        </p>
+
+        <p>
+          文字在<em>发送之前</em>就已经在你的浏览器里用 AES-GCM 加密好了。中继
+          服务器是按 <code>SHA-256(密钥)</code> 而不是按密钥来寻址的，所以它能
+          把你的消息路由到正确的房间，却从来拿不到读懂它们所需的那个密钥。它不
+          往磁盘上留任何东西：消息只存在到被转发出去为止。文件完全绕开它，通过
+          WebRTC 在两个浏览器之间直接传输。
+        </p>
+
+        <p>
+          它确实能看到的是：<em>某个</em>房间哈希在某个时刻活跃过，以及那两条
+          连接的 IP 地址。它拿不到你的密钥、你的文字、你的文件名，也不知道你是谁。
+          那个房间哈希和加密密钥经过同样的 25 万次迭代拉伸，所以没法廉价地反推回
+          你的密钥 —— <a href="/docs/THREAT-MODEL.md">威胁模型</a>里有具体数字。
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard">代码采用 MIT 许可证</a>，
+          中继服务器是一个小到能一口气读完的 Python 服务 —— 如果你不想只听别人
+          怎么说，<a href="/zh/help/install/relay/">你可以自己跑一个</a>，再把
+          应用指过去。
+        </p>
+
+        <div class="honest">
+          <h3>在依赖它之前值得知道的事</h3>
+          <dl class="caveats">
+            <div>
+              <dt>密钥就是密码</dt>
+              <dd>任何人知道了它，就能在会话开着的时候读到内容。请把它当密码对待。</dd>
+            </div>
+            <div>
+              <dt>自动读取需要 Chromium 内核</dt>
+              <dd>Firefox 和 Safari 可以发送和接收你粘贴进来的文字，但不能自己读剪贴板。</dd>
+            </div>
+            <div>
+              <dt>后台读取做不到</dt>
+              <dd>标签页在后台时，任何浏览器都不能读剪贴板。你切回这个标签页，它就会把你复制的内容取走。</dd>
+            </div>
+            <div>
+              <dt>文件上限 5&nbsp;MB</dt>
+              <dd>更大的东西，专门的传输工具才是对的选择。</dd>
+            </div>
+          </dl>
+        </div>
+
+        <p>
+          <a class="btn" href="/app.html">打开剪贴板</a>
+        </p>
+      </div>
+
+      <div class="faq" id="faq">
+        <div class="faqhead">
+          <h2>常见问题</h2>
+          <button type="button" class="faqall" id="faqAll"
+                  aria-expanded="false" aria-controls="faq" hidden>
+            <span class="faqall-i" aria-hidden="true"></span>
+            <span class="faqall-t">全部展开</span>
+          </button>
+        </div>
+
+        <details class="qa">
+          <summary><h3>我能在连着不同 Wi-Fi 的设备之间同步剪贴板吗？</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            能，但用依赖局域网发现的工具不行。AirDrop、LocalSend、KDE Connect 和
+            Snapdrop 都是靠在局域网里广播来找设备的，而广播过不了路由器。基于
+            浏览器的剪贴板换了一种做法：两台设备用一个共享密钥朝外连到同一个中继
+            服务器，于是它们各自在什么网络上就不重要了。
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>为什么我的手机用移动数据时看不到笔记本？</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            因为它们在两个不同的网络上。局域网发现只能到达同一个网段里的设备，而
+            用蜂窝网络的手机和连 Wi-Fi 的笔记本完全不在一个网段里，哪怕两台就并排
+            放着。把手机的 Wi-Fi 打开、连上同一个网络，那些工具就好了；除此之外，
+            就需要一个根本不依赖设备发现的工具。
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>剪贴板同步能在访客 Wi-Fi 或办公室 Wi-Fi 上用吗？</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            靠局域网发现的工具通常不行。访客网络和企业网络普遍开启了客户端隔离，
+            它会阻止同一个网络里的设备直接互相通信 —— 这是刻意为之的安全措施。
+            浏览器剪贴板不受影响，因为每台设备只是发起一个普通的对外 HTTPS 连接，
+            而不是去够另一台设备。
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>服务器能看到我复制了什么吗？</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            看不到。文字在发送前就在浏览器里加密好了，而且中继服务器是按你密钥的
+            哈希、而不是按密钥本身来寻址的，所以它能路由消息却解不开。它不向磁盘
+            写任何东西。文件根本不经过它 —— 它们通过 WebRTC 在两个浏览器之间直接
+            传输。
+            </p>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary><h3>用 VPN 能让局域网工具跨网络工作吗？</h3><span class="qa-i" aria-hidden="true"></span></summary>
+          <div class="qa-a">
+            <p>
+            有时候可以，而且比听上去麻烦。Tailscale 或 ZeroTier 这类组网 VPN 会把
+            两台设备放进同一个虚拟网络，这能让局域网发现重新可用 —— 但有些工具依赖
+            的广播流量，组网 VPN 默认并不转发，所以要看具体是哪个工具。它还意味着
+            要在两台设备上都装好并配置软件，而这恰恰是大多数人想躲开的事。
+            </p>
+          </div>
+        </details>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>开源项目 — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/clipboard-sync-different-networks/">English</a> · <a href="/es/clipboard-sync-different-networks/">Español</a> · <a href="/pt/clipboard-sync-different-networks/">Português</a> · <a href="/ru/clipboard-sync-different-networks/">Русский</a> · <a href="/zh/clipboard-sync-different-networks/">中文</a></p>
+      <p><a href="/zh/">首页</a> · <a href="/zh/download/">下载</a> · <a href="/zh/help/">帮助</a> · <a href="/zh/about/">关于</a> · <a href="/privacy/">隐私政策</a> · <a href="/terms/">使用条款</a></p>
+      <p>会话只保存在内存中，从不写入磁盘。剪贴板内容在发送前已在你的浏览器里完成加密。</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

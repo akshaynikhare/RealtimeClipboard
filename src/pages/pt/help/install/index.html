@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- One policy, identical on every page of the site. Reasoning and the
+     directive-by-directive notes live in app.html, which is the page that
+     actually needs them. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; script-src 'self' https://pagead2.googlesyndication.com https://partner.googleadservices.com https://tpc.googlesyndication.com https://www.googletagmanager.com https://adservice.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://td.doubleclick.net https://ep2.adtrafficquality.google; connect-src 'self' https://realtimeclipboard.fastapicloud.dev wss://realtimeclipboard.fastapicloud.dev http://127.0.0.1:8000 ws://127.0.0.1:8000 https://api.github.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://td.doubleclick.net https://stats.g.doubleclick.net https://csi.gstatic.com https://*.google-analytics.com https://*.analytics.google.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google; require-trusted-types-for 'script'; trusted-types * 'allow-duplicates'">
+
+<!--
+A hub page: the table answers the question for most readers, and the
+  per-platform sections below it stay short on purpose, because each has a full
+  guide of its own. The sections here answer “can I, and what is the command”;
+  the linked pages answer “did it work, and why is it broken”.
+
+  Every id is a deep-link target used from other pages (#what, #windows, #mac,
+  #linux, #android, #ios, #cli, #relay), and the #i-* symbol ids belong to the
+  icon sprite the template lifts from the English original. Both sets stay
+  byte-identical to /help/install/.
+
+  Everything inside pre and code is the English original unchanged: those blocks
+  carry a copy button, and a translated command is a command that fails when
+  pasted.
+
+  Terminology follows /pt/: área de transferência, chave curta, retransmissor,
+  criptografia de ponta a ponta.
+-->
+
+<title>Como instalar o RealtimeClipboard em qualquer dispositivo</title>
+<meta name="description" content="Instale o RealtimeClipboard em qualquer dispositivo: o aplicativo desktop no Windows, macOS e Linux, a tela inicial no Android e no iPhone.">
+<link rel="canonical" href="https://realtimeclipboard.com/pt/help/install/">
+<meta name="theme-color" content="#007acc">
+<link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+<link rel="alternate" hreflang="en" href="https://realtimeclipboard.com/help/install/">
+<link rel="alternate" hreflang="es" href="https://realtimeclipboard.com/es/help/install/">
+<link rel="alternate" hreflang="pt-BR" href="https://realtimeclipboard.com/pt/help/install/">
+<link rel="alternate" hreflang="ru" href="https://realtimeclipboard.com/ru/help/install/">
+<link rel="alternate" hreflang="zh-Hans" href="https://realtimeclipboard.com/zh/help/install/">
+<link rel="alternate" hreflang="x-default" href="https://realtimeclipboard.com/help/install/">
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="RealtimeClipboard">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="Como instalar o RealtimeClipboard em qualquer dispositivo">
+<meta property="og:description" content="Windows, macOS, Linux, Android, iPhone e a linha de comando — e o que a captura da área de transferência em segundo plano faz de verdade em cada um.">
+<meta property="og:url" content="https://realtimeclipboard.com/pt/help/install/">
+<meta property="og:image" content="https://realtimeclipboard.com/assets/social/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://realtimeclipboard.com/pt/help/install/#article",
+      "headline": "Como instalar o RealtimeClipboard no Windows, Mac, Linux, Android e iPhone",
+      "description": "Todas as plataformas em que o RealtimeClipboard roda, o que instalar em cada uma e o que a captura em segundo plano consegue e não consegue fazer.",
+      "inLanguage": "pt-BR",
+      "datePublished": "2026-08-07",
+      "dateModified": "",
+      "publisher": { "@id": "https://realtimeclipboard.com/#org" },
+      "mainEntityOfPage": "https://realtimeclipboard.com/pt/help/install/"
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "RealtimeClipboard", "item": "https://realtimeclipboard.com/pt/" },
+        { "@type": "ListItem", "position": 2, "name": "Instalação" }
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/src/landing/landing.css">
+<script type="module" src="/src/landing/copy.js"></script>
+<script type="module" src="/src/landing/tags.js"></script>
+<script type="module" src="/src/landing/lang.js"></script>
+</head>
+<body>
+
+<div class="rules" aria-hidden="true">
+  <div class="in"><span></span><span></span><span></span></div>
+</div>
+
+<header class="topbar">
+  <div class="in">
+    <div class="row">
+      <a class="brand" href="/pt/">
+        <b>RealtimeClipboard</b>
+      </a>
+      <span class="spacer"></span>
+      <a class="tlink" href="https://github.com/akshaynikhare/RealtimeClipboard">GitHub</a>
+      <a class="tlink strong" href="/app.html">Abrir o aplicativo</a>
+    </div>
+  </div>
+</header>
+
+<svg class="icons" aria-hidden="true">
+  <symbol id="i-windows" viewBox="0 0 24 24"><path d="M3 3h8.2v8.2H3zM12.8 3H21v8.2h-8.2zM3 12.8h8.2V21H3zM12.8 12.8H21V21h-8.2z"/></symbol>
+  <symbol id="i-apple" viewBox="0 0 24 24"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></symbol>
+  <symbol id="i-linux" viewBox="0 0 24 24"><path d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333l.003.003c.391.778 1.113 1.132 1.884 1.071.771-.06 1.592-.536 2.257-1.306.631-.765 1.683-1.084 2.378-1.503.348-.199.629-.469.649-.853.023-.4-.2-.811-.714-1.376v-.097l-.003-.003c-.17-.2-.25-.535-.338-.926-.085-.401-.182-.786-.492-1.046h-.003c-.059-.054-.123-.067-.188-.135a.357.357 0 00-.19-.064c.431-1.278.264-2.55-.173-3.694-.533-1.41-1.465-2.638-2.175-3.483-.796-1.005-1.576-1.957-1.56-3.368.026-2.152.236-6.133-3.544-6.139zm.529 3.405h.013c.213 0 .396.062.584.198.19.135.33.332.438.533.105.259.158.459.166.724 0-.02.006-.04.006-.06v.105a.086.086 0 01-.004-.021l-.004-.024a1.807 1.807 0 01-.15.706.953.953 0 01-.213.335.71.71 0 00-.088-.042c-.104-.045-.198-.064-.284-.133a1.312 1.312 0 00-.22-.066c.05-.06.146-.133.183-.198.053-.128.082-.264.088-.402v-.02a1.21 1.21 0 00-.061-.4c-.045-.134-.101-.2-.183-.333-.084-.066-.167-.132-.267-.132h-.016c-.093 0-.176.03-.262.132a.8.8 0 00-.205.334 1.18 1.18 0 00-.09.4v.019c.002.089.008.179.02.267-.193-.067-.438-.135-.607-.202a1.635 1.635 0 01-.018-.2v-.02a1.772 1.772 0 01.15-.768c.082-.22.232-.406.43-.533a.985.985 0 01.594-.2zm-2.962.059h.036c.142 0 .27.048.399.135.146.129.264.288.344.465.09.199.14.4.153.667v.004c.007.134.006.2-.002.266v.08c-.03.007-.056.018-.083.024-.152.055-.274.135-.393.2.012-.09.013-.18.003-.267v-.015c-.012-.133-.04-.2-.082-.333a.613.613 0 00-.166-.267.248.248 0 00-.183-.064h-.021c-.071.006-.13.04-.186.132a.552.552 0 00-.12.27.944.944 0 00-.023.33v.015c.012.135.037.2.08.334.046.134.098.2.166.268.01.009.02.018.034.024-.07.057-.117.07-.176.136a.304.304 0 01-.131.068 2.62 2.62 0 01-.275-.402 1.772 1.772 0 01-.155-.667 1.759 1.759 0 01.08-.668 1.43 1.43 0 01.283-.535c.128-.133.26-.2.418-.2zm1.37 1.706c.332 0 .733.065 1.216.399.293.2.523.269 1.052.468h.003c.255.136.405.266.478.399v-.131a.571.571 0 01.016.47c-.123.31-.516.643-1.063.842v.002c-.268.135-.501.333-.775.465-.276.135-.588.292-1.012.267a1.139 1.139 0 01-.448-.067 3.566 3.566 0 01-.322-.198c-.195-.135-.363-.332-.612-.465v-.005h-.005c-.4-.246-.616-.512-.686-.71-.07-.268-.005-.47.193-.6.224-.135.38-.271.483-.336.104-.074.143-.102.176-.131h.002v-.003c.169-.202.436-.47.839-.601.139-.036.294-.065.466-.065zm2.8 2.142c.358 1.417 1.196 3.475 1.735 4.473.286.534.855 1.659 1.102 3.024.156-.005.33.018.513.064.646-1.671-.546-3.467-1.089-3.966-.22-.2-.232-.335-.123-.335.59.534 1.365 1.572 1.646 2.757.13.535.16 1.104.021 1.67.067.028.135.06.205.067 1.032.534 1.413.938 1.23 1.537v-.043c-.06-.003-.12 0-.18 0h-.016c.151-.467-.182-.825-1.065-1.224-.915-.4-1.646-.336-1.77.465-.008.043-.013.066-.018.135-.068.023-.139.053-.209.064-.43.268-.662.669-.793 1.187-.13.533-.17 1.156-.205 1.869v.003c-.02.334-.17.838-.319 1.35-1.5 1.072-3.58 1.538-5.348.334a2.645 2.645 0 00-.402-.533 1.45 1.45 0 00-.275-.333c.182 0 .338-.03.465-.067a.615.615 0 00.314-.334c.108-.267 0-.697-.345-1.163-.345-.467-.931-.995-1.788-1.521-.63-.4-.986-.87-1.15-1.396-.165-.534-.143-1.085-.015-1.645.245-1.07.873-2.11 1.274-2.763.107-.065.037.135-.408.974-.396.751-1.14 2.497-.122 3.854a8.123 8.123 0 01.647-2.876c.564-1.278 1.743-3.504 1.836-5.268.048.036.217.135.289.202.218.133.38.333.59.465.21.201.477.335.876.335.039.003.075.006.11.006.412 0 .73-.134.997-.268.29-.134.52-.334.74-.4h.005c.467-.135.835-.402 1.044-.7zm2.185 8.958c.037.6.343 1.245.882 1.377.588.134 1.434-.333 1.791-.765l.211-.01c.315-.007.577.01.847.268l.003.003c.208.199.305.53.391.876.085.4.154.78.409 1.066.486.527.645.906.636 1.14l.003-.007v.018l-.003-.012c-.015.262-.185.396-.498.595-.63.401-1.746.712-2.457 1.57-.618.737-1.37 1.14-2.036 1.191-.664.053-1.237-.2-1.574-.898l-.005-.003c-.21-.4-.12-1.025.056-1.69.176-.668.428-1.344.463-1.897.037-.714.076-1.335.195-1.814.12-.465.308-.797.641-.984l.045-.022zm-10.814.049h.01c.053 0 .105.005.157.014.376.055.706.333 1.023.752l.91 1.664.003.003c.243.533.754 1.064 1.189 1.637.434.598.77 1.131.729 1.57v.006c-.057.744-.48 1.148-1.125 1.294-.645.135-1.52.002-2.395-.464-.968-.536-2.118-.469-2.857-.602-.369-.066-.61-.2-.723-.4-.11-.2-.113-.602.123-1.23v-.004l.002-.003c.117-.334.03-.752-.027-1.118-.055-.401-.083-.71.043-.94.16-.334.396-.4.69-.533.294-.135.64-.202.915-.47h.002v-.002c.256-.268.445-.601.668-.838.19-.201.38-.336.663-.336zm7.159-9.074c-.435.201-.945.535-1.488.535-.542 0-.97-.267-1.28-.466-.154-.134-.28-.268-.373-.335-.164-.134-.144-.333-.074-.333.109.016.129.134.199.2.096.066.215.2.36.333.292.2.68.467 1.167.467.485 0 1.053-.267 1.398-.466.195-.135.445-.334.648-.467.156-.136.149-.267.279-.267.128.016.034.134-.147.332a8.097 8.097 0 01-.69.468zm-1.082-1.583V5.64c-.006-.02.013-.042.029-.05.074-.043.18-.027.26.004.063 0 .16.067.15.135-.006.049-.085.066-.135.066-.055 0-.092-.043-.141-.068-.052-.018-.146-.008-.163-.065zm-.551 0c-.02.058-.113.049-.166.066-.047.025-.086.068-.14.068-.05 0-.13-.02-.136-.068-.01-.066.088-.133.15-.133.08-.031.184-.047.259-.005.019.009.036.03.03.05v.02h.003z"/></symbol>
+  <symbol id="i-android" viewBox="0 0 24 24"><path d="M18.4395 5.5586c-.675 1.1664-1.352 2.3318-2.0274 3.498-.0366-.0155-.0742-.0286-.1113-.043-1.8249-.6957-3.484-.8-4.42-.787-1.8551.0185-3.3544.4643-4.2597.8203-.084-.1494-1.7526-3.021-2.0215-3.4864a1.1451 1.1451 0 0 0-.1406-.1914c-.3312-.364-.9054-.4859-1.379-.203-.475.282-.7136.9361-.3886 1.5019 1.9466 3.3696-.0966-.2158 1.9473 3.3593.0172.031-.4946.2642-1.3926 1.0177C2.8987 12.176.452 14.772 0 18.9902h24c-.119-1.1108-.3686-2.099-.7461-3.0683-.7438-1.9118-1.8435-3.2928-2.7402-4.1836a12.1048 12.1048 0 0 0-2.1309-1.6875c.6594-1.122 1.312-2.2559 1.9649-3.3848.2077-.3615.1886-.7956-.0079-1.1191a1.1001 1.1001 0 0 0-.8515-.5332c-.5225-.0536-.9392.3128-1.0488.5449zm-.0391 8.461c.3944.5926.324 1.3306-.1563 1.6503-.4799.3197-1.188.0985-1.582-.4941-.3944-.5927-.324-1.3307.1563-1.6504.4727-.315 1.1812-.1086 1.582.4941zM7.207 13.5273c.4803.3197.5506 1.0577.1563 1.6504-.394.5926-1.1038.8138-1.584.4941-.48-.3197-.5503-1.0577-.1563-1.6504.4008-.6021 1.1087-.8106 1.584-.4941z"/></symbol>
+  <symbol id="i-node" viewBox="0 0 24 24"><path d="M11.998,24c-0.321,0-0.641-0.084-0.922-0.247l-2.936-1.737c-0.438-0.245-0.224-0.332-0.08-0.383 c0.585-0.203,0.703-0.25,1.328-0.604c0.065-0.037,0.151-0.023,0.218,0.017l2.256,1.339c0.082,0.045,0.197,0.045,0.272,0l8.795-5.076 c0.082-0.047,0.134-0.141,0.134-0.238V6.921c0-0.099-0.053-0.192-0.137-0.242l-8.791-5.072c-0.081-0.047-0.189-0.047-0.271,0 L3.075,6.68C2.99,6.729,2.936,6.825,2.936,6.921v10.15c0,0.097,0.054,0.189,0.139,0.235l2.409,1.392 c1.307,0.654,2.108-0.116,2.108-0.89V7.787c0-0.142,0.114-0.253,0.256-0.253h1.115c0.139,0,0.255,0.112,0.255,0.253v10.021 c0,1.745-0.95,2.745-2.604,2.745c-0.508,0-0.909,0-2.026-0.551L2.28,18.675c-0.57-0.329-0.922-0.945-0.922-1.604V6.921 c0-0.659,0.353-1.275,0.922-1.603l8.795-5.082c0.557-0.315,1.296-0.315,1.848,0l8.794,5.082c0.57,0.329,0.924,0.944,0.924,1.603 v10.15c0,0.659-0.354,1.273-0.924,1.604l-8.794,5.078C12.643,23.916,12.324,24,11.998,24z M19.099,13.993 c0-1.9-1.284-2.406-3.987-2.763c-2.731-0.361-3.009-0.548-3.009-1.187c0-0.528,0.235-1.233,2.258-1.233 c1.807,0,2.473,0.389,2.747,1.607c0.024,0.115,0.129,0.199,0.247,0.199h1.141c0.071,0,0.138-0.031,0.186-0.081 c0.048-0.054,0.074-0.123,0.067-0.196c-0.177-2.098-1.571-3.076-4.388-3.076c-2.508,0-4.004,1.058-4.004,2.833 c0,1.925,1.488,2.457,3.895,2.695c2.88,0.282,3.103,0.703,3.103,1.269c0,0.983-0.789,1.402-2.642,1.402 c-2.327,0-2.839-0.584-3.011-1.742c-0.02-0.124-0.126-0.215-0.253-0.215h-1.137c-0.141,0-0.254,0.112-0.254,0.253 c0,1.482,0.806,3.248,4.655,3.248C17.501,17.007,19.099,15.91,19.099,13.993z"/></symbol>
+  <symbol id="i-docker" viewBox="0 0 24 24"><path d="M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.185.185 0 00-.185.185v1.888c0 .102.083.185.185.185m-2.954-5.43h2.118a.186.186 0 00.186-.186V3.574a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m0 2.716h2.118a.187.187 0 00.186-.186V6.29a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.887c0 .102.082.185.185.186m-2.93 0h2.12a.186.186 0 00.184-.186V6.29a.185.185 0 00-.185-.185H8.1a.185.185 0 00-.185.185v1.887c0 .102.083.185.185.186m-2.964 0h2.119a.186.186 0 00.185-.186V6.29a.185.185 0 00-.185-.185H5.136a.186.186 0 00-.186.185v1.887c0 .102.084.185.186.186m5.893 2.715h2.118a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m-2.93 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.083.185.185.185m-2.964 0h2.119a.185.185 0 00.185-.185V9.006a.185.185 0 00-.184-.186h-2.12a.186.186 0 00-.186.186v1.887c0 .102.084.185.186.185m-2.92 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.082.185.185.185M23.763 9.89c-.065-.051-.672-.51-1.954-.51-.338.001-.676.03-1.01.087-.248-1.7-1.653-2.53-1.716-2.566l-.344-.199-.226.327c-.284.438-.49.922-.612 1.43-.23.97-.09 1.882.403 2.661-.595.332-1.55.413-1.744.42H.751a.751.751 0 00-.75.748 11.376 11.376 0 00.692 4.062c.545 1.428 1.355 2.48 2.41 3.124 1.18.723 3.1 1.137 5.275 1.137.983.003 1.963-.086 2.93-.266a12.248 12.248 0 003.823-1.389c.98-.567 1.86-1.288 2.61-2.136 1.252-1.418 1.998-2.997 2.553-4.4h.221c1.372 0 2.215-.549 2.68-1.009.309-.293.55-.65.707-1.046l.098-.288Z"/></symbol>
+</svg>
+
+<main>
+
+  <section class="sec">
+    <div class="in doc">
+
+      <nav class="crumb" aria-label="Trilha de navegação">
+        <a href="/pt/">RealtimeClipboard</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">Instalação</span>
+      </nav>
+
+      <header class="pagehead">
+        <h1>Instalando o RealtimeClipboard</h1>
+
+        <p class="lede">
+          O RealtimeClipboard roda no navegador de todos os dispositivos que você
+          tem, e para isso não é preciso instalar nada. O que a instalação traz é
+          uma coisa bem específica, e só em algumas plataformas: o aplicativo
+          perceber o que você copiou enquanto trabalhava em outra janela.
+        </p>
+      </header>
+
+      <div class="article">
+
+        <h2>Comece por aqui: você precisa instalar alguma coisa?</h2>
+        <p>
+          Provavelmente não. Abra <a href="/app.html">o aplicativo</a> em dois
+          dispositivos, digite a mesma chave curta nos dois e eles passam a
+          compartilhar uma área de transferência. Tudo o que vem abaixo é sobre um
+          único recurso — a <b>captura em segundo plano</b> — e sobre se a sua
+          plataforma dá conta dele.
+        </p>
+
+        <div class="tablewrap">
+          <table class="cmp">
+            <thead>
+              <tr><th>Plataforma</th><th>Instalação</th><th>Captura em segundo plano</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><svg class="brandmark sm" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-windows"/></svg> Windows 10 / 11</td><td>Aplicativo desktop</td><td class="y"><b>Sim</b></td></tr>
+              <tr><td><svg class="brandmark sm" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-apple"/></svg> macOS 11+</td><td>Aplicativo desktop</td><td class="y"><b>Sim</b></td></tr>
+              <tr><td><svg class="brandmark sm" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-linux"/></svg> Linux, X11</td><td>Aplicativo desktop</td><td class="y"><b>Sim</b></td></tr>
+              <tr><td><svg class="brandmark sm" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-linux"/></svg> Linux, Wayland</td><td>Aplicativo desktop</td><td>KDE e wlroots sim; GNOME não</td></tr>
+              <tr><td><svg class="brandmark sm" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-android"/></svg> Android / ChromeOS</td><td>Adicionar à tela inicial</td><td class="n"><b>Não</b> — bloqueada pelo Android</td></tr>
+              <tr><td><svg class="brandmark sm" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-apple"/></svg> iPhone / iPad</td><td>Adicionar à tela inicial</td><td class="n"><b>Não</b> — bloqueada pelo iOS</td></tr>
+              <tr><td><svg class="brandmark sm" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-node"/></svg> Servidores, SSH</td><td><code>npx realtimeclipboard</code></td><td>Não se aplica — funciona por pipe</td></tr>
+              <tr><td>Qualquer outra coisa</td><td>Nada — use o navegador</td><td class="n">Não</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>
+          Cada plataforma tem abaixo um resumo e também um guia completo só dela —
+          como é uma instalação funcionando, como fazer o primeiro trecho
+          atravessar e as coisas específicas que impedem isso.
+        </p>
+
+        <ul class="hublist">
+          <li>
+            <a href="/pt/help/install/windows/">Instalação no Windows</a>
+            <p>O <code>.msi</code>, o que o ícone na área de notificação e a barra de
+              status devem dizer, e as três coisas que impedem tudo: o SmartScreen,
+              uma máquina de trabalho travada e a sincronização de área de
+              transferência do próprio Windows, que é outro recurso.</p>
+          </li>
+          <li>
+            <a href="/pt/help/install/mac/">Instalação no macOS</a>
+            <p>Um único download universal para Intel e Apple Silicon, o que o
+              Gatekeeper vai dizer na primeira vez, e por que não existe permissão
+              de área de transferência para conceder — que é exatamente o motivo de
+              o aplicativo avisar por conta própria.</p>
+          </li>
+          <li>
+            <a href="/pt/help/install/linux/">Instalação no Linux</a>
+            <p><code>.deb</code>, <code>.rpm</code> e AppImage, o piso do webkit2gtk
+              4.1 e a matriz do Wayland numa tabela só: X11 sim, KDE e wlroots sim,
+              GNOME não e não há nada que resolva.</p>
+          </li>
+          <li>
+            <a href="/pt/help/install/android/">Android e ChromeOS</a>
+            <p>Dois toques no Chrome, nenhuma listagem em loja e a regra do Android
+              10 que torna um aplicativo nativo inútil. Como é enviar de verdade
+              quando a captura em segundo plano está fora de cogitação.</p>
+          </li>
+          <li>
+            <a href="/pt/help/install/iphone/">iPhone e iPad</a>
+            <p>O menu Compartilhar do Safari é o mecanismo inteiro — o Chrome no iOS
+              não dá conta, e nenhum aviso de instalação vai aparecer. Mais o que é
+              aquele banner de colagem e por que nenhum aplicativo consegue
+              desligá-lo.</p>
+          </li>
+          <li>
+            <a href="/pt/help/install/cli/">A linha de comando</a>
+            <p>Jogue por pipe no <code>send</code>, redirecione a saída do
+              <code>watch</code> e veja os quatro comandos por inteiro. A mesma
+              criptografia que o navegador usa, em qualquer máquina com Node 22.</p>
+          </li>
+          <li>
+            <a href="/pt/help/install/relay/">Rodar o seu próprio retransmissor</a>
+            <p>Um contêiner e nenhum banco de dados. Como verificar se está de pé,
+              como colocar TLS na frente — e a armadilha de fixar uma réplica só,
+              que aparece como trechos que simplesmente não chegam.</p>
+          </li>
+        </ul>
+
+        <div class="article">
+
+        <h2 id="what">O que “captura em segundo plano” quer dizer de verdade</h2>
+        <p>
+          Num navegador, o RealtimeClipboard só consegue ler a sua área de
+          transferência enquanto a janela dele está em foco. Isso não é uma
+          limitação deste aplicativo — é uma regra que todo navegador impõe a todo
+          site, porque uma página capaz de ler a área de transferência em silêncio
+          colheria cada senha que você copia. Então a versão de navegador funciona
+          assim: você copia alguma coisa, muda para o RealtimeClipboard e ele pega
+          o conteúdo no momento em que ganha o foco.
+        </p>
+        <p>
+          Um aplicativo nativo de desktop não está preso a essa regra. O aplicativo
+          para Windows, macOS e Linux observa a área de transferência do sistema
+          continuamente, então copiar em qualquer programa já envia na hora, sem
+          precisar trocar de janela.
+        </p>
+        <p class="honest">
+          O que significa que o aplicativo desktop lê cada cópia que você faz
+          enquanto está rodando — inclusive senhas que você copiou por motivos
+          totalmente alheios. O conteúdo é criptografado antes de sair da sua
+          máquina e nunca é gravado em disco, mas isso é uma coisa real com que
+          concordar. O aplicativo diz isso num guia na primeira abertura, com a
+          chave no próprio diálogo: <b>Aplicativo</b> quer dizer que nada sai da
+          máquina até você colar lá dentro, e ela também está no menu da área de
+          notificação como <b>Compartilhar o que eu copio</b>, para você pausar o
+          compartilhamento antes de copiar uma senha sem precisar abrir a janela.
+        </p>
+
+        <h2 id="windows"><svg class="brandmark sm" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-windows"/></svg> Windows</h2>
+        <p>
+          Baixe o <code>.msi</code> na <a href="/pt/download/">página de download</a>.
+          A captura em segundo plano funciona sem ressalvas e sem pedir permissão —
+          o Windows é a plataforma em que o aplicativo desktop mais vale a pena.
+        </p>
+        <p>
+          O aplicativo não precisa de direitos de administrador e não instala driver
+          nem serviço. Ele faz conexões de saída só na 443, para um único nome de
+          host, que é o formato que os departamentos de TI liberam. Se o SmartScreen
+          avisar, confira se o arquivo veio da
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/releases/latest">página oficial de releases</a>
+          antes de seguir adiante.
+        </p>
+        <p><a href="/pt/help/install/windows/">Guia completo: instalação no Windows</a> <span aria-hidden="true">→</span></p>
+
+        <h2 id="mac"><svg class="brandmark sm" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-apple"/></svg> macOS</h2>
+        <p>
+          Um <code>.dmg</code> cobre Intel e Apple Silicon — a build é universal,
+          então não há um segundo download para procurar.
+        </p>
+        <p>
+          O macOS não exige permissão nenhuma para ler a área de transferência, então
+          não há aviso para conceder. Isso corta dos dois lados: nada no sistema
+          operacional avisaria você de que um aplicativo começou a ler cada cópia que
+          você faz, e é por isso que este avisa sozinho, num guia na primeira
+          abertura, com a chave <b>Aplicativo</b> no diálogo.
+        </p>
+        <p><a href="/pt/help/install/mac/">Guia completo: instalação no macOS</a> <span aria-hidden="true">→</span></p>
+
+        <h2 id="linux"><svg class="brandmark sm" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-linux"/></svg> Linux</h2>
+        <p>
+          Um <code>.deb</code>, um <code>.rpm</code> ou um AppImage da página de
+          releases. Não existe pacote no Flathub, no Snap nem no AUR, e não há aqui
+          nenhum comando fingindo que existe. O aplicativo precisa do webkit2gtk 4.1,
+          o que dá mais ou menos Ubuntu 22.04 ou Fedora 36 para cima; em qualquer
+          coisa mais antiga use o navegador ou o cliente de linha de comando.
+        </p>
+        <p>
+          <b>A ressalva do Wayland, dita sem rodeios.</b> No X11 o aplicativo é
+          avisado quando a área de transferência muda e a captura em segundo plano
+          funciona. No Wayland depende do seu compositor: o KDE e os baseados em
+          wlroots expõem um protocolo para isso, e o GNOME não — não há como
+          aplicativo nenhum monitorar a área de transferência no GNOME Wayland. O
+          aplicativo detecta isso e diz na barra de status, em vez de ficar em
+          silêncio sem fazer nada, e volta a capturar no foco, exatamente como o
+          navegador.
+        </p>
+        <p><a href="/pt/help/install/linux/">Guia completo: instalação no Linux</a> <span aria-hidden="true">→</span></p>
+
+        <h2 id="android"><svg class="brandmark sm" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-android"/></svg> Android e ChromeOS</h2>
+        <p>
+          Não existe aplicativo Android, e não vai existir. Desde o Android 10, só o
+          aplicativo que você está usando no momento, o teclado ativo ou um serviço
+          de acessibilidade podem ler a área de transferência. Um aplicativo
+          RealtimeClipboard seria, portanto, um botão no menu de compartilhamento e
+          um ícone — todo o resto que ele poderia fazer, o aplicativo web instalado
+          já faz.
+        </p>
+        <ol>
+          <li>Abra <a href="/app.html">o aplicativo</a> no Chrome.</li>
+          <li>Toque no menu e depois em <b>Adicionar à tela inicial</b>.</li>
+        </ol>
+        <p>Ele passa a ter ícone e janela próprios, e funciona offline. Para enviar algo, cole no aplicativo ou use o menu de compartilhamento do Android.</p>
+        <p><a href="/pt/help/install/android/">Guia completo: Android e ChromeOS</a> <span aria-hidden="true">→</span></p>
+
+        <h2 id="ios"><svg class="brandmark sm" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-apple"/></svg> iPhone e iPad</h2>
+        <p>
+          Mesma resposta, pelo mesmo motivo: o iOS nunca permitiu leitura da área de
+          transferência em segundo plano e, desde o iOS 16, mostra um banner toda vez
+          que qualquer aplicativo lê a área de transferência.
+        </p>
+        <ol>
+          <li>Abra <a href="/app.html">o aplicativo</a> no <b>Safari</b>. O Chrome e o Firefox no iOS não conseguem instalar um aplicativo web.</li>
+          <li>Toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>.</li>
+        </ol>
+        <p>
+          O iOS não mostra nenhum aviso de instalação próprio, então, se você está
+          esperando um aparecer, ele não vai. O menu Compartilhar é o mecanismo
+          inteiro.
+        </p>
+        <p><a href="/pt/help/install/iphone/">Guia completo: iPhone e iPad</a> <span aria-hidden="true">→</span></p>
+
+        <h2 id="cli"><svg class="brandmark sm" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-node"/></svg> Servidores, sessões SSH e scripts</h2>
+        <pre><code>npx realtimeclipboard D75LV</code></pre>
+        <p>
+          Para máquinas sem área de transferência e sem tela. Ele lê a entrada padrão
+          e escreve na saída padrão, então se combina com todo o resto:
+        </p>
+        <pre><code>echo "deploy key" | npx realtimeclipboard send D75LV
+npx realtimeclipboard watch D75LV --once &gt; token.txt</code></pre>
+        <p>
+          Precisa do Node 22 ou mais novo. Não é uma implementação separada — ele
+          importa os mesmos arquivos de criptografia e transporte que o navegador
+          roda, então um trecho enviado de um servidor é indistinguível de um enviado
+          por um notebook.
+        </p>
+        <p><a href="/pt/help/install/cli/">Guia completo: a linha de comando</a> <span aria-hidden="true">→</span></p>
+
+        <h2 id="relay"><svg class="brandmark sm" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-docker"/></svg> Rodar o seu próprio retransmissor</h2>
+        <p>
+          O retransmissor passa trechos criptografados entre os seus dispositivos.
+          Ele não consegue lê-los — só enxerga um hash de sala e texto cifrado — mas,
+          se você prefere não aceitar isso na confiança, rode um você mesmo:
+        </p>
+        <pre><code>docker run -p 8000:8000 ghcr.io/akshaynikhare/realtimeclipboard-relay</code></pre>
+        <p>
+          Depois aponte o aplicativo para ele em <b>Configurações → Retransmissor</b>.
+          Existe um <code>docker-compose.yml</code> com TLS automático e um chart Helm
+          no <a href="https://github.com/akshaynikhare/RealtimeClipboard/tree/main/deploy">diretório deploy</a>.
+          Fixe em uma réplica só, a menos que você tenha dado um Redis a ele.
+        </p>
+        <p><a href="/pt/help/install/relay/">Guia completo: rodar o seu próprio retransmissor</a> <span aria-hidden="true">→</span></p>
+
+        <p class="hint">
+          Pronto para instalar: <a href="/pt/download/">a página de download</a>.
+          Algo errado ou desatualizado aqui?
+          <a href="https://github.com/akshaynikhare/RealtimeClipboard/issues">Abra uma issue</a>.
+        </p>
+        </div>
+      </div>
+
+
+
+    </div>
+  </section>
+</main>
+
+<footer class="sec">
+  <div class="in">
+    <div class="footgrid">
+      <p>Código aberto — <a href="https://github.com/akshaynikhare/RealtimeClipboard">github.com/akshaynikhare/RealtimeClipboard</a></p>
+      <p><a href="/help/install/">English</a> · <a href="/es/help/install/">Español</a> · <a href="/pt/help/install/">Português</a> · <a href="/ru/help/install/">Русский</a> · <a href="/zh/help/install/">中文</a></p>
+      <p><a href="/pt/">Início</a> · <a href="/pt/download/">Download</a> · <a href="/pt/help/">Ajuda</a> · <a href="/pt/about/">Sobre</a> · <a href="/privacy/">Privacidade</a> · <a href="/terms/">Termos</a></p>
+      <p>As sessões ficam em memória e nunca são gravadas em disco. O conteúdo da área de transferência é criptografado no seu navegador antes de ser enviado.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

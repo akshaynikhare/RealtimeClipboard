@@ -1636,3 +1636,40 @@ footer a:hover { color:var(--link); }
   .rules span { border-color:CanvasText; }
   .sq-list li::before, .eyebrow::before, .fpill .sq { border:3px solid CanvasText; }
 }
+
+/* ---------------------------------------------------------------------------
+ * The language offer (src/landing/lang.js).
+ *
+ * Above the sticky topbar in source order and NOT sticky itself, so it scrolls
+ * away and never competes for the top of the viewport. An offer that follows
+ * you down the page is an interruption; one that sits at the top is an offer.
+ * ------------------------------------------------------------------------- */
+.langbar {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 16px;
+  font:13px/1.4 var(--ui-font);
+  color:var(--text);
+  background:var(--side);
+  border-bottom:1px solid var(--bd);
+}
+.langbar a {
+  color:var(--blue);
+  font-weight:600;
+  text-decoration:none;
+}
+.langbar a:hover { text-decoration:underline; }
+.langbar-x {
+  margin-left:auto;
+  padding:2px 8px;
+  font-size:16px;
+  line-height:1;
+  color:var(--dim);
+  background:none;
+  border:0;
+  border-radius:4px;
+  cursor:pointer;
+}
+.langbar-x:hover { color:var(--text); background:var(--hover); }
+.langbar-x:focus-visible { outline:2px solid var(--focus); outline-offset:1px; }
