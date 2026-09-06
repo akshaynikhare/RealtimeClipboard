@@ -20,39 +20,42 @@ import { LOCK } from "../../core/config.js";
 import { pinEntropyBits } from "../../core/keys.js";
 import * as modal from "../primitives/modal.js";
 import { esc, lazyStyle } from "../primitives/dom.js";
+import { t } from "../../core/i18n.js";
 
 /* Loaded on first use rather than from main.css: the dialog is rare and its
    stylesheet is dead weight on every session that never locks. */
 const ensureStyles = () => lazyStyle("lock.css");
 
+/* Functions, not objects: the catalogue is not necessarily loaded when this
+   module parses, so the English has to be captured at call time. */
 const COPY = {
-  create: {
-    title: "Lock this session",
-    intro: "Pick a PIN. It is never in the link and never leaves this device — "
-         + "you have to pass it to your other devices yourself.",
-    submit: "Lock session",
+  create: () => ({
+    title: t("Lock this session"),
+    intro: t("Pick a PIN. It is never in the link and never leaves this device — "
+           + "you have to pass it to your other devices yourself."),
+    submit: t("Lock session"),
     confirm: true,
-  },
-  join: {
-    title: "This session is locked",
-    intro: "Enter the PIN for this session. The link alone will not open it.",
-    submit: "Unlock",
+  }),
+  join: () => ({
+    title: t("This session is locked"),
+    intro: t("Enter the PIN for this session. The link alone will not open it."),
+    submit: t("Unlock"),
     confirm: false,
-  },
-  rotate: {
-    title: "Confirm the PIN for the new key",
-    intro: "A new key means a new session, and the PIN is stretched together "
-         + "with the key — so it has to be entered again. The same PIN is fine.",
-    submit: "Rotate key",
+  }),
+  rotate: () => ({
+    title: t("Confirm the PIN for the new key"),
+    intro: t("A new key means a new session, and the PIN is stretched together "
+           + "with the key — so it has to be entered again. The same PIN is fine."),
+    submit: t("Rotate key"),
     confirm: false,
-  },
-  retry: {
-    title: "Enter the PIN again",
-    intro: "Nobody else is in this session yet. If someone should be, the PIN "
-         + "may not match theirs — a different PIN is a different session.",
-    submit: "Unlock",
+  }),
+  retry: () => ({
+    title: t("Enter the PIN again"),
+    intro: t("Nobody else is in this session yet. If someone should be, the PIN "
+           + "may not match theirs — a different PIN is a different session."),
+    submit: t("Unlock"),
     confirm: false,
-  },
+  }),
 };
 
 /**
@@ -70,7 +73,7 @@ const COPY = {
  * they read afterwards.
  */
 export function ask({ mode = "join", key = "", note = "" } = {}) {
-  const copy = COPY[mode] ?? COPY.join;
+  const copy = (COPY[mode] ?? COPY.join)();
   ensureStyles();
 
   return new Promise(resolve => {
@@ -81,7 +84,7 @@ export function ask({ mode = "join", key = "", note = "" } = {}) {
       html: `
         <h2 id="lockTitle">${esc(copy.title)}</h2>
         <p id="lockIntro">${esc(copy.intro)}</p>
-        ${key ? `<p class="lockkey">Session <b>${esc(key)}</b></p>` : ""}
+        ${key ? `<p class="lockkey">${t("Session {key}", { key: `<b>${esc(key)}</b>` })}</p>` : ""}
         ${note ? `<p class="lockwarn" role="note">${esc(note)}</p>` : ""}
 
         <label class="locklbl" for="lockPin">PIN</label>
@@ -90,7 +93,7 @@ export function ask({ mode = "join", key = "", note = "" } = {}) {
                spellcheck="false" enterkeyhint="go"
                aria-describedby="lockStrength">
         ${copy.confirm ? `
-        <label class="locklbl" for="lockPin2">Repeat it</label>
+        <label class="locklbl" for="lockPin2">${t("Repeat it")}</label>
         <input id="lockPin2" class="lockinput" type="password" name="realtimeclipboard-pin2"
                autocomplete="off" autocapitalize="none" autocorrect="off"
                spellcheck="false" enterkeyhint="go">` : ""}
@@ -99,12 +102,12 @@ export function ask({ mode = "join", key = "", note = "" } = {}) {
         <div class="lockerr" role="alert"></div>
 
         <div class="lockrow">
-          <button class="btn ghost" type="button" data-modal-dismiss>Cancel</button>
+          <button class="btn ghost" type="button" data-modal-dismiss>${t("Cancel")}</button>
           <button class="btn" type="button" data-ok>${esc(copy.submit)}</button>
         </div>
 
-        <p class="locknote">Anyone with the link and the PIN can read this
-        session. The PIN is not stored on this device beyond this browser tab.</p>`,
+        <p class="locknote">${t("Anyone with the link and the PIN can read this "
+        + "session. The PIN is not stored on this device beyond this browser tab.")}</p>`,
     });
 
     const pin      = el.querySelector("#lockPin");
@@ -128,17 +131,19 @@ export function ask({ mode = "join", key = "", note = "" } = {}) {
       const bits = Math.round(pinEntropyBits(v));
       const weak = bits < 40;
       strength.classList.toggle("weak", weak);
-      strength.textContent = `${v.length} character${v.length === 1 ? "" : "s"} · ~${bits} bits`
-        + (weak ? " · short enough to guess offline if your link gets out" : "");
+      strength.textContent = (v.length === 1
+          ? t("1 character · ~{bits} bits", { bits })
+          : t("{n} characters · ~{bits} bits", { n: v.length, bits }))
+        + (weak ? " · " + t("short enough to guess offline if your link gets out") : "");
     };
 
     const submit = () => {
       const value = pin.value;
       if (value.trim().length < LOCK.MIN_PIN) {
-        return say(`At least ${LOCK.MIN_PIN} characters.`);
+        return say(t("At least {min} characters.", { min: LOCK.MIN_PIN }));
       }
       if (copy.confirm && value !== pin2.value) {
-        return say("The two PINs do not match.");
+        return say(t("The two PINs do not match."));
       }
       modal.close(value);
     };
@@ -170,7 +175,7 @@ export function ask({ mode = "join", key = "", note = "" } = {}) {
  * was pressed, and to null for every other way out — dismiss, Escape, backdrop
  * — so a caller can treat "they read it and closed it" as its own answer.
  */
-export function notice({ title = "", body = [], dismiss = "Close", action = null } = {}) {
+export function notice({ title = "", body = [], dismiss = t("Close"), action = null } = {}) {
   ensureStyles();
 
   return new Promise(resolve => {
