@@ -30,6 +30,9 @@ import * as storage from "../core/storage.js";
 import * as registry from "./registry.js";
 import * as chunker from "./chunker.js";
 import { T } from "../transport/protocol.js";
+// Aliased: this module names its live-transfer object `t` in almost every
+// function, which would shadow the translator.
+import { t as tt } from "../core/i18n.js";
 
 export const PATH = { P2P: "p2p", RELAY: "relay" };
 
@@ -187,17 +190,17 @@ export async function request(id) {
   if (!file || file.origin !== "remote") return false;
   if (file.blob) return false;                     // already have the bytes
   if (live.has(id)) return false;                  // already in flight
-  if (!file.owner) return fail(id, "we do not know which device holds this file");
-  if (!sendSignal) return fail(id, "not connected to the relay");
+  if (!file.owner) return fail(id, tt("we do not know which device holds this file"));
+  if (!sendSignal) return fail(id, tt("not connected to the relay"));
 
   const t = makeTransfer(id, "recv", file.owner);
   registry.setState(id, registry.STATE.REQUESTING);
   registry.setProgress(id, 0);
-  emit(EV.TOAST, `Requesting ${file.name}…`);
+  emit(EV.TOAST, tt("Requesting {name}…", { name: file.name }));
 
   if (!signal({ t: FT.FILE_REQ, id, to: t.peer })) {
     finish(t);
-    return fail(id, "could not reach the relay");
+    return fail(id, tt("could not reach the relay"));
   }
 
   // The same deadline counts down on the holder's prompt, so both ends give up
@@ -209,7 +212,7 @@ export async function request(id) {
     // longer exists here, and report "Sent".
     signal({ t: FT.FILE_CANCEL, id, to: t.peer, reason: "the request timed out" });
     finish(t);
-    fail(id, "no answer — the other device did not respond in time");
+    fail(id, tt("no answer — the other device did not respond in time"));
   }, requestTimeout);
 
   return true;
@@ -219,11 +222,11 @@ export async function request(id) {
 export function cancel(id, reason = "cancelled") {
   const t = live.get(id);
   if (!t) return false;
-  const name = registry.get(id)?.name ?? "transfer";
+  const name = registry.get(id)?.name ?? tt("transfer");
   signal({ t: FT.FILE_CANCEL, id, to: t.peer, reason });
   finish(t);
   registry.cancel(id);
-  emit(EV.TOAST, `Cancelled ${name}`);
+  emit(EV.TOAST, tt("Cancelled {name}", { name }));
   return true;
 }
 
@@ -299,8 +302,8 @@ const INBOUND = {
   [FT.FILE_GONE]:   f => registry.applyGone(f),
   [FT.FILE_REQ]:    onFileReq,
   [FT.FILE_ACCEPT]: onFileAccept,
-  [FT.FILE_DENY]:   f => { closeAndFail(f.id, f.reason || "the other device declined"); },
-  [FT.FILE_ERROR]:  f => { closeAndFail(f.id, f.reason || "the transfer failed"); },
+  [FT.FILE_DENY]:   f => { closeAndFail(f.id, f.reason || tt("the other device declined")); },
+  [FT.FILE_ERROR]:  f => { closeAndFail(f.id, f.reason || tt("the transfer failed")); },
   [FT.FILE_CANCEL]: onFileCancel,
   [FT.FILE_OK]:     onFileOk,
   [FT.RTC_OFFER]:   onRtcOffer,
@@ -363,7 +366,7 @@ async function onFileReq(frame, sender) {
     finish(t);
     registry.setState(id, registry.STATE.IDLE);
     signal({ t: FT.FILE_DENY, id, to: peer, reason: "the other device declined the request" });
-    emit(EV.TOAST, `Declined the request for ${file.name}`);
+    emit(EV.TOAST, tt("Declined the request for {name}", { name: file.name }));
     return;
   }
   if (t.done) return;                              // cancelled while we prompted
@@ -457,7 +460,8 @@ function toRelay(t, why) {
   closeRtc(t);
   setPath(t, PATH.RELAY);
   console.info(`[transfer] ${t.id}: falling back to the relay — ${why}`);
-  emit(EV.TOAST, `Direct connection unavailable — sending ${t.file?.name ?? "file"} via the relay`);
+  emit(EV.TOAST, tt("Direct connection unavailable — sending {name} via the relay",
+    { name: t.file?.name ?? tt("file") }));
   streamOverRelay(t).catch(err => abort(t, describe(err)));
 }
 
@@ -624,13 +628,13 @@ async function streamOverRelay(t) {
  * was reported here as sent.
  */
 function sent(t, confirmed = false) {
-  const name = registry.get(t.id)?.name ?? "file";
-  const via = t.path === PATH.P2P ? "a direct connection" : "the relay";
+  const name = registry.get(t.id)?.name ?? tt("file");
+  const via = t.path === PATH.P2P ? tt("a direct connection") : tt("the relay");
   finish(t);
   released(t);
   emit(EV.TOAST, confirmed
-    ? `Sent ${name} over ${via}`
-    : `Sent ${name} over ${via} — the other device did not confirm it`);
+    ? tt("Sent {name} over {via}", { name, via })
+    : tt("Sent {name} over {via} — the other device did not confirm it", { name, via }));
 }
 
 /**
@@ -891,7 +895,7 @@ async function complete(t) {
   if (t.done) return;
   const rx = t.rx;
   const path = t.path ?? PATH.RELAY;
-  const name = registry.get(t.id)?.name ?? "file";
+  const name = registry.get(t.id)?.name ?? tt("file");
 
   t.done = true;                                   // stop further chunks racing in
   let blob;
@@ -910,8 +914,8 @@ async function complete(t) {
   finish(t);
   registry.complete(t.id, blob, path);
   emit(EV.TOAST, path === PATH.RELAY
-    ? `${name} received via the relay — not a direct transfer`
-    : `${name} received over a direct connection`);
+    ? tt("{name} received via the relay — not a direct transfer", { name })
+    : tt("{name} received over a direct connection", { name }));
 }
 
 /* ------------------------------------------------------------------ *
@@ -923,7 +927,8 @@ function onFileCancel(frame) {
   if (!t) return;
   finish(t);
   registry.cancel(frame.id);
-  emit(EV.TOAST, `The other device cancelled ${registry.get(frame.id)?.name ?? "the transfer"}`);
+  emit(EV.TOAST, tt("The other device cancelled {name}",
+    { name: registry.get(frame.id)?.name ?? tt("the transfer") }));
 }
 
 /** Our end broke. Tell the peer, tell the user, leave nothing running. */
@@ -1109,7 +1114,7 @@ async function allowed(file, peer) {
   if (isPeerAllowed(peer)) {
     // The user allowed this device, not this file, and a transfer nobody is told
     // about is indistinguishable from a leak.
-    emit(EV.TOAST, `Sent ${file.name} — ${peer} is allowed for this session`);
+    emit(EV.TOAST, tt("Sent {name} — {peer} is allowed for this session", { name: file.name, peer }));
     return true;
   }
 
