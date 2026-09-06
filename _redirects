@@ -51,6 +51,16 @@
 /social/*  /assets/social/:splat  301
 /icons/*   /assets/icons/:splat   301
 
+# /blog/ was an empty index, removed rather than padded. It was never in
+# sitemap.xml, but it sat in the footer of all 22 pages long enough to be
+# crawled and bookmarked, so the link exists off-site even though nothing here
+# points at it any more. A 404 for it is defensible and this is cheaper: one
+# line against a Search Console error and a dead end for anyone holding the URL.
+# Not :splat — there were never any pages beneath it to carry through. Both
+# spellings, because `/blog/*` does not match the bare `/blog` and both 404.
+/blog/*  /  301
+/blog    /  301
+
 # NOT here: www -> apex. `_redirects` matches paths, not hostnames, so it cannot
 # express it. Both hostnames are attached to the same Pages project and would
 # otherwise serve the same content at two URLs. The redirect is a zone-level
