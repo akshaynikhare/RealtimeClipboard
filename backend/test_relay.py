@@ -83,6 +83,11 @@ async def main():
     w = await recv(a)
     check("welcome frame", w.get("t") == "welcome", json.dumps(w)[:120])
     check("instance id present", bool(w.get("instance")), w.get("instance", ""))
+    # A client cannot probe for a frame type an older relay would answer with
+    # UNKNOWN_TYPE — indistinguishable, from the client, from a frame nobody
+    # chose to answer. So the relay says what it understands.
+    check("welcome advertises capabilities", "verify" in (w.get("caps") or []),
+          json.dumps(w.get("caps")))
     check("create on empty room: existing == 0", w.get("existing") == 0)
 
     # --- G2: two peers exchange a string --------------------------------
@@ -186,7 +191,59 @@ async def main():
     # --- G14: locked-session admission (M8) --------------------------------
     await admission(f"{BASE}/ws/{room}lock")
 
+    # --- G15: lock verification does not spend the replay slot -------------
+    await verification(f"{BASE}/ws/{room}ver")
+
     return summarise()
+
+
+async def verification(url):
+    """`verify` is forwarded and NOT retained — the whole reason it exists.
+
+    A locked session has to prove its PIN to itself, because a wrong one is
+    silent: it derives a different room and lands you alone in it, which looks
+    exactly like being first to arrive. That proof used to be a clip, and the
+    relay keeps one clip per room and replays it to the next joiner (FR-3.3) —
+    so proving the PIN overwrote whatever the user had actually copied.
+
+    The two checks that matter are therefore: it reaches the other peer, and
+    `welcome.last` still holds the real clip afterwards.
+    """
+    print("\nG15  Lock verification, and the replay it must not cost")
+
+    a = await websockets.connect(url)
+    await recv(a)
+    b = await websockets.connect(url)
+    await recv(b)
+    await drain(a)
+
+    # The real clip, retained by the relay.
+    await send(a, {"t": "clip", "payload": "REALCLIP", "iv": "aa", "originId": "A"})
+    got = await recv_data(b)
+    check("a clip still reaches the room", got.get("payload") == "REALCLIP")
+
+    # The proof, which must travel and leave no trace.
+    await send(b, {"t": "verify", "payload": "SEALEDPROBE", "iv": "bb", "originId": "B"})
+    fwd = await recv_data(a)
+    check("a verify frame is forwarded to the room",
+          fwd.get("t") == "verify" and fwd.get("payload") == "SEALEDPROBE")
+    check("...and is stamped with the sender the relay saw",
+          bool(fwd.get("from")),
+          "the one field a client cannot choose for itself")
+
+    await send(a, {"t": "verify", "payload": "SEALEDANSWER", "iv": "cc", "originId": "A"})
+    back = await recv_data(b)
+    check("...in both directions", back.get("payload") == "SEALEDANSWER")
+
+    # THE POINT. A third device joins and is welcomed with the replay.
+    c = await websockets.connect(url)
+    wc = await recv(c)
+    check("THE REPLAY SURVIVES: a late joiner still gets the real clip",
+          (wc.get("last") or {}).get("payload") == "REALCLIP",
+          json.dumps(wc.get("last"))[:80])
+
+    for sock in (a, b, c):
+        await sock.close()
 
 
 async def admission(url):

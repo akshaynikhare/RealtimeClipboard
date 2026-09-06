@@ -62,6 +62,16 @@ from fastapi.responses import StreamingResponse
 from shared import Backend, REDIS_URL
 
 INSTANCE_ID = uuid.uuid4().hex[:8]
+
+# What this relay can do that an older one could not, announced in `welcome`.
+#
+# It exists because the alternative is a client guessing. A relay that predates
+# a frame type answers it with UNKNOWN_TYPE — indistinguishable, from the
+# client, from a frame that was delivered to nobody — and for lock verification
+# that difference is "your PIN is wrong" versus "this relay needs redeploying".
+# Absent from an old relay's welcome, so `caps or []` is the whole compatibility
+# story on the client side.
+CAPS = ["verify"]
 BOOTED_AT = time.time()
 
 # PRD OI-3. Inert unless REALTIMECLIPBOARD_REDIS_URL is set, in which case this is what
@@ -303,13 +313,18 @@ TARGETED = {
     # the holder can only say the bytes left, never that they arrived.
     "file-chunk", "file-done", "file-ok", "file-cancel", "file-error",
 }
-ROOM_WIDE = {"file-meta", "file-gone", "cursor", "stream"}
+# `verify` is here for the one property it needs and `clip` cannot give it: a
+# room-wide frame is FORWARDED and never retained. Lock verification used to
+# ride a clip, which meant proving a PIN cost the room its `last` — the replay
+# slot a late joiner gets their session from. Sealed like everything else; the
+# relay reads `t` and nothing more.
+ROOM_WIDE = {"file-meta", "file-gone", "cursor", "stream", "verify"}
 
 # What REALTIMECLIPBOARD_DISABLE_FILES turns off: everything that moves a file or sets up
 # the channel to move one. Not `cursor` or `stream`, which are presence and the
-# editor's own view channel rather than data movement, and not `clip`, which is
-# the product.
-FILE_FRAMES = (TARGETED | ROOM_WIDE) - {"cursor", "stream"}
+# editor's own view channel rather than data movement, not `verify`, which is
+# how a locked session proves its PIN, and not `clip`, which is the product.
+FILE_FRAMES = (TARGETED | ROOM_WIDE) - {"cursor", "stream", "verify"}
 
 # Every forwarded frame is setup/teardown control traffic — bursty for a moment,
 # then silent — except file-chunk, which is the bulk path, and cursor, which is
@@ -1302,6 +1317,7 @@ async def _join(room_hash: str, conn: Connection, country: str,
     await _send(conn, {
         "t": "welcome",
         "instance": INSTANCE_ID,
+        "caps": CAPS,
         "existing": existing,
         "peers": len(room.peers),
         "you": me.peer_id,
