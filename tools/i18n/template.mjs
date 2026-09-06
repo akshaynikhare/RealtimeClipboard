@@ -106,10 +106,15 @@ function languageRow(slug, have) {
  * translation lands, then stops when it does. Without it, shipping one
  * translated page means shipping its links to the siblings it mentions, and
  * every one of those is a 404 for the reader who follows it.
+ *
+ * The fragment is optional and is carried through. The install pages link each
+ * other by section — /help/install/linux/#wayland — and an earlier version
+ * anchored on the closing slash, so those links alone could not be downgraded
+ * and would have shipped prefixed at a URL that does not exist yet.
  */
 const resolveLinks = (html, lang, index) =>
-  html.replace(new RegExp(`href="/${lang}/([a-z0-9-]+(?:/[a-z0-9-]+)*)/"`, "g"),
-    (whole, slug) => index[slug]?.has(lang) ? whole : `href="/${slug}/"`);
+  html.replace(new RegExp(`href="/${lang}/([a-z0-9-]+(?:/[a-z0-9-]+)*)/(#[A-Za-z0-9_-]+)?"`, "g"),
+    (whole, slug, hash = "") => index[slug]?.has(lang) ? whole : `href="/${slug}/${hash}"`);
 
 const navLink = (lang, slug, label, index) =>
   index[slug]?.has(lang)
@@ -117,13 +122,40 @@ const navLink = (lang, slug, label, index) =>
     : `<a href="/${slug}/">${label}</a>`;
 
 /**
+ * The FAQ section, or nothing at all.
+ *
+ * Not every page has questions — /about/, /contact/, /download/ and the help
+ * hub do not — and those pages do not load faq.js either. Emitting the wrapper
+ * regardless gave them a visible "Common questions" heading over an empty list,
+ * with an Expand all button no script was listening to.
+ */
+function faqBlock(c, lang, index, ch) {
+  if (!c.faq?.trim()) return "";
+  return `      <div class="faq" id="faq">
+        <div class="faqhead">
+          <h2>${ch.faqH}</h2>
+          <button type="button" class="faqall" id="faqAll"
+                  aria-expanded="false" aria-controls="faq" hidden>
+            <span class="faqall-i" aria-hidden="true"></span>
+            <span class="faqall-t">${ch.faqAll}</span>
+          </button>
+        </div>
+${resolveLinks(c.faq, lang, index)}
+      </div>`;
+}
+
+/**
  * @param {string} lang   language code, a key of LANGS
  * @param {string} slug   the English page's directory, e.g. "live-clipboard"
  * @param {object} c      translated content
  * @param {string} csp    the CSP meta tag, lifted from the English original
  * @param {object} index   { slug: Set(langCodes) } — every translation on disk
+ * @param {string} assets  the stylesheet and module tags, lifted from the English original
+ * @param {string} sprite  the inline SVG icon sprite, lifted from the English original ("" if none)
+ * @param {boolean} article whether the English page wraps its body in div.article
+ * @param {object} dates   { published, modified } read from the English original
  */
-export function page(lang, slug, c, csp, index = {}) {
+export function page(lang, slug, c, csp, index = {}, assets = "", sprite = "", article = true, dates = {}) {
   const { tag, og } = LANGS[lang];
   const ch = CHROME[lang];
   const url = `${ORIGIN}/${lang}/${slug}/`;
@@ -171,8 +203,8 @@ ${hreflang(slug, have)}
       "headline": ${jsonStr(c.headline ?? c.h1)},
       "description": ${jsonStr(c.schemaDesc ?? c.desc)},
       "inLanguage": "${tag}",
-      "datePublished": "${c.published ?? "2026-09-06"}",
-      "dateModified": "${c.modified ?? "2026-09-06"}",
+      "datePublished": "${c.published ?? dates.published ?? "2026-09-06"}",
+      "dateModified": "${c.modified ?? dates.modified ?? "2026-09-06"}",
       "publisher": { "@id": "${ORIGIN}/#org" },
       "mainEntityOfPage": "${url}"
     },
@@ -187,10 +219,7 @@ ${hreflang(slug, have)}
 }
 </script>
 
-<link rel="stylesheet" href="/src/landing/landing.css">
-<script type="module" src="/src/landing/faq.js"></script>
-<script type="module" src="/src/landing/tags.js"></script>
-<script type="module" src="/src/landing/lang.js"></script>
+${assets}
 </head>
 <body>
 
@@ -211,7 +240,7 @@ ${hreflang(slug, have)}
   </div>
 </header>
 
-<main>
+${sprite ? sprite + "\n\n" : ""}<main>
 
   <section class="sec">
     <div class="in doc">
@@ -229,21 +258,10 @@ ${resolveLinks(c.lede, lang, index)}
         </p>
       </header>
 
-      <div class="article">
-${resolveLinks(c.body, lang, index)}
-      </div>
+${article ? `      <div class="article">\n${resolveLinks(c.body, lang, index)}\n      </div>`
+          : resolveLinks(c.body, lang, index)}
 
-      <div class="faq" id="faq">
-        <div class="faqhead">
-          <h2>${ch.faqH}</h2>
-          <button type="button" class="faqall" id="faqAll"
-                  aria-expanded="false" aria-controls="faq" hidden>
-            <span class="faqall-i" aria-hidden="true"></span>
-            <span class="faqall-t">${ch.faqAll}</span>
-          </button>
-        </div>
-${resolveLinks(c.faq, lang, index)}
-      </div>
+${faqBlock(c, lang, index, ch)}
 
     </div>
   </section>

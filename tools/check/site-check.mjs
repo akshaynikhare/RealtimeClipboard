@@ -53,10 +53,12 @@ const pass = msg => console.log(`  ok    ${msg}`);
  * coverage, and a list that long stops being read.
  */
 const CONTENT = resolve(ROOT, "tools/i18n/content");
+const slugsIn = (dir, prefix = "") => !existsSync(dir) ? [] :
+  readdirSync(dir, { withFileTypes: true }).flatMap(e =>
+    e.isDirectory() ? slugsIn(join(dir, e.name), `${prefix}${e.name}/`)
+    : e.name.endsWith(".json") ? [prefix + e.name.replace(/\.json$/, "")] : []);
 const TRANSLATED = !existsSync(CONTENT) ? [] : readdirSync(CONTENT)
-  .flatMap(lang => readdirSync(join(CONTENT, lang))
-    .filter(f => f.endsWith(".json"))
-    .map(f => `${lang}/${f.replace(/\.json$/, "")}/index.html`))
+  .flatMap(lang => slugsIn(join(CONTENT, lang)).map(s => `${lang}/${s}/index.html`))
   .sort();
 
 const REQUIRED = [
