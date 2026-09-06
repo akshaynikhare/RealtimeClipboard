@@ -19,7 +19,7 @@ export const LABEL = "WebSocket";
 
 export const available = () => typeof WebSocket !== "undefined";
 
-export function create({ url, roomHash, auth = null, onOpen, onFrame, onDown }) {
+export function create({ url, roomHash, auth = null, org = null, onOpen, onFrame, onDown }) {
   let done = false;
 
   const finish = (code, reason) => {
@@ -35,8 +35,14 @@ export function create({ url, roomHash, auth = null, onOpen, onFrame, onDown }) 
     // first arrival — but it is still session material, so it rides in the
     // query rather than the path for the same reason `sid` does on the SSE
     // path: paths are what proxies and access logs like to keep.
-    sock = new WebSocket(
-      `${url.replace(/\/+$/, "")}/ws/${roomHash}${auth ? `?a=${encodeURIComponent(auth)}` : ""}`);
+    // `?org=` is the deployment's join token, where one is configured. Built
+    // with the admission token rather than appended to it, because a relay that
+    // requires an org refuses the join outright and the two are independent.
+    const query = new URLSearchParams();
+    if (auth) query.set("a", auth);
+    if (org) query.set("org", org);
+    const qs = query.toString();
+    sock = new WebSocket(`${url.replace(/\/+$/, "")}/ws/${roomHash}${qs ? `?${qs}` : ""}`);
   } catch (err) {
     // Constructing the socket throws synchronously on a malformed URL, and on
     // a Content-Security-Policy that forbids the scheme — which is one of the
@@ -46,8 +52,25 @@ export function create({ url, roomHash, auth = null, onOpen, onFrame, onDown }) 
     return { label: LABEL, send: () => false, close: () => { done = true; }, isOpen: () => false };
   }
 
-  sock.onopen = () => onOpen();
-  sock.onmessage = e => onFrame(proto.parse(e.data));
+  // The upgrade is deliberately NOT the open signal. It completes before the
+  // relay has looked at the room at all, so a refused admission — a full room,
+  // a wrong token, a busy relay, too many connections from one address — lands
+  // on a socket that opened perfectly, and a caller promoted on the upgrade
+  // reported a session it had just been turned away from. sse.js has always
+  // waited for the welcome; this now agrees with it.
+  //
+  // Safe because the relay sends `welcome` unprompted the moment it accepts a
+  // peer, before any `hello` — see backend/main.py _join().
+  let welcomed = false;
+  sock.onopen = () => {};
+  sock.onmessage = e => {
+    const msg = proto.parse(e.data);
+    if (!welcomed && msg.t === proto.T.WELCOME) {
+      welcomed = true;
+      onOpen();
+    }
+    onFrame(msg);
+  };
 
   // onerror carries no useful detail in any browser, and a close event always
   // follows it — so the close is the single place failure is reported from.

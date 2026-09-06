@@ -81,4 +81,13 @@ export const ERRORS = {
   // key derivation ever disagree, which is a bug, and this is how it surfaces
   // instead of a session that connects and then reads nothing.
   AUTH_FAILED:  "This session's PIN does not match the one already in use here",
+  // A relay running with REALTIMECLIPBOARD_JOIN_TOKEN set. The token is per DEPLOYMENT,
+  // never per session, and never travels in a share link — see ORG_TOKEN in
+  // core/config.js for where it comes from.
+  ORG_TOKEN_REQUIRED: "This relay needs an organisation token — open the app with ?org=… once",
+  RELAY_BUSY:   "The relay is at capacity — try again in a moment",
+  TOO_MANY_CONNECTIONS: "Too many connections from this network",
+  NO_SUCH_PEER: "That device is no longer in this session",
+  SESSION_EXPIRED: "This session reached the relay's time limit and was closed",
+  FILES_DISABLED: "This relay has file transfers switched off",
 };

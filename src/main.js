@@ -7,7 +7,7 @@
  */
 
 import {
-  TEXT, LOCK, textBytes, sharesSession, RELAY_URL, RELAY_IS_CUSTOM,
+  TEXT, LOCK, textBytes, sharesSession, RELAY_URL, RELAY_IS_CUSTOM, ORG_TOKEN,
 } from "./core/config.js";
 import { emit, on, EV } from "./core/bus.js";
 import * as state from "./core/state.js";
@@ -16,6 +16,7 @@ import * as storage from "./core/storage.js";
 import * as cryptoBox from "./core/crypto.js";
 import * as device from "./core/device.js";
 import * as history from "./core/history.js";
+import { encryptFrame, decryptFrame, setPlaintextFrames } from "./core/frames.js";
 import { IS_DESKTOP } from "./core/native.js";
 
 import * as relay from "./transport/relay.js";
@@ -23,10 +24,10 @@ import * as proto from "./transport/protocol.js";
 
 import * as capture from "./clipboard/capture.js";
 
-// Imported for its side effect as well as init(): install.js restores the room
-// key into the fragment at module-evaluation time, which must happen before
-// resolveKey() runs — an installed PWA opens with no fragment, because a
-// manifest start_url cannot carry one (OI-10).
+// No side effect at module evaluation: an installed PWA opens with no fragment
+// (OI-10) and resolveKey() answers FR-4.5 from storage.loadLastKey() itself.
+// This module used to forge a fragment here, which outranked the tab's own
+// session and any explicit link — see install.js.
 import * as install from "./ui/features/install.js";
 
 import * as toast from "./ui/shell/toast.js";
@@ -89,15 +90,6 @@ function resolveKey() {
 }
 
 /**
- * The current session's stretched PIN, so a rotate or a collision can re-derive
- * without asking the user to prove themselves again. Module scope rather than
- * state.js: `state.get()` hands out the whole mutable object and anything could
- * log it wholesale, and this is the one value that must never reach a console.
- * It is the PBKDF2 output — the typed PIN is not retained anywhere.
- */
-let lockPrk = null;
-
-/**
  * Open a session, locked or not. `pin` is used exactly once, here, to derive; it
  * is never stored, emitted, or passed on. A caller that has been through this in
  * the same tab can pass `prk` and skip the 600k iterations.
@@ -138,8 +130,9 @@ async function openSession(key, intent, { locked = false, pin = null, prk = null
     if (gen !== sessionGen) return;      // a newer session opened while we derived
 
     // Remembered against the room it unlocks, so a rotate invalidates it and a
-    // refresh does not re-prompt. sessionStorage — it dies with the tab.
-    lockPrk = derived.prk;
+    // refresh does not re-prompt. sessionStorage — it dies with the tab. Stored
+    // rather than held in a module variable: it opens exactly one room, and the
+    // only thing that ever needs it again is a reload of this same session.
     storage.saveLock(key, derived.prk);
 
     state.setKey({
@@ -162,7 +155,6 @@ async function openSession(key, intent, { locked = false, pin = null, prk = null
   const { aesKey, roomHash } = await cryptoBox.deriveOpen(key);
   if (gen !== sessionGen) return;        // a newer session opened while we derived
 
-  lockPrk = null;
   storage.clearLock();
   state.setKey({ key, roomHash, aesKey });
   announce(roomHash, false);
@@ -277,7 +269,6 @@ async function onEvicted() {
   evicted = true;
 
   leaveRoom();
-  lockPrk = null;
   storage.clearLock();
   // Forget the room everywhere resolveKey() looks, or a reload bounces straight
   // back off the retained goodbye into a loop that keeps announcing the same
@@ -311,6 +302,12 @@ async function onEvicted() {
 /* ---- inbound frames ---- */
 
 async function onFrame(msg) {
+  // The room this frame arrived in. Every branch below decrypts, and decryption
+  // is asynchronous: a frame from a room we are leaving could otherwise land its
+  // side effects — a clip in the editor, an eviction notice, a verified badge —
+  // in the room we arrived at. Re-checked after each await rather than once,
+  // because each await is a separate chance for the session to have moved.
+  const gen = sessionGen;
   const { aesKey, originId } = state.get();
 
   switch (msg.t) {
@@ -319,6 +316,7 @@ async function onFrame(msg) {
       if (!aesKey) return;
       try {
         const text = await cryptoBox.decrypt(aesKey, msg.payload, msg.iv);
+        if (gen !== sessionGen) return;
 
         // Anything that decrypts proves this device holds the right PIN.
         // Latched before the sentinel check — the beacon's whole job is this.
@@ -349,6 +347,7 @@ async function onFrame(msg) {
       if (!aesKey) return;
       if (!sharesSession(state.get().settings.syncMode)) return;
       const frame = await decryptFrame(msg);
+      if (gen !== sessionGen) return;
       // A view update and nothing else: no history, no clipboard write, no
       // dedupe. The editor decides whether it is safe to render.
       if (frame && typeof frame.text === "string") {
@@ -363,60 +362,43 @@ async function onFrame(msg) {
     }
 
     default:
+      // "Off: nothing arrives" covers presence and files as well. The two lock
+      // sentinels are gated further up instead, inside the CLIP branch, because
+      // an Off device must still hear that its session was locked out from under
+      // it — nothing down here is in that category.
+      if (!sharesSession(state.get().settings.syncMode)) return;
+
       // x/y/name are sealed by encryptFrame(), so the relay sees only `t` and
       // `originId` — it never learns where a mouse is.
-      if (cursors.FRAMES.includes(msg.t)) return cursors.onSignal(await decryptFrame(msg));
+      if (cursors.FRAMES.includes(msg.t)) {
+        const frame = await decryptFrame(msg);
+        if (gen !== sessionGen) return;
+        return cursors.onSignal(frame);
+      }
 
       // Driven off transfer.FRAMES, never a hand-written case list: an earlier
       // version enumerated six of eleven and silently dropped file-accept, which
       // carries the chunk plan, so every transfer stalled with no error.
-      if (filesFrames.has(msg.t)) routeToFiles(await decryptFrame(msg));
+      if (filesFrames.has(msg.t)) {
+        const frame = await decryptFrame(msg);
+        if (gen !== sessionGen) return;
+        routeToFiles(frame);
+      }
   }
 }
 
 let filesSignalHandler = null;
 let filesFrames = new Set();
 
+/**
+ * Stop the files layer at a room boundary. Wired by wireFiles(); a no-op until
+ * then, and after a failed import, because the files layer is optional and a
+ * missing one must not break leaving a session.
+ */
+let filesTeardown = () => {};
+
 function routeToFiles(msg) {
   if (msg && filesSignalHandler) filesSignalHandler(msg);
-}
-
-/**
- * The relay is a blind pipe (docs/P2P-FILES.md §4). Signalling in the clear
- * would hand it every SDP, every ICE candidate — including peer IPs — and, on
- * the fallback path, every byte of every file. Routing fields stay readable
- * because the relay must deliver the frame; everything else is sealed with the
- * session key.
- */
-const ROUTING_FIELDS = new Set(["t", "to", "from", "originId", "id", "seq", "total", "crc"]);
-
-async function encryptFrame(frame) {
-  const { aesKey } = state.get();
-  if (!aesKey) return frame;
-
-  const routing = {}, secret = {};
-  for (const [k, v] of Object.entries(frame)) {
-    (ROUTING_FIELDS.has(k) ? routing : secret)[k] = v;
-  }
-  if (!Object.keys(secret).length) return frame;
-
-  const { payload, iv } = await cryptoBox.encrypt(aesKey, JSON.stringify(secret));
-  return { ...routing, payload, iv };
-}
-
-async function decryptFrame(frame) {
-  const { aesKey } = state.get();
-  if (!aesKey || !frame.payload || !frame.iv) return frame;
-  try {
-    const secret = JSON.parse(await cryptoBox.decrypt(aesKey, frame.payload, frame.iv));
-    state.setVerified();          // a sealed frame opened: the PIN is right
-    const { payload, iv, ...routing } = frame;
-    return { ...routing, ...secret };
-  } catch {
-    // Should be unreachable — drop rather than hand files a half-frame.
-    console.warn("[realtimeclipboard] undecryptable signalling frame", frame.t);
-    return null;
-  }
 }
 
 /* ---- outbound ---- */
@@ -430,7 +412,7 @@ async function decryptFrame(frame) {
  * the history row) are swallowed by the `lastSent` dedupe that the first attempt
  * set. One slot, because a clip is a clipboard: the newest supersedes.
  */
-let queuedClip = null;
+let queuedClip = null;      // { text, gen } — see sessionGen
 
 async function sendText(text) {
   const { settings } = state.get();
@@ -448,7 +430,10 @@ async function sendText(text) {
       + `limit ${Math.floor(TEXT.MAX_BYTES / 1024)} KB`);
   }
 
-  if (!state.get().aesKey || !relay.isOpen()) { queuedClip = text; return; }
+  if (!state.get().aesKey || !relay.isOpen()) {
+    queuedClip = { text, gen: sessionGen };
+    return;
+  }
   sendClip(text);
 }
 
@@ -456,10 +441,16 @@ async function sendText(text) {
 const sendClip = (() => {
   let tail = Promise.resolve();
   return text => {
+    // The room this clip was written for. Everything below is asynchronous —
+    // the queue ahead of it, then the encryption — and a clip committed in one
+    // room used to be sealed with the NEXT room's key and broadcast there.
+    const gen = sessionGen;
     tail = tail.then(async () => {
+      if (gen !== sessionGen) return;
       const { aesKey, originId } = state.get();
-      if (!aesKey || !relay.isOpen()) { queuedClip = text; return; }
+      if (!aesKey || !relay.isOpen()) { queuedClip = { text, gen }; return; }
       const { payload, iv } = await cryptoBox.encrypt(aesKey, text);
+      if (gen !== sessionGen) return;
       relay.send(proto.clip({ payload, iv, originId }));
     }).catch(err => console.error("[realtimeclipboard] could not send a clip", err));
   };
@@ -468,8 +459,11 @@ const sendClip = (() => {
 /** The session came up. Anything committed while it was opening goes now. */
 function flushQueuedClip() {
   if (queuedClip === null) return;
-  const text = queuedClip;
+  const { text, gen } = queuedClip;
   queuedClip = null;
+  // Not this room's clip. It was committed into a session that has since been
+  // left, and "connected" here is the NEW room saying hello.
+  if (gen !== sessionGen) return;
   // Re-read the rung: it can have dropped to Off while the session was opening,
   // and that promise outranks a clip queued under the old one.
   if (!sharesSession(state.get().settings.syncMode)) return;
@@ -515,10 +509,20 @@ const sealedSender = what => {
   // delivered file failed at 100% with "1 chunks missing".
   let tail = Promise.resolve();
   return frame => {
+    // The rung governs everything that leaves, not only clips. File
+    // announcements, requests, chunks, RTC negotiation and cursor frames all go
+    // out through here and none of them asked — so a device set to Off, whose
+    // own UI reads "Nothing leaves this device", still announced every file it
+    // held (name, size and a legible thumbnail), still answered requests for the
+    // bytes, and still drew its cursor in everyone else's editor.
+    if (!sharesSession(state.get().settings.syncMode)) return false;
     if (!relay.isOpen()) return false;
+    // Same reason as sendClip: encryption reads the key when it RUNS, so a
+    // frame issued in one room could be sealed with the next room's key.
+    const gen = sessionGen;
     tail = tail
-      .then(() => encryptFrame(frame))
-      .then(sealed => relay.send(sealed))
+      .then(() => (gen === sessionGen ? encryptFrame(frame) : null))
+      .then(sealed => { if (sealed && gen === sessionGen) relay.send(sealed); })
       .catch(err => console.error(`[realtimeclipboard] could not send ${what}`, err));
     return true;
   };
@@ -534,6 +538,39 @@ function leaveRoom() {
   relay.close();
   cryptoBox.clearCache();
   state.resetRoster();
+
+  // A clip committed into the room being left is not a clip for the next one.
+  queuedClip = null;
+
+  // Closing the relay says nothing to a WebRTC data channel — it is peer-direct
+  // — so a transfer to a device this room change is EJECTING carried on
+  // streaming. The peers that announced the remote tiles are gone with the room.
+  filesTeardown();
+}
+
+/**
+ * Leave, and leave nothing behind. Five separate strands make up "in a session"
+ * and this used to cut one of them: the socket. The derived key, the remembered
+ * room, the queued clip and a clipboard write still waiting for focus all
+ * survived, so a reload rejoined and content from the abandoned room still
+ * reached the clipboard.
+ *
+ * `sessionGen` first: a derivation may be mid-PBKDF2 right now, and openSession()
+ * checks the generation after it to decide whether it is still wanted.
+ */
+function endSession() {
+  sessionGen++;
+  leaveRoom();
+  pendingLock = null;
+  storage.clearLock();
+  storage.clearSessionKey();
+  storage.forgetLastKey();
+  keys.clearUrl();
+  capture.discardPending();
+  capture.forgetLastImage();
+  history.clear("session-left");
+  filesTeardown({ full: true });
+  state.clearKey();
 }
 
 /* ---- wiring ---- */
@@ -565,6 +602,11 @@ function wire() {
   on(EV.TEXT_TYPED, frame => sendStream(frame));
 
   on(EV.CONN_STATE, ({ state: conn }) => { if (conn === "connected") flushQueuedClip(); });
+
+  // Dropping to Off stops what is already moving, not merely what starts next.
+  // A transfer in flight when the rung came down went on streaming, because the
+  // gate above only refuses new frames.
+  on(EV.SYNC_MODE, ({ mode }) => { if (!sharesSession(mode)) filesTeardown(); });
 
   /**
    * The clipboard write is the rung's business and capture.apply() owns it. The
@@ -600,14 +642,31 @@ function wire() {
   on("clip:accept", ({ text }) => editor.setText(text));
 
   on(EV.KEY_COLLISION, async () => {
-    relay.close();
-    cryptoBox.clearCache();
-    const key = keys.generate(keys.nextLength());
-    emit(EV.TOAST, "That key was taken — generated a new one");
-    // The PIN survives a regenerated key: the collision is with the key, and
-    // re-asking would look like the PIN just typed had been rejected.
     const { locked } = state.get();
-    await openSession(key, "create", { locked, prk: locked ? lockPrk : null });
+    leaveRoom();
+    const key = keys.generate(keys.nextLength());
+
+    if (!locked) {
+      emit(EV.TOAST, "That key was taken — generated a new one");
+      return openSession(key, "create");
+    }
+
+    // The stretched PIN is salted with the key that collided, so it names that
+    // room and no other. Carrying it over re-derived the SAME room, collided
+    // again, and looped. Re-deriving needs the PIN, which is never retained.
+    emit(EV.TOAST, "That key was taken — confirm the PIN for the new one");
+    const pin = await lockDialog.ask({
+      mode: "rotate",
+      key,
+      note: "The key just generated was already in use, so this session has a new one.",
+    });
+    if (!pin) {
+      pendingLock = { key, intent: "create" };
+      state.setConnection("idle", "locked — PIN required");
+      emit(EV.LOCK_REQUIRED, { required: true });
+      return;
+    }
+    await openSession(key, "create", { locked: true, pin });
   });
 
   // A copied or pasted image becomes a normal file: the thumbnail is shared
@@ -661,13 +720,27 @@ function wire() {
    * who only had the link never had the PIN. Changing the PIN is its own action.
    */
   on("session:rotate", async () => {
-    leaveRoom();
     const { locked } = state.get();
     const key = keys.generate(keys.nextLength());
+
+    // A locked rotation is a fresh derivation, not a re-expansion. The stretched
+    // PIN is PBKDF2(PIN, LOCK_SALT + key), so it names the room being LEFT:
+    // reusing it kept the "rotated" session in that exact room — same room hash,
+    // same AES key, same admission token — with every device holding the old
+    // link still in it, while the new link plus the PIN derived a third room
+    // that was empty. The PIN itself is never retained, so this has to ask.
+    // Asked before leaving, so backing out changes nothing.
+    let pin = null;
+    if (locked) {
+      pin = await lockDialog.ask({ mode: "rotate", key });
+      if (!pin) return;
+    }
+
+    leaveRoom();
     emit(EV.TOAST, locked
-      ? "New key — the PIN is unchanged"
+      ? "New key — your other devices need the new link and the PIN"
       : "New key — the old session is abandoned");
-    await openSession(key, "create", { locked, prk: locked ? lockPrk : null });
+    await openSession(key, "create", locked ? { locked: true, pin } : {});
   });
 
   /**
@@ -764,13 +837,7 @@ function wire() {
   on(EV.TRANSPORT_SELECT, ({ mode }) => relay.setTransport(mode));
 
   on("session:leave", () => {
-    relay.close();
-    // Leaving has to actually leave. The derived key used to outlive the room it
-    // belonged to, and a locked session's unlock would have sat in
-    // sessionStorage for the next person to sit down at this tab.
-    cryptoBox.clearCache();
-    lockPrk = null;
-    storage.clearLock();
+    endSession();
     state.setConnection("idle");
     emit(EV.TOAST, "Left the session");
   });
@@ -784,6 +851,20 @@ async function wireFiles() {
     const registry = await import("./files/registry.js");
     filesFrames = new Set(transfer.FRAMES ?? []);
     filesSignalHandler = transfer.onSignal ?? null;
+    setPlaintextFrames(transfer.PLAINTEXT_FRAMES);
+
+    // `full` is the difference between changing rooms and leaving altogether:
+    // a rotation keeps this user's own files, which are theirs to share into the
+    // room they moved to, while leaving keeps nothing.
+    filesTeardown = ({ full = false } = {}) => {
+      try {
+        transfer.cancelAll("the session changed");
+        if (full) registry.clear({ announce: false, reason: "the session ended" });
+        else registry.dropRemote();
+      } catch (err) {
+        console.warn("[realtimeclipboard] files teardown failed", err);
+      }
+    };
 
     // registry needs the wire too, to retract a file it has removed. It sits
     // under transfer.js and may not import it, so it takes the same sender.
@@ -898,6 +979,14 @@ async function boot() {
   if (RELAY_IS_CUSTOM && storage.loadRelayUrl() !== RELAY_URL) {
     storage.saveRelayUrl(RELAY_URL);
     console.info("[realtimeclipboard] relay set from the address bar:", RELAY_URL);
+  }
+
+  // Same deal for a deployment's join token: given once as `?org=`, kept so
+  // every later visit is admitted. Never logged — it is the credential that
+  // gets a device into the deployment at all.
+  if (ORG_TOKEN && storage.loadOrgToken() !== ORG_TOKEN) {
+    storage.saveOrgToken(ORG_TOKEN);
+    console.info("[realtimeclipboard] organisation token set from the address bar");
   }
 
   // Straight after state.restore(), which is what read the choice off disk. A

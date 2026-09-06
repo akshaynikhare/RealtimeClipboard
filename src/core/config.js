@@ -64,6 +64,37 @@ export const RELAY_URL =
 export const RELAY_IS_CUSTOM = RELAY_URL !== DEFAULT_RELAY_URL && RELAY_URL !== LOCAL_RELAY_URL;
 
 /**
+ * The organisation token for a relay that runs with REALTIMECLIPBOARD_JOIN_TOKEN set.
+ *
+ * Such a relay refuses every join that does not present `?org=`, and no client
+ * had any way to send one — so turning the setting on, which SELF-HOSTING.md
+ * tells operators to do to stop their relay being open to anyone who learns the
+ * hostname, bricked every shipped client instead of restricting it.
+ *
+ * Deliberately NOT in the share link: a link is pasted into chats and read off
+ * screens, and this is the credential that admits a device to the deployment.
+ * It is configured once per device — `?org=` on first load, which is persisted,
+ * or REALTIMECLIPBOARD_ORG for the CLI and MCP server.
+ */
+const ORG_KEY = "orgToken";
+const storedOrg = () => {
+  try { return JSON.parse(localStorage.getItem(STORAGE_PREFIX + ORG_KEY)); }
+  catch { return null; }
+};
+const orgFromQuery = () => {
+  try { return new URLSearchParams(location.search).get("org"); }
+  catch { return null; }
+};
+const orgFromEnv = () => {
+  try { return globalThis.process?.env?.REALTIMECLIPBOARD_ORG || null; }
+  catch { return null; }
+};
+const cleanOrg = v => (typeof v === "string" && v.trim() ? v.trim() : null);
+
+export const ORG_TOKEN = cleanOrg(orgFromQuery()) ?? cleanOrg(orgFromEnv()) ?? cleanOrg(storedOrg());
+export const ORG_STORAGE_KEY = ORG_KEY;
+
+/**
  * The same relay over plain HTTP, for the SSE+POST fallback and /stats. One
  * hostname so IT allowlists one domain (PRD §5.4); derived so the two cannot drift.
  */
@@ -146,8 +177,13 @@ export const PASTE_GUARD = {
   ENABLED: true,
 
   /**
-   * Past this, do not scan. The patterns are anchored per line, so a pasted
-   * logfile is a lot of backtracking for a case this does not defend against.
+   * The longest LINE the scanner will look at. Every pattern is anchored to the
+   * start of a line and none spans one, so the scan runs per line and this
+   * bounds the work any single regex does.
+   *
+   * A line past it is treated as risky rather than safe. This was once a cap on
+   * the whole clip, above which nothing was scanned at all — and it sat below
+   * the clip size limit, so padding a command past it turned the guard off.
    */
   MAX_SCAN_CHARS: 8_192,
 };
@@ -188,6 +224,17 @@ export const FILES = {
    * wedged association must not hold a transfer open.
    */
   CHANNEL_CLOSE_MS: 1_000,
+
+  /**
+   * How long a sender waits for the receiver to confirm it has the file, whole
+   * and verified, before reporting what it actually knows.
+   *
+   * "Sent" used to mean "the last frame was handed to a socket". A digest
+   * failure at the far end was reported to nobody, so the holder's tile said
+   * the transfer had worked while the other device showed an error. Bounded,
+   * because a receiver that vanishes must not leave a progress bar up forever.
+   */
+  RECEIPT_MS: 10_000,
 };
 
 export const KEY = {
@@ -318,6 +365,17 @@ export const LOCK = {
 
 export const NET = {
   HEARTBEAT_MS: 30_000,       // must beat proxy idle reaping (PRD 5.4, FR-3.6)
+
+  /**
+   * How long a ping may go unanswered before the connection is treated as dead.
+   *
+   * A socket can sit at readyState OPEN with nothing at the other end: no
+   * error, no close, and the session reads "connected" for as long as the tab
+   * is left open. The ping had no deadline at all, so nothing ever noticed.
+   * Generous against a slow phone network, short enough that a dead session
+   * reconnects rather than sits.
+   */
+  PONG_DEADLINE_MS: 10_000,
   BACKOFF_MIN_MS: 1_000,
   BACKOFF_MAX_MS: 30_000,
   ICE_TIMEOUT_MS: 5_000,      // then fall back to relay chunks (FR-7.6)

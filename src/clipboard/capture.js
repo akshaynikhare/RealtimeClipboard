@@ -34,8 +34,17 @@ import * as os from "./os.js";
 let pollTimer = null;
 let started = false;
 
-/** A native host writes whenever it likes; a browser tab needs focus first. */
-const canWriteNow = () => typeof document === "undefined" || document.hasFocus();
+/**
+ * A native host writes whenever it likes; a browser tab needs focus first.
+ *
+ * "Has no document" was standing in for "is a native host", and it is only true
+ * of the VS Code extension host. The desktop shell has a document, so it took
+ * the focus branch — and queued every arriving clip behind a window that is
+ * normally in the tray, which is the one thing the desktop build exists to
+ * avoid. Ask what the host can actually do instead of inferring it.
+ */
+const canWriteNow = () =>
+  typeof document === "undefined" || native.hasNativeClipboard() || document.hasFocus();
 
 /** No instanceof — jsdom's elements come from another realm. */
 const editsText = (el) =>
@@ -182,24 +191,47 @@ export async function tryRead({ deliberate = true } = {}) {
   if (text) fromClipboard(text, "Captured on focus", { deliberate });
 
   // Focus only, never the poll tick: clipboard.read() is markedly more expensive
-  // than readText() and would burn battery at 1 Hz for a case that is rare per
-  // second and common per minute.
-  if (s.settings.images) await tryReadImage();
+  // than readText() and would burn battery at up to 2 Hz for a case that is rare
+  // per second and common per minute. The comment said this from the day images
+  // landed; the `deliberate` half of the condition is what makes it true.
+  if (deliberate && s.settings.images) await tryReadImage();
 }
 
 let lastImageKey = "";
+
+/**
+ * Content, not shape. `type:size` was a stand-in for identity and it collided:
+ * two different images of the same type and the same byte length read as one, so
+ * the second was silently dropped — which for screenshots of a fixed-size region,
+ * or any pair of PNGs that happen to compress alike, is not a rare coincidence.
+ *
+ * Only reachable on focus or a deliberate capture (see tryRead), so this hashes
+ * at human speed, not at poll speed.
+ */
+async function imageKey(blob) {
+  try {
+    const digest = await crypto.subtle.digest("SHA-256", await blob.arrayBuffer());
+    return [...new Uint8Array(digest, 0, 8)].map(b => b.toString(16).padStart(2, "0")).join("");
+  } catch {
+    // No subtle crypto (an insecure context) — fall back to the old stand-in
+    // rather than capturing the same image over and over.
+    return `${blob.type}:${blob.size}`;
+  }
+}
 
 export async function tryReadImage() {
   const blob = await os.readImage();
   if (!blob) return;
   if (!bindsClipboard(state.get().settings.syncMode)) return;   // the rung dropped while we read
-  // Cheap stand-in for identity; hashing every screenshot on every focus would
-  // cost more than it saves.
-  const key = `${blob.type}:${blob.size}`;
+  const key = await imageKey(blob);
+  if (!bindsClipboard(state.get().settings.syncMode)) return;   // ...and again: hashing awaits
   if (key === lastImageKey) return;
   lastImageKey = key;
   captureImage(blob, "Image captured");
 }
+
+/** A new room is a new context: the same image is worth sharing into it. */
+export function forgetLastImage() { lastImageKey = ""; }
 
 /**
  * Handed to the files layer as a normal 5 MB-capped item, so a screenshot shares
@@ -253,6 +285,7 @@ export function capture(text, how) {
  */
 export async function apply(raw) {
   if (!bindsClipboard(state.get().settings.syncMode)) return false;
+  const seq = ++arrivalSeq;
 
   // Defused first, so the queued copy, the write and the banner preview are all
   // the same string — the one that will be pasted.
@@ -266,11 +299,12 @@ export async function apply(raw) {
   if (risk || !canWriteNow() || state.recentLocalCopy()) {
     pending = text;
     pendingRisk = risk;
+    pendingSeq = seq;
     emit(EV.PENDING_CLIP, { pending: true, text, risk, altered: guard.wasAltered(raw) });
     if (!risk && canWriteNow()) scheduleGraceFlush();
     return false;
   }
-  return writeNow(text);
+  return writeNow(text, seq);
 }
 
 /**
@@ -302,7 +336,7 @@ function scheduleGraceFlush() {
  * and leaving the new one in lastSent makes the next read look like a fresh copy
  * and rebroadcasts stale content over the clip that failed to land.
  */
-async function writeNow(text) {
+async function writeNow(text, seq = ++arrivalSeq) {
   const s = state.get();
   const prev = s.lastSent;
   s.lastSent = text;
@@ -310,6 +344,15 @@ async function writeNow(text) {
   const ok = await os.write(text);
   // Only if still ours: a write that succeeded meanwhile has a truthful claim.
   if (!ok && s.lastSent === text) s.lastSent = prev;
+
+  if (ok && seq > writtenSeq) {
+    writtenSeq = seq;
+    // Something newer is on the clipboard now, so an older clip still waiting
+    // for a gesture would roll the user back if it ever landed. The two paths
+    // had no shared order, so exactly that happened: the grace timer, a focus
+    // flush, or a retried write could restore a clip the user had moved past.
+    if (pending !== null && pendingSeq < seq) discardPending();
+  }
   return ok;
 }
 
@@ -327,18 +370,33 @@ export async function putOnClipboard(text) {
   if (!text) return false;
   // A blur-commit runs after alt-tab has taken the focus writeText() needs, so
   // it queues rather than drops. The next focus flushes it.
+  const seq = ++arrivalSeq;
   if (!canWriteNow()) {
     pending = text;
     pendingRisk = null;                 // your own text needs no click
+    pendingSeq = seq;
     emit(EV.PENDING_CLIP, { pending: true, text });
     return false;
   }
   state.markLocalCopy();
-  return writeNow(text);
+  return writeNow(text, seq);
 }
 
 let pending = null;
 let pendingRisk = null;
+
+/**
+ * Arrival order, shared by the pending slot and the immediate write.
+ *
+ * `arrivalSeq` numbers every clip that reaches apply() or putOnClipboard();
+ * `writtenSeq` is the newest one known to have reached the clipboard. Nothing
+ * older than `writtenSeq` may be written after it — that is the whole rule, and
+ * without it "the newest supersedes" held only for clips that took the same
+ * path through this file.
+ */
+let arrivalSeq = 0;
+let writtenSeq = 0;
+let pendingSeq = 0;
 
 /**
  * A clip the guard flagged is deliberately NOT flushed here: regaining focus is
@@ -374,13 +432,25 @@ async function writePending() {
   graceTimer = null;
   const text = pending;
   const risk = pendingRisk;
+  const seq = pendingSeq;
   pending = null;
   pendingRisk = null;
-  if (!await writeNow(text)) {
+
+  // Superseded while it waited. Writing it now would take the clipboard back to
+  // a clip the user has already moved past.
+  if (seq <= writtenSeq) {
+    emit(EV.PENDING_CLIP, { pending: false });
+    return;
+  }
+
+  if (!await writeNow(text, seq)) {
     // writeText() can refuse in the gap where the tab is visible but not yet
     // focused, and the clip is still owed. Unless a newer clip took the slot
-    // mid-write, in which case that one is what the banner shows.
-    if (pending === null) { pending = text; pendingRisk = risk; }
+    // mid-write, or landed on the clipboard while this one was failing — in
+    // either case that newer clip is the one that stands.
+    if (pending === null && seq > writtenSeq) {
+      pending = text; pendingRisk = risk; pendingSeq = seq;
+    }
     return;
   }
   // Conditional for the same reason: retracting unconditionally dismissed the

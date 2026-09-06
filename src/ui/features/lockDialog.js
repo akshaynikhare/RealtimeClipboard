@@ -39,6 +39,13 @@ const COPY = {
     submit: "Unlock",
     confirm: false,
   },
+  rotate: {
+    title: "Confirm the PIN for the new key",
+    intro: "A new key means a new session, and the PIN is stretched together "
+         + "with the key — so it has to be entered again. The same PIN is fine.",
+    submit: "Rotate key",
+    confirm: false,
+  },
   retry: {
     title: "Enter the PIN again",
     intro: "Nobody else is in this session yet. If someone should be, the PIN "
@@ -51,7 +58,8 @@ const COPY = {
 /**
  * Ask for a PIN. Resolves to the string, or to null on cancel/Escape.
  *
- * `mode` is create | join | retry. `key` is shown so someone answering a prompt
+ * `mode` is create | join | rotate | retry. `key` is shown so someone answering a
+ * prompt
  * on a second device can see which session it is for — it is already in their
  * address bar, so this discloses nothing they do not have.
  *

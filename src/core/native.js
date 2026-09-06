@@ -48,7 +48,7 @@ export const IS_CLI     = SURFACE === "cli";
  * key length: an installed surface keeps its session across restarts and is worth
  * the longer key, a visited one is usually typing it to somebody.
  */
-export const IS_INSTALLED = IS_DESKTOP || SURFACE === "vscode";
+export const IS_INSTALLED = IS_DESKTOP || SURFACE === "vscode" || SURFACE === "browser";
 
 let host = null;
 

@@ -96,10 +96,25 @@ const PATTERNS = [
 export function looksExecutable(text) {
   if (!PASTE_GUARD.ENABLED) return null;
   const s = String(text ?? "").trim();
-  if (!s || s.length > PASTE_GUARD.MAX_SCAN_CHARS) return null;
+  if (!s) return null;
 
-  for (const { pattern, reason } of PATTERNS) {
-    if (pattern.test(s)) return reason;
+  // Line by line, and nothing is skipped for being large. A whole clip over the
+  // scan budget used to return "safe", which made the guard opt-out: the limit
+  // sat below the clip limit, so 8 KB of padding in front of `curl … | sh` was
+  // enough to have it written to the OS clipboard with no click. Padding BEFORE
+  // the payload also defeats scanning only the first N characters — every
+  // pattern is anchored to the start of a line, so the payload can sit at the
+  // start of any line, at any depth.
+  //
+  // Per line is the same test with a bound that holds: no pattern spans a
+  // newline, so no single regex ever sees more than one line.
+  for (const line of s.split("\n")) {
+    // A line too long to check is not a line known to be safe. It costs one
+    // click, on the banner that a clip arriving unfocused already uses.
+    if (line.length > PASTE_GUARD.MAX_SCAN_CHARS) return "it is too long to check";
+    for (const { pattern, reason } of PATTERNS) {
+      if (pattern.test(line)) return reason;
+    }
   }
   return null;
 }

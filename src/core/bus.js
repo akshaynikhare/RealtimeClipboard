@@ -55,7 +55,7 @@ export const EV = {
   ROOM_STATE:      "conn:room",        // {existing, hasLast} — what `welcome` said
 
   // session
-  KEY_CHANGED:     "session:key",      // {key, locked}
+  KEY_CHANGED:     "session:key",      // {key, locked, roomHash}
   // Announcements are past tense, commands are bare verbs, and the extra
   // syllable here is load-bearing — see core/CLAUDE.md. The bus does no
   // namespacing of its own, so a collision between the two is silent.

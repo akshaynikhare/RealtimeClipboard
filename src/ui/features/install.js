@@ -13,8 +13,7 @@
 
 import { emit, EV } from "../../core/bus.js";
 import { $, esc, setHTML, clear, scriptURL } from "../primitives/dom.js";
-import { fromUrl, isValid, fragment } from "../../core/keys.js";
-import { loadLastKey, read, write } from "../../core/storage.js";
+import { read, write } from "../../core/storage.js";
 import { APP_ROOT, atRoot, lazyStyleHref } from "../../core/paths.js";
 import { IS_DESKTOP } from "../../core/native.js";
 
@@ -31,44 +30,25 @@ let wantsReload = false;      // the user asked for the update, so reload on swa
 let hadController = false;    // was a worker already driving this page at boot?
 let started = false;          // init() is idempotent — listeners must not stack
 
-/* ---------------- OI-10: the fragment the install drops ---------------- */
+/* ---------------- OI-10: the room an installed launch opens ---------------- */
 
-/**
+/*
  * A manifest `start_url` cannot carry "#D75LV", so an installed app always
- * launches at the bare scope with no room. FR-4.5: fall back to the last key.
+ * launches at the bare scope with no room. FR-4.5 is answered by main.js
+ * resolveKey(), which consults storage.loadLastKey() directly as its last
+ * source — after the URL and after this tab's own session.
  *
- * Runs at module evaluation rather than from init(), because main.js resolves
- * the key inside boot() and this has to be true first. With no stored key it
- * does nothing and main.js generates one, which is right for a first launch.
+ * This module used to answer it instead, by writing the remembered key into the
+ * fragment at module-evaluation time. That inverted the precedence resolveKey()
+ * documents: a forged fragment is indistinguishable from a link the user just
+ * followed, so it outranked BOTH the tab's own session and an explicit link.
+ * Reloading a tab in room A joined room B if another tab had since opened B,
+ * and a link naming an invalid key was overwritten rather than refused. init()
+ * then called it a second time, after openSession() had stripped the key, which
+ * put the key back into the address bar for the rest of the session.
  *
- * The fragment written here lives for the length of boot and no longer:
- * openSession() calls keys.clearUrl() as soon as it has read it. resolveKey()
- * also consults loadLastKey() directly, so this is belt-and-braces for the
- * launch ordering rather than the only route — and with `rememberKey` off there
- * is nothing stored to restore, which is what that setting means.
+ * Restoring the room is one decision and it belongs in one place.
  */
-function restoreRoom() {
-  if (isValid(fromUrl().key)) return null;        // the URL already names a room
-
-  const last = loadLastKey();
-  if (!last || !isValid(last.key)) return null;   // let main.js generate one
-
-  // The lock marker is restored with the key. Dropping it would rebuild the
-  // fragment as an UNLOCKED room of the same name — a real room that anyone
-  // holding the link can read — so an installed app relaunching would silently
-  // move the user out of their private session and into a public one.
-  const hash = fragment(last.key, last.locked);
-  try {
-    // replaceState, not location.hash: no history entry to trap the back
-    // button, and no hashchange event fired at a half-booted app.
-    history.replaceState(null, "", `#${hash}`);
-  } catch {
-    location.hash = hash;                         // sandboxed contexts
-  }
-  return hash;
-}
-
-restoreRoom();
 
 /* ---------------- head plumbing ---------------- */
 
@@ -331,7 +311,6 @@ function applyUpdate(reg) {
 /* ---------------- init ---------------- */
 
 export function init() {
-  restoreRoom();
   linkStylesheet();
   linkManifest();
 

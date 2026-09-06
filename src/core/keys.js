@@ -1,6 +1,6 @@
 /** Share-key generation and normalisation. */
 
-import { KEY, LOCK, SITE } from "./config.js";
+import { KEY, LOCK, SITE, RELAY_URL, RELAY_IS_CUSTOM } from "./config.js";
 import { IS_WEB } from "./native.js";
 import * as state from "./state.js";
 
@@ -165,12 +165,26 @@ export function clearUrl() {
  * A link for the OTHER device to open, which is why it is not always this one's
  * URL. Only a browser can hand out its own address — see SITE in config.js for
  * the hosts that cannot.
+ *
+ * A custom relay travels WITH the link. Dropping it was silent and total: the
+ * recipient resolved to the default relay, both ends reported "connected", and
+ * nothing ever arrived — with no error at either end to say why. `?relay=` is
+ * the mechanism docs/SELF-HOSTING.md tells operators to hand out, and this is
+ * the one place a link is built, so it is the one place that can carry it.
+ *
+ * On a self-hosted app the link is complete: that build's CSP names its own
+ * relay, so following it works. From a native host the base is the public app,
+ * whose CSP names only the public relay — the parameter cannot make that
+ * connection succeed, but it does turn a session that silently syncs nothing
+ * into a connection that visibly refuses, which is the difference between a bug
+ * report and a mystery.
  */
 export function shareLink(key, locked = false) {
   const here = IS_WEB && typeof location !== "undefined"
     ? location.origin + location.pathname
     : SITE.APP_URL;
-  return `${here}#${fragment(key, locked)}`;
+  const relay = RELAY_IS_CUSTOM ? `?relay=${encodeURIComponent(RELAY_URL)}` : "";
+  return `${here}${relay}#${fragment(key, locked)}`;
 }
 
 /**

@@ -31,7 +31,8 @@ export const EVENTS = {
 const STORE_KEY = "realtimeclipboard.history";
 
 let clips = [];
-let roomKey = null;      // share key the current list belongs to; null until first KEY_CHANGED
+let roomId = null;       // ROOM the current list belongs to; null until first KEY_CHANGED
+let sealed = false;      // hydrated from storage, not yet confirmed to be this room
 let started = false;
 let seq = 0;
 
@@ -59,8 +60,8 @@ function removeStore() {
  * is a smaller failure than losing the user's clipboard.
  */
 function persist() {
-  if (!clips.length && roomKey === null) return removeStore();
-  writeStore({ key: roomKey, clips });
+  if (!clips.length && roomId === null) return removeStore();
+  writeStore({ room: roomId, clips });
 }
 
 const nextId = () => `h${Date.now().toString(36)}${(++seq).toString(36)}`;
@@ -73,16 +74,22 @@ function announce(reason) {
   emit(EVENTS.CHANGED, { clips: all(), reason });
 }
 
-/** Newest first. Returns a shallow copy — callers must not mutate the list. */
+/**
+ * Newest first. Returns a shallow copy — callers must not mutate the list.
+ *
+ * Empty while `sealed`: clips restored from storage are not known to belong to
+ * the session being opened until the first KEY_CHANGED says so, and a locked
+ * link sitting on its PIN prompt has not opened one yet.
+ */
 export function all() {
-  return clips.slice();
+  return sealed ? [] : clips.slice();
 }
 
 export function get(id) {
-  return clips.find(c => c.id === id) ?? null;
+  return sealed ? null : clips.find(c => c.id === id) ?? null;
 }
 
-export const size = () => clips.length;
+export const size = () => (sealed ? 0 : clips.length);
 
 /**
  * Record a clip. Returns the new entry, or null if it was ignored — empty text,
@@ -110,19 +117,27 @@ export function add({ text, direction }) {
 export function clear(reason = "clear") {
   const had = clips.length;
   clips = [];
+  sealed = false;
   removeStore();
-  if (roomKey !== null) persist();
+  if (roomId !== null) persist();
   if (had) announce(reason);
   return had;
 }
 
-// The stored key is not known to be the current room yet — the first
-// KEY_CHANGED decides whether to keep or discard this.
+// The stored room is not known to be the current one yet — the first
+// KEY_CHANGED decides whether to keep or discard this, and until it does the
+// clips are `sealed`: in memory, out of every reader.
+//
+// Records written before history was room-scoped are keyed by share key, which
+// cannot be mapped onto a room without the PIN. They are dropped rather than
+// guessed at — the cost is one tab's history, once.
 function hydrate() {
   const saved = readStore();
   if (!saved || !Array.isArray(saved.clips)) return;
+  if (typeof saved.room !== "string" || !saved.room) return removeStore();
 
-  roomKey = saved.key ?? null;
+  roomId = saved.room;
+  sealed = saved.clips.length > 0;
   clips = saved.clips
     .filter(c => c && typeof c.text === "string")
     .slice(0, MAX_CLIPS)
@@ -136,23 +151,35 @@ function hydrate() {
 }
 
 /**
- * A new share key is a new room, new peers, and a new privacy context. The first
- * KEY_CHANGED after boot is not a rotation, though — main.js emits one for the
- * key we already had, and comparing against the key stored alongside the clips
- * is what tells the two apart.
+ * A new ROOM is new peers and a new privacy context. Scoped to the room rather
+ * than the share key because they are not the same boundary: re-PINning a
+ * session keeps the key and moves rooms, and key-scoped history followed the
+ * user across that move — as did a wrong-PIN join, which lands in a different
+ * room under the very same key.
+ *
+ * The first KEY_CHANGED after boot is not a change, though — main.js emits one
+ * for the room we already had, and comparing against the room stored alongside
+ * the clips is what tells the two apart. That comparison is also what unseals
+ * hydrated clips: they are only this session's once it has identified itself.
  */
-function onKeyChanged({ key }) {
-  const next = normKey(key);
+function onKeyChanged({ key, roomHash }) {
+  // roomHash is the real identity; the key is the fallback for surfaces that
+  // set state before a room is derived, and for node tests with neither.
+  const next = roomHash || normKey(key);
   if (!next) return;
 
-  if (roomKey !== null && normKey(roomKey) !== next) {
-    roomKey = next;
+  if (roomId !== null && roomId !== next) {
+    roomId = next;
     clear("key-changed");
     persist();
     return;
   }
 
-  roomKey = next;
+  roomId = next;
+  if (sealed) {
+    sealed = false;
+    if (clips.length) announce("hydrate");
+  }
   persist();
 }
 
@@ -167,5 +194,8 @@ export function init() {
   on(EV.TEXT_RECEIVED, ({ text }) => add({ text, direction: "received" }));
   on(EV.KEY_CHANGED, onKeyChanged);
 
-  if (clips.length) announce("hydrate");
+  // Nothing is announced here on purpose: hydrated clips stay sealed until a
+  // KEY_CHANGED identifies the room they belong to. Announcing them at boot put
+  // the previous session's clips in the pane behind an unanswered PIN prompt.
+  if (!sealed && clips.length) announce("hydrate");
 }

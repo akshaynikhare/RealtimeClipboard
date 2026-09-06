@@ -46,6 +46,9 @@ export const FT = {
   FILE_DONE:   "file-done",      // {id, to, digest}                 relay fallback
   FILE_CANCEL: "file-cancel",    // {id, to, reason}         either direction
   FILE_ERROR:  "file-error",     // {id, to, reason}
+  // The receiver has the whole file and the digest matched. Without it "Sent"
+  // meant "handed to a socket", which is a different claim from "arrived".
+  FILE_OK:     "file-ok",        // {id, to, digest}         receiver -> holder
   // Broadcast like file-meta because it undoes one: without it a stale tile sits
   // on every peer offering something that can no longer be fetched.
   FILE_GONE:   "file-gone",      // {id}                     broadcast, no `to`
@@ -53,6 +56,16 @@ export const FT = {
 
 /** Exactly the frames main.js should route into onSignal(). */
 export const FRAMES = Object.freeze(Object.values(FT));
+
+/**
+ * The frames that carry nothing but routing, and so travel unsealed.
+ *
+ * encryptFrame() seals whatever is left once the routing fields are taken out,
+ * and for these two there is nothing left to seal. main.js needs them named to
+ * tell them apart from a frame that SHOULD have arrived with an envelope and
+ * did not — which is what a relay injecting its own traffic looks like.
+ */
+export const PLAINTEXT_FRAMES = Object.freeze([FT.FILE_REQ, FT.FILE_GONE]);
 
 /**
  * STUN only, deliberately — it sees only that some IP asked for its own
@@ -151,7 +164,7 @@ export const isActive = id => live.has(id);
 
 function makeTransfer(id, role, peer) {
   const t = {
-    id, role, peer,
+    id, role, peer, receipt: null, confirmed: false,
     path: null, percent: 0, done: false, queued: false,
     pc: null, dc: null, rx: null, meta: null,
     pendingIce: [], remoteReady: false,
@@ -232,6 +245,28 @@ export function onSignal(frame) {
   const handler = INBOUND[frame.t];
   if (!handler) return;
 
+  // The relay stamps `from` on every frame it forwards or fans out, overwriting
+  // whatever the sender put there — it is the one field a client cannot choose.
+  // Everything below identifies a peer by it. The client-supplied `originId`
+  // used to stand in, so any member of the room could name another device as the
+  // requester and inherit a standing grant that device had been given.
+  const sender = typeof frame.from === "string" && frame.from ? frame.from : null;
+  if (!sender) {
+    console.warn("[transfer] dropped a frame with no relay-stamped sender", frame.t);
+    return;
+  }
+  if (sender === me) return;                             // our own echo, stamped
+
+  // A frame about a transfer already under way has to come from the peer that
+  // transfer belongs to. Every handler found its transfer by file id alone, so
+  // any other member could cancel it, answer its negotiation, replace its chunk
+  // plan, or inject bytes into it.
+  const known = live.get(frame.id);
+  if (known && known.peer && known.peer !== sender) {
+    console.warn(`[transfer] ${frame.t} for ${frame.id} came from the wrong peer`);
+    return;
+  }
+
   // Handlers are async and onSignal is not, so a rejection must surface as a
   // failed transfer rather than an unhandled one. But not every rejection is a
   // failure: handlers are not serialised, so a WebRTC step suspended across an
@@ -240,7 +275,7 @@ export function onSignal(frame) {
   // delivering bytes, the sender reporting "Sent" while the receiver showed
   // "PeerConnection is closed".
   Promise.resolve()
-    .then(() => handler(frame))
+    .then(() => handler(frame, sender))
     .catch(err => {
       const t = live.get(frame.id);
       if (!t) return;                                // already cancelled or finished
@@ -267,6 +302,7 @@ const INBOUND = {
   [FT.FILE_DENY]:   f => { closeAndFail(f.id, f.reason || "the other device declined"); },
   [FT.FILE_ERROR]:  f => { closeAndFail(f.id, f.reason || "the transfer failed"); },
   [FT.FILE_CANCEL]: onFileCancel,
+  [FT.FILE_OK]:     onFileOk,
   [FT.RTC_OFFER]:   onRtcOffer,
   [FT.RTC_ANSWER]:  onRtcAnswer,
   [FT.RTC_ICE]:     onRtcIce,
@@ -283,7 +319,7 @@ const INBOUND = {
  * session key, so nothing is trusted: the size is what a later transfer is
  * checked against, and a thumbnail must be an image data URL or nothing.
  */
-function onFileMeta(frame) {
+function onFileMeta(frame, sender) {
   const size = Number(frame.size);
   if (!frame.id || !Number.isInteger(size) || size < 0 || size > FILES.MAX_BYTES) {
     console.warn("[transfer] ignoring a file announcement with an implausible size", frame.id);
@@ -295,14 +331,18 @@ function onFileMeta(frame) {
     ? frame.thumb
     : null;                                             // anything else is not a preview
 
+  // The owner is the relay's answer to "who sent this", not the sender's own
+  // claim: it is what a later file-gone is checked against, and what a request
+  // for the bytes is addressed to.
   registry.addRemote({
     id: String(frame.id), name: String(frame.name ?? "file"), size,
-    type: String(frame.type ?? ""), thumb, originId: frame.originId,
+    type: String(frame.type ?? ""), thumb, originId: sender,
   });
 }
 
-async function onFileReq(frame) {
-  const { id, originId: peer } = frame;
+async function onFileReq(frame, sender) {
+  const { id } = frame;
+  const peer = sender;
   const file = registry.get(id);
 
   if (!file?.blob) {
@@ -470,7 +510,9 @@ async function streamOverDataChannel(t) {
   }
 
   if (t.done) return;
-  sent(t);
+  const confirmed = await awaitReceipt(t);
+  if (t.done) return;                              // cancelled or failed meanwhile
+  sent(t, confirmed);
 }
 
 /**
@@ -566,17 +608,59 @@ async function streamOverRelay(t) {
   }
 
   signal({ t: FT.FILE_DONE, id: t.id, to: t.peer, digest: t.digest, total: p.total });
-  sent(t);
+  const confirmed = await awaitReceipt(t);
+  if (t.done) return;                              // cancelled or failed meanwhile
+  sent(t, confirmed);
 }
 
-/** Our side of a successful send. The file stays local; the bar goes away. */
-function sent(t) {
+/**
+ * Our side of a successful send. The file stays local; the bar goes away.
+ *
+ * `confirmed` is the receiver's own word for it. Unconfirmed is not a failure —
+ * the bytes did leave — but it is not the same statement, and saying the
+ * stronger one for both is how a file that failed its checksum at the far end
+ * was reported here as sent.
+ */
+function sent(t, confirmed = false) {
   const name = registry.get(t.id)?.name ?? "file";
   const via = t.path === PATH.P2P ? "a direct connection" : "the relay";
   finish(t);
   registry.setState(t.id, registry.STATE.IDLE);
   registry.setProgress(t.id, 0);
-  emit(EV.TOAST, `Sent ${name} over ${via}`);
+  emit(EV.TOAST, confirmed
+    ? `Sent ${name} over ${via}`
+    : `Sent ${name} over ${via} — the other device did not confirm it`);
+}
+
+/**
+ * Wait for the receiver's file-ok. Resolves false on the deadline, and on any
+ * teardown — finish() releases the waiter, so a cancel or a file-error while we
+ * are waiting reports what happened rather than hanging on the timeout.
+ */
+function awaitReceipt(t) {
+  // The ack can beat the waiter: on the direct path the sender is still closing
+  // the data channel when the receiver finishes verifying, so the frame lands
+  // before there is anything registered to catch it. Recorded on arrival, and
+  // read here first.
+  if (t.confirmed) return Promise.resolve(true);
+  return new Promise(resolve => {
+    const settle = (ok) => {
+      if (!t.receipt) return;
+      t.receipt = null;
+      clearTimeout(timer);
+      resolve(ok);
+    };
+    const timer = setTimeout(() => settle(false), FILES.RECEIPT_MS);
+    t.receipt = settle;
+  });
+}
+
+/** The receiver has it, whole and verified. */
+function onFileOk(frame) {
+  const t = live.get(frame.id);
+  if (!t || t.role !== "send") return;
+  t.confirmed = true;
+  t.receipt?.(true);
 }
 
 /* ------------------------------------------------------------------ *
@@ -799,10 +883,15 @@ async function complete(t) {
   try {
     blob = await rx.finish();                      // verifies the whole-file digest
   } catch (err) {
+    // Told to the sender, not just to us. A failed digest was entirely local, so
+    // the holder went on reporting a file it had "Sent" that nobody could open.
+    signal({ t: FT.FILE_ERROR, id: t.id, to: t.peer, reason: describe(err) });
     finish(t);
     return fail(t.id, describe(err));
   }
 
+  // Before finish(), which is what forgets the peer this is addressed to.
+  signal({ t: FT.FILE_OK, id: t.id, to: t.peer, digest: t.meta?.digest ?? null });
   finish(t);
   registry.complete(t.id, blob, path);
   emit(EV.TOAST, path === PATH.RELAY
@@ -863,6 +952,9 @@ function closeRtc(t) {
 /** The one exit route. Every path out of a transfer ends here. */
 function finish(t) {
   t.done = true;
+  // Release anything waiting on a receipt, or a cancelled send sits out the
+  // full deadline before it reports.
+  t.receipt?.(false);
   clearTimeout(t.deadline); t.deadline = null;
   clearTimeout(t.idleTimer); t.idleTimer = null;
   closeRtc(t);
@@ -935,10 +1027,18 @@ function signal(frame) {
 
 /**
  * "Stop asking me about this device" — a standing grant to send files off the
- * machine, so it is bounded three ways: per device (`autoaccept` in Settings is
+ * machine, so it is bounded four ways: per device (`autoaccept` in Settings is
  * the global version), per room (dropped when the key changes, so rotating it
- * ejects), and per tab (sessionStorage). And never silent — an allowed request
- * still says out loud that it was sent.
+ * ejects), per tab (sessionStorage), and for as long as that device stays in the
+ * room.
+ *
+ * The last bound is the load-bearing one. A peer id is a name a client asks for
+ * and the relay hands out first-come — so once the allowed device disconnects,
+ * the next client to claim its id inherited the grant and could pull any
+ * announced file with no prompt at all. A grant follows a device that is here,
+ * not a string that outlives it.
+ *
+ * And never silent — an allowed request still says out loud that it was sent.
  */
 
 let allowances = new Set();
@@ -973,6 +1073,9 @@ export function allowedPeers() {
   syncAllowances();
   return [...allowances];
 }
+
+// The grant dies with the connection it was given to. See the note above.
+on(EV.PEER_LEFT, ({ id }) => { if (id) forgetPeer(id); });
 
 export function isPeerAllowed(peer) {
   syncAllowances();
