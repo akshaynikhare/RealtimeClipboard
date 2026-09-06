@@ -32,10 +32,9 @@ globalThis.sessionStorage = {
   removeItem: k => store.delete(k),
 };
 
-const readMain = async () => {
-  const { readFile } = await import("node:fs/promises");
-  return readFile(join(REPO, "src/main.js"), "utf8");
-};
+const { readFile } = await import("node:fs/promises");
+const readFileText = p => readFile(join(REPO, p), "utf8");
+const readMain = () => readFileText("src/main.js");
 
 const state   = await load("src/core/state.js");
 const history = await load("src/core/history.js");
@@ -195,43 +194,141 @@ await (async () => {
 /* main.js is the composition root and cannot be imported under node — it pulls
    in the DOM. These read it, because the property under test is WHERE a rule
    sits: every one of these bugs was a correct check placed in a caller instead
-   of in the one function every room change goes through. */
+   of in the one function every room change goes through.
+
+   Read by BRACE MATCHING, not by regex. The first version of these checks was
+   /function leaveRoom\(\)[^]*?sessionGen\+\+/ — `[^]*?` crosses function
+   boundaries, so it matched `sessionGen++` anywhere later in the file and every
+   check passed against the code it was written to reject. */
 console.log("\nLeaving a room invalidates everything that belonged to it\n");
 
 const MAIN = await readMain();
 
-ok("leaveRoom() invalidates the generation itself",
-   /function leaveRoom\(\)[^]*?sessionGen\+\+/.test(MAIN),
+/**
+ * A body with its comments removed.
+ *
+ * Every rule under test is also DESCRIBED in a comment beside it, so a check
+ * for the rule matches the prose whether or not the code is there — and an
+ * ordering check matches the first MENTION, which for leaveRoom() is the
+ * sentence explaining why the key is read before it. Assert on code.
+ */
+const codeOnly = body => (body ?? "")
+  .replace(/\/\*[^]*?\*\//g, "")
+  .replace(/(^|[^:])\/\/.*$/gm, "$1");
+
+/**
+ * The body of one function, brace-matched. Null if it is not there.
+ *
+ * The opening brace is the one after `=>` or `)`, never simply the next `{`:
+ * `async ({ key, locked }) => {` opens a DESTRUCTURED PARAMETER first, and
+ * taking that one returns the parameter list as though it were the function —
+ * which reads as "the rule is not there" for every rule.
+ */
+function bodyOf(src, signature) {
+  const at = src.indexOf(signature);
+  if (at === -1) return null;
+  const brace = /(?:=>|\))\s*\{/g;
+  brace.lastIndex = at;
+  const hit = brace.exec(src);
+  if (!hit) return null;
+  const open = hit.index + hit[0].length - 1;
+  let depth = 0;
+  for (let i = open; i < src.length; i++) {
+    if (src[i] === "{") depth++;
+    else if (src[i] === "}" && --depth === 0) return src.slice(open, i + 1);
+  }
+  return null;
+}
+
+const leave = codeOnly(bodyOf(MAIN, "function leaveRoom()"));
+const evicted = codeOnly(bodyOf(MAIN, "async function onEvicted()"));
+const beacon = codeOnly(bodyOf(MAIN, "async function sendBeacon()"));
+const evict = codeOnly(bodyOf(MAIN, "async function sendEviction()"));
+
+/* The reader has to be trustworthy before anything it reads is worth checking.
+   endSession() is the next function after leaveRoom(); if the match ran past
+   the closing brace it would swallow endSession() whole and every assertion
+   below would pass for the wrong reason. */
+ok("the function reader finds leaveRoom at all", leave.length > 0);
+ok("...and stops at its own closing brace", !leave.includes("history.clear"),
+   "endSession() follows it — capturing that would make every check below vacuous");
+ok("...and the same for the two control senders",
+   beacon.length > 0 && evict.length > 0 && !beacon.includes("sendEviction"));
+ok("...and comments are not mistaken for code", !leave.includes("belonged to the room"),
+   "every rule here is also described in prose beside it");
+ok("...and a destructured parameter list is not mistaken for a body",
+   [leave, evicted, beacon, evict].every(b => b.includes(";")),
+   "`async ({ key }) => {` opens a parameter first, and taking that brace reads "
+   + "as 'the rule is missing' for every rule in the function");
+
+ok("leaveRoom() invalidates the generation itself", leave.includes("sessionGen++"),
    "several callers then sit on a modal — an eviction notice, a PIN prompt — "
    + "and for that whole dialog the old generation still matched");
-ok("...and clears the key with it",
-   /function leaveRoom\(\)[^]*?state\.clearKey\(\)/.test(MAIN));
-ok("...and drops the clip waiting for a click",
-   /function leaveRoom\(\)[^]*?capture\.forgetSession\(\)/.test(MAIN));
+ok("...and clears the key with it", leave.includes("state.clearKey()"));
+ok("...and drops the clip waiting for a click", leave.includes("capture.forgetSession()"));
+ok("...and the queued clip", leave.includes("queuedClip = null"));
+ok("...and stops the files layer", leave.includes("filesTeardown()"));
+
 ok("eviction is a full teardown, not a subset of one",
-   /async function onEvicted\(\)[^]*?endSession\(\)/.test(MAIN),
+   evicted.includes("endSession()"),
    "being removed from a session is an involuntary leave");
-ok("re-PIN reads the key BEFORE leaving, since leaving clears it",
-   /const key = state\.get\(\)\.key;\s*\n\s*const pin = await lockDialog\.ask\(\{ mode: "create" \}\)/
-     .test(MAIN),
+ok("...and does not hand-roll a partial one",
+   !evicted.includes("storage.forgetLastKey()"),
+   "the partial version is what left the generation and the key alive");
+
+/* leaveRoom() clears the key, so the one path that REUSES it has to read it
+   first. This is scoped to the handler, not the file. */
+const repin = codeOnly(bodyOf(MAIN, 'on("session:repin"'));
+ok("re-PIN reads the key before leaving",
+   repin.includes("state.get().key") && repin.includes("leaveRoom()")
+   && repin.indexOf("state.get().key") < repin.indexOf("leaveRoom()"),
    "otherwise it reopens with an empty key");
+
+const rejoin = codeOnly(bodyOf(MAIN, 'on("session:rejoin"'));
+ok("rejoin asks for its PIN before leaving",
+   rejoin.includes("lockDialog.ask") && rejoin.includes("leaveRoom()")
+   && rejoin.indexOf("lockDialog.ask") < rejoin.indexOf("leaveRoom()"),
+   "leaving first meant backing out dropped the user into no session at all");
 
 console.log("\nOff means nothing leaves — the control clips included\n");
 
-const beacon = MAIN.slice(MAIN.indexOf("async function sendBeacon"),
-                          MAIN.indexOf("async function sendEviction"));
-const evict = MAIN.slice(MAIN.indexOf("async function sendEviction"),
-                         MAIN.indexOf("async function onEvicted"));
-
-ok("the beacon is gated on the rung", /sharesSession/.test(beacon),
+ok("the beacon is gated on the rung", beacon.includes("sharesSession"),
    "it goes out as a clip and takes the room's one retained slot");
-ok("...and re-checked after its encryption", (beacon.match(/sharesSession/g) ?? []).length >= 2);
-ok("the eviction is gated on the rung too", /sharesSession/.test(evict));
+ok("...and re-checked after its encryption",
+   (beacon.match(/sharesSession/g) ?? []).length >= 2,
+   "the rung can drop during the seal, which is the window Off is meant to close");
+ok("the eviction is gated on the rung too", evict.includes("sharesSession"));
+ok("...and re-checked after its encryption",
+   (evict.match(/sharesSession/g) ?? []).length >= 2);
 ok("...and reports whether the goodbye actually went",
-   /return true;/.test(evict) && /return false;/.test(evict),
+   evict.includes("return true;") && evict.includes("return false;"),
    "an Off device leaves the others connected to nothing; that must be said, not hidden");
+
+const lock = codeOnly(bodyOf(MAIN, 'on("session:lock"'));
 ok("...and the lock toast says so when it did not",
-   /not told/.test(MAIN), "silence here is the failure sendEviction() exists to prevent");
+   /not told/.test(lock),
+   "silence here is the failure sendEviction() exists to prevent");
+
+/* A locked room is not guaranteed to have a beacon, so verification is not
+   guaranteed either — and the warning that fills the gap claims nobody else is
+   present, which has to be true to be worth saying. */
+const plant = codeOnly(bodyOf(MAIN, "on(EV.ROOM_STATE, ({ hasLast })"));
+/* Pinned exactly, not merely inspected for what it no longer mentions.
+   Weakening the guard to `|| true` — a beacon that never plants at all —
+   passed every looser form of this check, and so did dropping `hasLast`,
+   which would overwrite somebody's real retained clip with the sentinel. */
+ok("the beacon plants whenever the retained slot is free",
+   /if \(!state\.get\(\)\.locked \|\| hasLast\) return;/.test(plant)
+   && plant.includes("sendBeacon()"),
+   "requiring an EMPTY room as well left an Off-first room with no beacon ever");
+ok("...and no longer requires the room to be empty",
+   !plant.includes("existing"),
+   "the next device saw existing > 0, planted nothing, and could never verify");
+
+const BANNERS = codeOnly(await readFileText("src/ui/shell/banners.js"));
+ok("the doubt banner does not claim solitude while a peer is present",
+   /s\.peers > 1\) return;/.test(BANNERS),
+   "another device in a LOCKED room derived the same PIN to get there");
 
 /* ------------------------------------------ the deployment credential --- */
 console.log("\nThe org token is a credential, not a room name\n");

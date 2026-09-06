@@ -172,6 +172,14 @@ export function init() {
     lockDoubt = setTimeout(() => {
       const s = state.get();
       if (!s.locked || s.verified || s.connection !== "connected") return;
+      // "Nobody else is here yet" has to be TRUE to be worth saying. Another
+      // device in a LOCKED room reached it by deriving the same room hash,
+      // which is HKDF over the stretched PIN — so its presence is itself
+      // evidence the PIN matches, and warning about a mismatch while somebody
+      // is standing there is both wrong and alarming. It is reachable: nothing
+      // guarantees a room has a beacon to decrypt, so a device can be correctly
+      // joined, in company, and still unverified.
+      if (s.peers > 1) return;
       // Two ways out, because the app cannot tell which one is needed: this is
       // either a wrong PIN or an empty session you opened first, and only the
       // person reading it knows which. It stays a banner rather than the gate

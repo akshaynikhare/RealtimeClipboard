@@ -865,15 +865,28 @@ function wire() {
   });
 
   /**
-   * The beacon is planted only into a room that is empty AND has no retained
-   * clip. That is correctness, not caution: the beacon IS a clip and the relay
-   * keeps one per room (FR-3.3), so sending it into a room that already has one
-   * would overwrite somebody's actual last clip with a sentinel. It re-arms for
-   * free — after a redeploy or a 10-minute eviction, whoever arrives first
-   * plants it again.
+   * The beacon is planted into any locked room with no retained clip.
+   *
+   * `hasLast` is the whole guard, and it is the one that matters: the beacon IS
+   * a clip and the relay keeps one per room (FR-3.3), so planting into a room
+   * that already has one would overwrite somebody's actual last clip with a
+   * sentinel. It re-arms for free — after a redeploy or a 10-minute eviction,
+   * whoever arrives next plants it again.
+   *
+   * It used to ALSO require an empty room, which guarded nothing `hasLast` did
+   * not and left a hole that widened the moment the beacon started honouring
+   * the sync rung: a device on Off arrives first and plants nothing, the next
+   * device sees `existing > 0` and plants nothing either, and neither can ever
+   * decrypt anything — so a correctly joined device with the right PIN sat
+   * there being told its PIN might not match.
+   *
+   * The cost of dropping it is a narrow race: a peer can send a real clip
+   * between our welcome and our beacon, and ours would take the retained slot.
+   * That costs one future joiner their replay, and hands them the verification
+   * this exists for instead.
    */
-  on(EV.ROOM_STATE, ({ existing, hasLast }) => {
-    if (!state.get().locked || existing > 0 || hasLast) return;
+  on(EV.ROOM_STATE, ({ hasLast }) => {
+    if (!state.get().locked || hasLast) return;
     sendBeacon();
   });
 
