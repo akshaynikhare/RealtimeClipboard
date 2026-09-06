@@ -62,6 +62,10 @@ const state = {
     // system | light | dark. "system" is not a third colour scheme, it is the
     // absence of a choice — see config.js THEMES and ui/features/theme.js.
     theme: DEFAULT_THEME,
+    // "" is the absence of a choice, and means "follow the browser" — the same
+    // shape as theme's "system". An explicit "en" is a real choice and beats a
+    // browser that asks for Chinese. See core/i18n.js pick().
+    language: "",
   },
 };
 

@@ -26,6 +26,7 @@
   "files": [
     "cli/",
     "src/core/",
+    "!src/core/lang/",
     "src/transport/",
     "LICENSE",
     "README.md"
@@ -34,7 +35,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "verify": "node tests/unit/static-check.mjs && node tools/i18n/build-pages.mjs --check && node tests/unit/relay-url.mjs && node tests/unit/lock.mjs && node tests/unit/session-boundaries.mjs && node tests/unit/verify.mjs && node tests/unit/shared-session.mjs && node tests/unit/files.mjs && node tests/unit/transfer.mjs && node tests/unit/clipsize.mjs && node tests/unit/syncmode.mjs && node tests/unit/pasteguard.mjs && node tests/unit/sharelink.mjs && node tests/unit/keyfloor.mjs && node tests/unit/adpolicy.mjs && node tests/unit/vscode-host.mjs && node tests/unit/browser-worker.mjs && node tests/unit/browser-popup.mjs && node tests/dom/dialog.mjs && node tests/dom/theme.mjs && node tests/dom/whatsnew.mjs && node tests/dom/tiles.mjs && node tests/dom/guide.mjs && node tests/dom/links.mjs && node tests/dom/editor.mjs && node tests/dom/capture.mjs && node tests/dom/offer.mjs",
+    "verify": "node tests/unit/static-check.mjs && node tools/i18n/build-pages.mjs --check && node tools/i18n/app-strings.mjs --check && node tests/unit/i18n.mjs && node tests/unit/relay-url.mjs && node tests/unit/lock.mjs && node tests/unit/session-boundaries.mjs && node tests/unit/verify.mjs && node tests/unit/shared-session.mjs && node tests/unit/files.mjs && node tests/unit/transfer.mjs && node tests/unit/clipsize.mjs && node tests/unit/syncmode.mjs && node tests/unit/pasteguard.mjs && node tests/unit/sharelink.mjs && node tests/unit/keyfloor.mjs && node tests/unit/adpolicy.mjs && node tests/unit/vscode-host.mjs && node tests/unit/browser-worker.mjs && node tests/unit/browser-popup.mjs && node tests/dom/dialog.mjs && node tests/dom/theme.mjs && node tests/dom/whatsnew.mjs && node tests/dom/tiles.mjs && node tests/dom/guide.mjs && node tests/dom/links.mjs && node tests/dom/editor.mjs && node tests/dom/capture.mjs && node tests/dom/offer.mjs",
     "test": "npm run verify && npm run build:vscode && npm run build:mcp && npm run build:browser && node tests/dom/bundle.mjs && node tests/dom/extension.mjs && node tests/live/vscode.mjs && node tests/live/mcp.mjs && node tests/live/cli.mjs && node tests/live/e2e.mjs && node tests/live/boot.mjs && node tests/live/boot.mjs --locked && node tests/live/boot.mjs --qr && node tests/live/boot.mjs --locked --qr && node tests/live/fallback.mjs",
     "test:static": "node tests/unit/static-check.mjs",
     "test:lock": "node tests/unit/lock.mjs && node tests/dom/dialog.mjs",
@@ -50,6 +51,7 @@
     "build": "node tools/build/build.mjs",
     "build:site": "node tools/build/build.mjs _site && node tools/check/site-check.mjs _site",
     "i18n:pages": "node tools/i18n/build-pages.mjs",
+    "i18n:app": "node tools/i18n/app-strings.mjs",
     "size:record": "node tools/build/build.mjs _site --record-size",
     "build:desktop": "node tools/build/build.mjs _desktop --desktop && node tools/check/desktop-check.mjs _desktop",
     "build:vscode": "node tools/build/build-vscode.mjs",

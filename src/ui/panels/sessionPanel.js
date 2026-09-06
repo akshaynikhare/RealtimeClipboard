@@ -34,6 +34,8 @@ import * as modal from "../primitives/modal.js";
 // persistence and repainting rather than poking state behind each other's back.
 import * as syncMode from "../features/syncMode.js";
 import * as theme from "../features/theme.js";
+import * as i18n from "../../core/i18n.js";
+import { t } from "../../core/i18n.js";
 import { $, esc, on as bind, lazyStyle } from "../primitives/dom.js";
 
 /** Set by the relay when the room may have moved replica; shown in the roster. */
@@ -109,6 +111,14 @@ function onMenuEvent(e, close) {
   if (action === "repin")  { close(); return emit("session:repin"); }
   if (action === "whatsnew") { close(); return emit("ui:whatsnew"); }
   if (action === "guide")    { close(); return emit("ui:guide"); }
+  if (action === "language") {
+    // A reload, for the same reason changing the relay reloads: every label in
+    // the app was built once, at init, from the catalogue that was in hand.
+    state.saveSetting("language", e.target.closest("[data-lang-set]").getAttribute("data-lang-set"));
+    location.reload();
+    return;
+  }
+
   if (action === "theme") {
     state.saveSetting("theme", e.target.closest("[data-theme-set]").dataset.themeSet);
     return menu.refresh();               // the note under it names what is showing
@@ -236,6 +246,7 @@ function gearMenu() {
     + relayRows()
     + group("Appearance")
     + themeRows()
+    + languageRows()
     + group("About")
     + `<div class="sacts">
          <button class="btn ghost" type="button" data-act="whatsnew" data-mi="whatsnew">What's new</button>
@@ -309,6 +320,31 @@ function themeRows() {
     <div class="snote">${esc(choice === THEMES.SYSTEM
       ? `Following this device — ${theme.resolved() === THEMES.LIGHT ? "light" : "dark"} right now.`
       : "Set here, whatever this device is set to.")}</div>`;
+}
+
+/**
+ * Language, offered the way the theme is: "" is the absence of a choice, not a
+ * fifth language.
+ *
+ * Only what a catalogue exists for is listed. The app falls back to English
+ * string by string, so an untranslated label is not a broken one — but offering
+ * a language the app has almost nothing for would promise more than it delivers.
+ */
+function languageRows() {
+  const choice = state.get().settings.language;
+  const NAMES = { zh: "中文", pt: "Português", es: "Español", ru: "Русский" };
+  const OPTIONS = [["", t("Automatic")], ["en", "English"],
+                   ...i18n.SUPPORTED.map(c => [c, NAMES[c]])];
+
+  return `<div class="sacts seg">
+      ${OPTIONS.map(([value, label]) => `
+        <button class="btn ghost${value === choice ? " on" : ""}" type="button"
+                data-act="language" data-lang-set="${esc(value)}" data-mi="lang-${esc(value || "auto")}"
+                aria-pressed="${value === choice}">${esc(label)}</button>`).join("")}
+    </div>
+    <div class="snote">${esc(choice === ""
+      ? t("Following this browser — {lang} right now.", { lang: i18n.lang() })
+      : t("Set here, whatever this browser asks for."))}</div>`;
 }
 
 /**
