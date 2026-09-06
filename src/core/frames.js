@@ -37,8 +37,15 @@ export function setPlaintextFrames(types) {
   plaintext = new Set(types ?? []);
 }
 
-export async function encryptFrame(frame) {
-  const { aesKey } = state.get();
+/**
+ * The key-taking forms. `encryptFrame`/`decryptFrame` are these with the
+ * session's key filled in, and they exist separately because `cli/session.mjs`
+ * — the half `cli/`, `mcp/`, `vscode/` and `browser/` all share — holds its key
+ * in its own object and never touches `core/state.js`. Without these it would
+ * have to hand-roll the split-seal-strip dance to answer one frame, which is
+ * the reimplementation those surfaces are forbidden.
+ */
+export async function sealWith(aesKey, frame) {
   if (!aesKey) return frame;
 
   const routing = {}, secret = {};
@@ -50,6 +57,8 @@ export async function encryptFrame(frame) {
   const { payload, iv } = await cryptoBox.encrypt(aesKey, JSON.stringify(secret));
   return { ...routing, payload, iv };
 }
+
+export const encryptFrame = (frame) => sealWith(state.get().aesKey, frame);
 
 /**
  * Open a sealed frame, or refuse it. Two things this must not do, both of which
@@ -74,8 +83,7 @@ export async function encryptFrame(frame) {
  * the one before it. The caller does it, after that check. See openFrame() in
  * main.js.
  */
-export async function decryptFrame(frame) {
-  const { aesKey } = state.get();
+export async function openWith(aesKey, frame) {
   if (!aesKey) return null;                     // no session: nothing is trusted
 
   if (!frame.payload || !frame.iv) {
@@ -105,3 +113,5 @@ export async function decryptFrame(frame) {
     return null;
   }
 }
+
+export const decryptFrame = (frame) => openWith(state.get().aesKey, frame);

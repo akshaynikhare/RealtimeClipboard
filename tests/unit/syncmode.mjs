@@ -161,9 +161,17 @@ ok("the client throttles well inside the relay's allowance",
    clientRate * 2 <= streamLimit,
    `client ${clientRate}/s vs relay ${streamLimit}/s — headroom for scheduler jitter`);
 
+/* Read as a set rather than pinned as a literal: the exclusion list grows, and
+   a check that fails on the ORDER of it teaches people to edit the test. What
+   must not change is that each of these is in it. */
+const notFileTraffic =
+  relaySrc.match(/FILE_FRAMES\s*=\s*\(TARGETED \| ROOM_WIDE\) - \{([^}]*)\}/)?.[1] ?? "";
 ok("a stream is not mistaken for file traffic",
-   /FILE_FRAMES\s*=\s*\(TARGETED \| ROOM_WIDE\) - \{"cursor", "stream"\}/.test(relaySrc),
+   notFileTraffic.includes('"cursor"') && notFileTraffic.includes('"stream"'),
    "or REALTIMECLIPBOARD_DISABLE_FILES would silently disable live typing");
+ok("...and neither is a lock proof",
+   notFileTraffic.includes('"verify"'),
+   "a relay with files off would leave every locked session unable to confirm its PIN");
 
 console.log(`\n${"=".repeat(58)}`);
 console.log(`SYNCMODE: ${pass}/${pass + fail} passed`);

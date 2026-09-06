@@ -242,7 +242,6 @@ function bodyOf(src, signature) {
 
 const leave = codeOnly(bodyOf(MAIN, "function leaveRoom()"));
 const evicted = codeOnly(bodyOf(MAIN, "async function onEvicted()"));
-const beacon = codeOnly(bodyOf(MAIN, "async function sendBeacon()"));
 const evict = codeOnly(bodyOf(MAIN, "async function sendEviction()"));
 
 /* The reader has to be trustworthy before anything it reads is worth checking.
@@ -252,12 +251,13 @@ const evict = codeOnly(bodyOf(MAIN, "async function sendEviction()"));
 ok("the function reader finds leaveRoom at all", leave.length > 0);
 ok("...and stops at its own closing brace", !leave.includes("history.clear"),
    "endSession() follows it — capturing that would make every check below vacuous");
-ok("...and the same for the two control senders",
-   beacon.length > 0 && evict.length > 0 && !beacon.includes("sendEviction"));
+ok("...and the same for the control sender",
+   evict.length > 0 && !evict.includes("async function"),
+   "one function, not everything from here to the end of the file");
 ok("...and comments are not mistaken for code", !leave.includes("belonged to the room"),
    "every rule here is also described in prose beside it");
 ok("...and a destructured parameter list is not mistaken for a body",
-   [leave, evicted, beacon, evict].every(b => b.includes(";")),
+   [leave, evicted, evict].every(b => b.includes(";")),
    "`async ({ key }) => {` opens a parameter first, and taking that brace reads "
    + "as 'the rule is missing' for every rule in the function");
 
@@ -268,6 +268,9 @@ ok("...and clears the key with it", leave.includes("state.clearKey()"));
 ok("...and drops the clip waiting for a click", leave.includes("capture.forgetSession()"));
 ok("...and the queued clip", leave.includes("queuedClip = null"));
 ok("...and stops the files layer", leave.includes("filesTeardown()"));
+ok("...and abandons any proof still being sealed",
+   leave.includes("verifier.cancel()"),
+   "a proof sealed for this room is undecryptable noise in the next one");
 
 ok("eviction is a full teardown, not a subset of one",
    evicted.includes("endSession()"),
@@ -292,12 +295,8 @@ ok("rejoin asks for its PIN before leaving",
 
 console.log("\nOff means nothing leaves — the control clips included\n");
 
-ok("the beacon is gated on the rung", beacon.includes("sharesSession"),
+ok("the eviction is gated on the rung", evict.includes("sharesSession"),
    "it goes out as a clip and takes the room's one retained slot");
-ok("...and re-checked after its encryption",
-   (beacon.match(/sharesSession/g) ?? []).length >= 2,
-   "the rung can drop during the seal, which is the window Off is meant to close");
-ok("the eviction is gated on the rung too", evict.includes("sharesSession"));
 ok("...and re-checked after its encryption",
    (evict.match(/sharesSession/g) ?? []).length >= 2);
 ok("...and reports whether the goodbye actually went",
@@ -309,26 +308,62 @@ ok("...and the lock toast says so when it did not",
    /not told/.test(lock),
    "silence here is the failure sendEviction() exists to prevent");
 
-/* A locked room is not guaranteed to have a beacon, so verification is not
-   guaranteed either — and the warning that fills the gap claims nobody else is
-   present, which has to be true to be worth saying. */
-const plant = codeOnly(bodyOf(MAIN, "on(EV.ROOM_STATE, ({ hasLast })"));
-/* Pinned exactly, not merely inspected for what it no longer mentions.
-   Weakening the guard to `|| true` — a beacon that never plants at all —
-   passed every looser form of this check, and so did dropping `hasLast`,
-   which would overwrite somebody's real retained clip with the sentinel. */
-ok("the beacon plants whenever the retained slot is free",
-   /if \(!state\.get\(\)\.locked \|\| hasLast\) return;/.test(plant)
-   && plant.includes("sendBeacon()"),
-   "requiring an EMPTY room as well left an Off-first room with no beacon ever");
-ok("...and no longer requires the room to be empty",
-   !plant.includes("existing"),
-   "the next device saw existing > 0, planted nothing, and could never verify");
+console.log("\nProving a locked room costs the room nothing\n");
+
+/* The rules live in core/verify.js and are exercised by running it —
+   tests/unit/verify.mjs. What can only be checked HERE is the wiring: that the
+   proof is no longer a clip, and that every moment the answer could change is
+   actually connected to something. */
+ok("THE COMPETITION IS GONE: nothing seals the beacon sentinel any more",
+   !/encrypt\([^)]*LOCK\.BEACON/.test(MAIN) && !MAIN.includes("sendBeacon"),
+   "it took the room's one retained clip, so proving a PIN destroyed the replay");
+ok("...but an older client's beacon is still recognised on arrival",
+   MAIN.includes("text === LOCK.BEACON"),
+   "unfiltered, the sentinel reaches the editor, the clipboard and history");
+
+ok("joining asks the room to prove itself",
+   /on\(EV\.ROOM_STATE, \(\) => verifier\.request\(\)\)/.test(MAIN));
+ok("...and so does a peer arriving",
+   /on\(EV\.PEERS_CHANGED, \(\) => verifier\.request\(\)\)/.test(MAIN),
+   "you open the link first and the other device follows a minute later");
+
+/* The trigger that closes the trapdoor. A device that was Off answered nothing,
+   and the peer that asked has no reason to ask again — its trigger was an
+   arrival, and nobody else is going to arrive. */
+const rung = codeOnly(bodyOf(MAIN, "on(EV.SETTINGS_CHANGED, ({ name, value })"));
+ok("coming off Off asks again", rung.includes("verifier.request()"));
+ok("...AND answers unprompted", rung.includes("verifier.announce()"),
+   "asking alone leaves the peer that gave up waiting for ever");
+ok("...and only for the rung, only upwards",
+   /name !== "syncMode" \|\| !sharesSession\(value\)/.test(rung));
+
+/* Inbound, the proof is above the rung gate for the same reason the lock
+   sentinels are: the rung governs what reaches the USER, not what the session
+   knows about itself. */
+/* Sliced, not brace-matched: bodyOf() looks for the `) {` of a function and a
+   `case` label has neither, so it would silently return some later block and
+   assert against the wrong code. Bounded by the `default:` that follows. */
+const caseAt = MAIN.indexOf("case proto.T.VERIFY:");
+const defaultAt = MAIN.indexOf("default:", caseAt);
+const inbound = caseAt < 0 || defaultAt < 0 ? "" : codeOnly(MAIN.slice(caseAt, defaultAt));
+ok("the case reader found the branch and stopped at the next one",
+   inbound.includes("proto.T.VERIFY") && !inbound.includes("cursors.FRAMES"),
+   "running on into `default:` would make the check below vacuous");
+ok("an Off device still opens a proof it is sent",
+   inbound.includes("openFrame(msg, gen)") && !inbound.includes("sharesSession"),
+   "it is entitled to know its own PIN is right; verify.js stops the reply");
 
 const BANNERS = codeOnly(await readFileText("src/ui/shell/banners.js"));
 ok("the doubt banner does not claim solitude while a peer is present",
    /s\.peers > 1\) return;/.test(BANNERS),
    "another device in a LOCKED room derived the same PIN to get there");
+ok("...and does not outlive the solitude it claimed",
+   /on\(EV\.PEERS_CHANGED, \(\{ count \}\) => \{[^]*?dismiss\("lock"\)/.test(BANNERS),
+   "the check ran once, on a timer; a device arriving a second later left the "
+   + "warning up beside a roster listing them");
+ok("...and a relay too old to be asked is told apart from a wrong PIN",
+   BANNERS.includes('relayCaps') && /cannot confirm the PIN/.test(BANNERS),
+   "otherwise it sends someone to re-type a PIN that was right the first time");
 
 /* ------------------------------------------ the deployment credential --- */
 console.log("\nThe org token is a credential, not a room name\n");

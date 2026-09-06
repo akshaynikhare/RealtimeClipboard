@@ -372,6 +372,10 @@ function handle(msg) {
   switch (msg.t) {
     case proto.T.WELCOME:
       state.setInstance(msg.instance);
+      // Before the replay and before ROOM_STATE: lock verification is decided
+      // on this list, and a listener that ran first would read an empty one and
+      // conclude the relay is too old to ask.
+      state.setRelayCaps(msg.caps);
       if (msg.you) state.get().peerId = msg.you;
       state.setPeers(msg.peers ?? 1, msg.list ?? []);
       // `existing > 0` on a create means the generated key is taken (OI-2).
@@ -383,10 +387,14 @@ function handle(msg) {
       // mid-session is immediately in sync (FR-3.3).
       if (msg.last) onFrame(msg.last);
 
-      // Both halves, because main.js can infer neither: a locked session plants
-      // its beacon only into a room that is empty AND has no retained clip.
-      // Emitted after the replay so a listener cannot race the last clip.
-      emit(EV.ROOM_STATE, { existing: msg.existing ?? 0, hasLast: msg.last != null });
+      // `existing` is the peer count the instant before we joined, which only
+      // the relay can answer. Emitted after the replay so a listener cannot
+      // race the last clip.
+      //
+      // `hasLast` used to ride along, for a locked session to decide whether to
+      // plant its proof-of-PIN into the room's retained clip slot. Nothing asks
+      // any more: the proof is its own frame and does not compete for the slot.
+      emit(EV.ROOM_STATE, { existing: msg.existing ?? 0 });
       break;
 
     case proto.T.PEERS:

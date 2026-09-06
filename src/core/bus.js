@@ -52,7 +52,7 @@ export const EV = {
   PEERS_CHANGED:   "peers:changed",    // {count, list}
   INSTANCE_CHANGED:"conn:instance",    // {from, to} — split-brain warning (OI-3)
   KEY_COLLISION:   "session:collision",// generated key was taken (OI-2)
-  ROOM_STATE:      "conn:room",        // {existing, hasLast} — what `welcome` said
+  ROOM_STATE:      "conn:room",        // {existing} — what `welcome` said
 
   // session
   KEY_CHANGED:     "session:key",      // {key, locked, roomHash}

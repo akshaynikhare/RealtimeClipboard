@@ -172,14 +172,23 @@ export function init() {
     lockDoubt = setTimeout(() => {
       const s = state.get();
       if (!s.locked || s.verified || s.connection !== "connected") return;
-      // "Nobody else is here yet" has to be TRUE to be worth saying. Another
-      // device in a LOCKED room reached it by deriving the same room hash,
-      // which is HKDF over the stretched PIN — so its presence is itself
-      // evidence the PIN matches, and warning about a mismatch while somebody
-      // is standing there is both wrong and alarming. It is reachable: nothing
-      // guarantees a room has a beacon to decrypt, so a device can be correctly
-      // joined, in company, and still unverified.
       if (s.peers > 1) return;
+      // A relay too old to carry the verification frame cannot be asked, and a
+      // session on one is unverifiable rather than suspect. Saying "your PIN
+      // may not match" here would send someone to re-type a PIN that was right
+      // the first time, and the second attempt would fail identically. There is
+      // deliberately no fallback to the retained-clip beacon this replaced —
+      // that is what spent the room's replay slot to answer the question.
+      if (!(s.relayCaps ?? []).includes("verify")) {
+        return show("lock", {
+          tone: "warn",
+          title: "This relay cannot confirm the PIN",
+          body: `${relayHost()} is running a build from before locked sessions `
+              + "could prove themselves. The session is encrypted and works "
+              + "normally — it just cannot tell you whether anyone else is on "
+              + "the same PIN. Redeploying the relay fixes it.",
+        });
+      }
       // Two ways out, because the app cannot tell which one is needed: this is
       // either a wrong PIN or an empty session you opened first, and only the
       // person reading it knows which. It stays a banner rather than the gate
@@ -187,7 +196,7 @@ export function init() {
       // is alone in it would be wrong far more often than right.
       show("lock", {
         tone: "warn",
-        title: "Nobody else is here yet",
+        title: "Nobody else is here yet",  // kept true by the PEERS_CHANGED handler below
         body: "If someone should be, the PIN may not match theirs — a different "
             + "PIN is a different session, so neither of you would see the other.",
         action: [
@@ -196,6 +205,26 @@ export function init() {
         ],
       });
     }, LOCK_DOUBT_MS);
+  });
+
+  /**
+   * The doubt banner claims solitude, so it may not outlive it.
+   *
+   * The check above runs once, when the timer fires, and a device arriving one
+   * second later left a warning on screen saying nobody was there — beside a
+   * roster listing them. A peer in a LOCKED room got there by deriving the same
+   * room hash, which is HKDF over the stretched PIN, so its arrival is evidence
+   * against the very thing the banner is warning about.
+   *
+   * It clears the banner and does NOT set `verified`: that stays reserved for
+   * something this device decrypted itself. Presence is the relay's word for
+   * it, and the relay is not trusted for anything else here either.
+   */
+  on(EV.PEERS_CHANGED, ({ count }) => {
+    if (count > 1) {
+      clearTimeout(lockDoubt);
+      dismiss("lock");
+    }
   });
 
   // Which pipe the session is running down. Silence here would be the same

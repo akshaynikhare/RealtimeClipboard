@@ -31,6 +31,12 @@ const state = {
   peerId: null,              // assigned by the relay in `welcome.you`
   connection: "idle",        // idle | connecting | connected | reconnecting | offline
   instance: null,            // relay instance id — a change means split-brain (OI-3)
+  /**
+   * Frame types this relay understands, from `welcome.caps`. Empty on a relay
+   * older than the field, which is the point: a client that guesses gets
+   * UNKNOWN_TYPE back and cannot tell it from silence. See core/verify.js.
+   */
+  relayCaps: [],
   peers: 1,
   tier: "T1",                // clipboard capture tier, see clipboard/capture.js
   lastSent: "",              // dedupe guard (FR-2.7)
@@ -214,6 +220,10 @@ export function setVerified() {
   if (!state.locked || state.verified) return;
   state.verified = true;
   emit(EV.LOCK_STATE, { locked: true, verified: true });
+}
+
+export function setRelayCaps(caps) {
+  state.relayCaps = Array.isArray(caps) ? caps : [];
 }
 
 export function setConnection(connection, detail = "") {

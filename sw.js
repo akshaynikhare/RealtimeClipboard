@@ -43,7 +43,7 @@
 
 const KILL = false;
 
-const VERSION = "v31";
+const VERSION = "v32";
 const CACHE = `realtimeclipboard-shell-${VERSION}`;
 
 /** Hosts this worker must never touch, whatever the request looks like. */
@@ -86,6 +86,7 @@ const SHELL = [
   "./src/core/state.js",
   "./src/core/storage.js",
   "./src/core/text.js",
+  "./src/core/verify.js",
   "./src/files/chunker.js",
   "./src/files/registry.js",
   "./src/files/thumbs.js",

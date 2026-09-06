@@ -17,6 +17,7 @@ import * as cryptoBox from "./core/crypto.js";
 import * as device from "./core/device.js";
 import * as history from "./core/history.js";
 import { encryptFrame, decryptFrame, setPlaintextFrames } from "./core/frames.js";
+import { createVerifier } from "./core/verify.js";
 import { IS_DESKTOP } from "./core/native.js";
 
 import * as relay from "./transport/relay.js";
@@ -223,35 +224,15 @@ async function retryLock() {
 }
 
 /**
- * A wrong PIN does not announce itself — it derives a different, empty room,
- * indistinguishable from being first to arrive. So a locked room says one thing
- * about itself: a single clip whose plaintext is a sentinel. The relay retains
- * the last clip of a room and replays it to joiners, so a joiner that decrypts
- * it has PROVED it is in the right room before any peer is awake to answer.
- *
- * Not covered: a room whose last clip expired with the room. Then the session
- * stays "unverified" rather than guessing — see ui/shell/banners.js.
+ * Proof that this device's PIN is the one that named the room. The rules are in
+ * core/verify.js; this is the wiring, and the triggers are further down.
  */
-async function sendBeacon() {
-  const { aesKey, settings } = state.get();
-  if (!aesKey || !relay.isOpen()) return;
-  // Off means nothing leaves, and this is a clip in every sense that matters:
-  // it goes out as one and it takes the room's single retained slot. The
-  // exemption that used to be here argued the beacon is only proof of the room
-  // — true, but it is proof planted for OTHER devices to find, so an Off device
-  // is putting a frame on the wire for somebody else's benefit while its own UI
-  // says nothing leaves. A locked room whose first arrival is Off simply has no
-  // beacon until a sharing device gets there; the plant re-arms on its own.
-  if (!sharesSession(settings.syncMode)) return;
-  const gen = sessionGen;
-  const { payload, iv } = await cryptoBox.encrypt(aesKey, LOCK.BEACON);
-  // Re-read both: the relay keeps one clip per room, so a sentinel sealed for
-  // the room being left would overwrite the NEXT room's retained clip with
-  // something nobody there can decrypt.
-  if (gen !== sessionGen) return;
-  if (!sharesSession(state.get().settings.syncMode)) return;
-  relay.send(proto.clip({ payload, iv, originId: state.get().originId }));
-}
+const verifier = createVerifier({
+  build: proto.verify,
+  seal: encryptFrame,
+  send: relay.send,
+  gen: () => sessionGen,
+});
 
 /**
  * Locking moves the session: the lock flag is part of the room hash, so the
@@ -378,6 +359,23 @@ async function onFrame(msg) {
           from: msg.from || msg.originId,
         });
       }
+      break;
+    }
+
+    /**
+     * Proof of PIN, in both directions. Deliberately above the rung gate in
+     * `default`, for the reason the lock sentinels are gated inside CLIP rather
+     * than at the top: the rung governs what reaches the USER, not what the
+     * session knows about itself. Opening this frame is the authenticated
+     * decryption that sets `verified` — openFrame() does it, after the
+     * generation check — and an Off device is entitled to know its PIN is
+     * right. What Off stops is the reply, in verify.js, where the frame would
+     * go on the wire.
+     */
+    case proto.T.VERIFY: {
+      if (msg.originId === originId) return;          // our own echo, ignore
+      const frame = await openFrame(msg, gen);
+      if (frame) await verifier.answer(frame);
       break;
     }
 
@@ -597,6 +595,10 @@ function leaveRoom() {
   // and neither is one still waiting for a click to reach the clipboard.
   queuedClip = null;
   capture.forgetSession();
+
+  // A proof sealed for this room proves nothing in the next one, and the
+  // question it answers is about to be asked again from scratch.
+  verifier.cancel();
 
   // Closing the relay says nothing to a WebRTC data channel — it is peer-direct
   // — so a transfer to a device this room change is EJECTING carried on
@@ -865,29 +867,36 @@ function wire() {
   });
 
   /**
-   * The beacon is planted into any locked room with no retained clip.
+   * When a locked session asks the room to prove itself. Every trigger is a
+   * moment at which the answer could have CHANGED — there is no polling, and no
+   * timer waiting for one.
    *
-   * `hasLast` is the whole guard, and it is the one that matters: the beacon IS
-   * a clip and the relay keeps one per room (FR-3.3), so planting into a room
-   * that already has one would overwrite somebody's actual last clip with a
-   * sentinel. It re-arms for free — after a redeploy or a 10-minute eviction,
-   * whoever arrives next plants it again.
+   * Joining is the obvious one. A peer arriving is the one that matters: a
+   * probe is answered by whoever is there, so asking into an empty room and
+   * giving up would leave the common case — you open the link first and the
+   * other device follows a minute later — permanently unverified.
    *
-   * It used to ALSO require an empty room, which guarded nothing `hasLast` did
-   * not and left a hole that widened the moment the beacon started honouring
-   * the sync rung: a device on Off arrives first and plants nothing, the next
-   * device sees `existing > 0` and plants nothing either, and neither can ever
-   * decrypt anything — so a correctly joined device with the right PIN sat
-   * there being told its PIN might not match.
-   *
-   * The cost of dropping it is a narrow race: a peer can send a real clip
-   * between our welcome and our beacon, and ours would take the retained slot.
-   * That costs one future joiner their replay, and hands them the verification
-   * this exists for instead.
+   * verify.js decides whether each of these actually sends. It will not ask
+   * while alone, while already verified, twice inside VERIFY_MIN_INTERVAL_MS,
+   * or at all while the rung is Off.
    */
-  on(EV.ROOM_STATE, ({ hasLast }) => {
-    if (!state.get().locked || hasLast) return;
-    sendBeacon();
+  on(EV.ROOM_STATE, () => verifier.request());
+  on(EV.PEERS_CHANGED, () => verifier.request());
+
+  /**
+   * Coming off Off, which is a trigger in both directions and needs to be.
+   *
+   * Asking is obvious: this device could not ask before and can now. Answering
+   * unprompted is the half that is easy to miss — while this device was Off it
+   * stayed silent through every probe a peer sent, and that peer has no reason
+   * to ask again, because its own trigger was an arrival and nobody else is
+   * going to arrive. It would sit unverified for the life of the session
+   * waiting on a device that had already changed its mind.
+   */
+  on(EV.SETTINGS_CHANGED, ({ name, value }) => {
+    if (name !== "syncMode" || !sharesSession(value)) return;
+    verifier.request();
+    verifier.announce();
   });
 
   /**

@@ -341,8 +341,21 @@ export const LOCK = {
   SIGIL: "!",
 
   /**
-   * Sent on creating a locked room and replayed to joiners, so a joiner can tell
-   * "wrong PIN" from "first one here" by whether it decrypts. Receivers drop it.
+   * READ, never written. Locked sessions used to prove themselves by planting
+   * this as a clip: the relay retains one clip per room and replays it, so a
+   * joiner that decrypted it had proved its PIN before any peer was awake.
+   *
+   * It worked and it cost too much. The proof took the room's single retained
+   * slot, so it either destroyed the last thing the user copied or, once the
+   * plant started honouring the sync rung, silently never happened — and the
+   * two guards that stopped those cases could not both hold. Verification is
+   * now its own frame (`proto.verify`), forwarded and not retained.
+   *
+   * Still recognised on arrival, because a client older than that change is
+   * still planting one, and a sentinel that reached the editor would be
+   * printed, put on the OS clipboard and written to history as a clip.
+   * Compared against the constant, never "starts with NUL", which would also
+   * swallow a legitimate clip.
    */
   BEACON: String.fromCharCode(0) + "realtimeclipboard-lock-v1",
 
@@ -364,6 +377,15 @@ export const LOCK = {
    * that needs the fallback.
    */
   EVICT_FLUSH_MS: 250,
+
+  /**
+   * Floor between two verification probes. Not a retry timer — every trigger
+   * is an event worth asking on (a peer arrived, the rung came off Off) and
+   * roster churn can fire several in a second. One question per interval is
+   * plenty: a peer that can answer answers immediately, and a peer that cannot
+   * will not answer the second one either.
+   */
+  VERIFY_MIN_INTERVAL_MS: 3_000,
 };
 
 export const NET = {

@@ -20,6 +20,7 @@ export const T = {
   RTC_ICE:    "rtc-ice",
   FILE_META:  "file-meta",
   FILE_REQ:   "file-req",
+  VERIFY:     "verify",
 };
 
 /**
@@ -51,6 +52,26 @@ export const clip = ({ payload, iv, originId }) => ({
 export const stream = ({ text, caret, name, originId }) => ({
   t: T.STREAM, text, caret, name, originId,
 });
+
+/**
+ * Lock verification — "is anyone else here on this PIN?" and the answer.
+ *
+ * A wrong PIN does not announce itself: it derives a different room hash and
+ * lands you in an empty room, which looks exactly like being first to arrive.
+ * So a locked session asks, and anything that comes back sealed and readable
+ * settles it — a peer that can encrypt to this key derived it from the same
+ * PIN.
+ *
+ * Not a clip, which is what this used to be. The relay retains one clip per
+ * room and replays it to the next joiner (FR-3.3), so proving a PIN cost the
+ * room its replay slot and overwrote whatever the user had actually copied.
+ * `verify` is forwarded and forgotten.
+ *
+ * `probe` is sealed with everything else, so the relay cannot tell a question
+ * from an answer. It is the whole of the loop guard: only a probe is answered,
+ * and an answer is never a probe.
+ */
+export const verify = ({ probe, originId }) => ({ t: T.VERIFY, probe, originId });
 
 export const ping = () => ({ t: T.PING });
 
