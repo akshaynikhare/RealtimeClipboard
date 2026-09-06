@@ -43,6 +43,22 @@ const pass = msg => console.log(`  ok    ${msg}`);
  * `_headers` is here because a missing one breaks no page at all: it silently
  * drops frame-ancestors and HSTS and looks exactly like a healthy deploy.
  */
+/**
+ * The translated content pages, derived from what tools/i18n/ holds prose for.
+ *
+ * Not circular: the content directory is the source of truth for which
+ * translations exist, and this asserts the *build output* contains each one.
+ * The four translated homepages are hand-written rather than generated, so they
+ * stay listed by hand below. Hand-listing these too would be 288 lines at full
+ * coverage, and a list that long stops being read.
+ */
+const CONTENT = resolve(ROOT, "tools/i18n/content");
+const TRANSLATED = !existsSync(CONTENT) ? [] : readdirSync(CONTENT)
+  .flatMap(lang => readdirSync(join(CONTENT, lang))
+    .filter(f => f.endsWith(".json"))
+    .map(f => `${lang}/${f.replace(/\.json$/, "")}/index.html`))
+  .sort();
+
 const REQUIRED = [
   "index.html", "app.html", "manifest.webmanifest", "sw.js", "404.html",
   "robots.txt", "sitemap.xml", "changelog.json", "CHANGELOG.md",
@@ -63,8 +79,7 @@ const REQUIRED = [
   "online-clipboard-no-login/index.html", "clipboard-sync-different-networks/index.html",
   "live-clipboard/index.html",
   "zh/index.html", "pt/index.html", "es/index.html", "ru/index.html",
-  "zh/what-is-an-online-clipboard/index.html",
-  "pt/what-is-an-online-clipboard/index.html",
+  ...TRANSLATED,
   "privacy/index.html", "about/index.html", "contact/index.html",
   "terms/index.html",
   // Referenced by no page, so a build that stopped copying them looks healthy.
