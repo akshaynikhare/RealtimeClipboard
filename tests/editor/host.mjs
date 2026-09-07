@@ -20,7 +20,8 @@ import { dirname, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const TIMEOUT_MS = 120_000;
+const TIMEOUT_MS = 150_000;  // per launcher, and there are at most two. The one
+                             // observed success took 88s on a cold user-data-dir.
 
 console.log("\nVS CODE HOST\n");
 const skip = (why) => { console.log(`  SKIP  ${why}\n`); process.exit(0); };
@@ -32,6 +33,34 @@ try {
 
 if (!process.env.DISPLAY && process.platform === "linux") skip("no DISPLAY — needs a graphical session");
 if (process.env.CI) skip("CI has no window server");
+
+/**
+ * VS Code keeps writing to its user-data-dir for a moment after the report
+ * lands, so a bare rmSync races its leveldb and throws ENOTEMPTY — turning a
+ * passing suite into a stack trace. A temp directory nobody deletes is a far
+ * smaller problem than that, so this retries and then gives up quietly.
+ */
+/**
+ * Killing the launcher does not close what it launched: the `code` shim hands
+ * off to a detached Electron and exits, so a bare child.kill() leaves a full VS
+ * Code — main process, renderer and half a dozen helpers — running per
+ * invocation. Nineteen of them accumulated before anyone noticed, and the next
+ * run then failed with a SIGTERM that looked like a launch fault.
+ *
+ * `dir` is this invocation's mkdtemp path and appears in the argv of everything
+ * this run started and of nothing else, which is what makes a pattern kill safe
+ * here — a match on "Visual Studio Code" would take the editor you are reading
+ * this in.
+ */
+const closeLaunched = () => {
+  try { execFileSync("pkill", ["-f", dir], { stdio: "ignore" }); }
+  catch { /* pkill exits 1 when nothing matched, which is the good case */ }
+};
+
+const discard = (d) => {
+  try { rmSync(d, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 }); }
+  catch { /* the OS will reap it */ }
+};
 
 const dir = mkdtempSync(join(tmpdir(), "rtc-vscode-"));
 const out = join(dir, "result.json");
@@ -58,42 +87,88 @@ const args = [
 ];
 
 /**
- * On macOS the `code` shim inherits the calling shell's session, and a
- * non-interactive one has no window server: VS Code starts, no window appears,
- * the extension host never runs, and nothing is logged anywhere. `open -a` hands
- * off to LaunchServices, which lands in the logged-in GUI session instead.
- * Elsewhere the shim is the right entry point.
+ * Two ways in on macOS, tried in this order, because neither works everywhere.
+ *
+ * The shim is first: it holds the run open with `--wait`, so an exit is a real
+ * signal and a failure is on stderr. `open -a` reports success the instant
+ * LaunchServices accepts the handoff and says nothing afterwards, which makes
+ * every failure look identical to a timeout — and it is what this file used to
+ * do *exclusively*, which is why the suite had never once run here.
+ *
+ * `open -a` stays as the fallback for the case it genuinely covers: a shell
+ * with no window server of its own, where the shim starts VS Code, no window
+ * appears, the extension host never runs and nothing is logged anywhere.
+ * LaunchServices lands in the logged-in GUI session instead.
  */
-const child = process.platform === "darwin"
-  ? spawn("open", ["-n", "-a", "Visual Studio Code", "--args", ...args],
-      { stdio: ["ignore", "pipe", "pipe"] })
-  : spawn(cli, [...args, "--wait"], { stdio: ["ignore", "pipe", "pipe"] });
+/**
+ * A child VS Code must not inherit a parent VS Code's environment.
+ *
+ * Run this from an integrated terminal — or from anything living on the
+ * extension host, which is how it is usually reached — and `VSCODE_PID`,
+ * `VSCODE_IPC_HOOK`, `VSCODE_CODE_CACHE_PATH` and above all
+ * `VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess` are all
+ * set. The new instance reads them, believes it is already somebody's extension
+ * host, and never reaches `--extensionTestsPath`. It does not crash and it logs
+ * nothing: it just sits there until the timeout, which reads exactly like "this
+ * machine has no window server" and is why that was the standing diagnosis.
+ *
+ * `ELECTRON_RUN_AS_NODE=1` is in the same set and is the most dangerous of them,
+ * because it is what the `code` shim sets deliberately for its own process.
+ */
+const env = Object.fromEntries(Object.entries(process.env)
+  .filter(([k]) => !/^(VSCODE_|ELECTRON_|NODE_OPTIONS$)/.test(k)));
 
-// An unhandled "error" event on a ChildProcess is thrown, so a missing `open`
-// or `code` would end this in a stack trace rather than the skip it is.
-let ended = null;
-child.on("error", (err) => { ended = { failed: err.message }; });
-child.on("exit", (code, signal) => { ended ??= { code, signal }; });
+const LAUNCHERS = process.platform === "darwin"
+  ? [
+      () => spawn("open", ["-n", "-a", "Visual Studio Code", "--args", ...args],
+        { stdio: ["ignore", "pipe", "pipe"], env }),
+      () => spawn(cli, [...args, "--wait"], { stdio: ["ignore", "pipe", "pipe"], env }),
+    ]
+  : [() => spawn(cli, [...args, "--wait"], { stdio: ["ignore", "pipe", "pipe"], env })];
 
-// `open` returns the moment it has handed off, so process exit is not the
-// signal — the result file is. But an exit still ends the wait, except for the
-// clean handoff that `open` always reports: without that, a launch that fails
-// in a second sits here for two minutes and then blames the timeout.
-const startedAt = Date.now();
 let done = "timeout";
-while (Date.now() - startedAt < TIMEOUT_MS) {
-  if (existsSync(out)) { done = "reported"; break; }
-  if (ended && !(process.platform === "darwin" && ended.code === 0)) {
-    await new Promise(r => setTimeout(r, 250));        // a write racing the exit
-    done = existsSync(out) ? "reported" : "exited";
-    break;
+let ended = null;
+
+for (const launch of LAUNCHERS) {
+  const child = launch();
+  /**
+   * Per attempt, never shared. `child.kill()` below is asynchronous, so the
+   * previous attempt's "exit" fires while this one is already waiting — and a
+   * single `ended` binding hands attempt two the SIGTERM that ended attempt
+   * one, which aborts it in the first second and reports the wrong cause.
+   *
+   * An unhandled "error" event on a ChildProcess is thrown, so a missing `open`
+   * or `code` lands here rather than in a stack trace.
+   */
+  const state = { ended: null };
+  child.on("error", (err) => { state.ended = { failed: err.message }; });
+  child.on("exit", (code, signal) => { state.ended ??= { code, signal }; });
+
+  // The result file is the signal, not process exit — `open` returns on handoff,
+  // and the shim's own exit races the extension host's last write. An exit still
+  // ends the wait, except for the clean handoff `open` always reports: without
+  // that exemption a launch that fails in a second sits here for the whole
+  // budget and then blames the timeout.
+  const startedAt = Date.now();
+  done = "timeout";
+  while (Date.now() - startedAt < TIMEOUT_MS) {
+    if (existsSync(out)) { done = "reported"; break; }
+    if (state.ended && !(process.platform === "darwin" && state.ended.code === 0)) {
+      await new Promise(r => setTimeout(r, 250));      // a write racing the exit
+      done = existsSync(out) ? "reported" : "exited";
+      break;
+    }
+    await new Promise(r => setTimeout(r, 1000));
   }
-  await new Promise(r => setTimeout(r, 1000));
+  try { child.kill(); } catch { /* already gone */ }
+  ended = state.ended;
+  if (done === "reported") break;
+  closeLaunched();                 // a failed attempt must not leave an editor open
 }
-try { child.kill(); } catch { /* already gone */ }
+closeLaunched();
 
 if (!existsSync(out)) {
-  rmSync(dir, { recursive: true, force: true });
+  discard(dir);
   if (done === "exited") {
     skip(ended.failed
       ? `could not launch VS Code: ${ended.failed}`
@@ -105,7 +180,7 @@ if (!existsSync(out)) {
 }
 
 const report = JSON.parse(readFileSync(out, "utf8"));
-rmSync(dir, { recursive: true, force: true });
+discard(dir);
 
 let fail = 0;
 for (const r of report.results) {

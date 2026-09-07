@@ -15,3 +15,7 @@ pre { margin: 0; padding: 6px; background: #2d2d2d; border-radius: 5px; max-heig
 #risk { border: 1px solid var(--danger); border-radius: 5px; padding: 8px; display: grid; gap: 6px; }
 .fine { font-size: 11px; opacity: .65; }
 a { color: var(--blue); }
+/* `.row`/`#risk` set display, and an author rule outranks the UA `[hidden]`
+   sheet — so without this the shell-command warning and the PIN field are
+   painted in every state the popup has. */
+[hidden] { display: none !important; }

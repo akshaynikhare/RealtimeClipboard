@@ -517,7 +517,11 @@ checked against `package.json`; a registry entry naming an unpublished version
 is a server nobody can install.
 
 **Edge Add-ons is the one Chromium store with no registration fee**, which is why
-it is automated and Chrome is not. Three one-time steps:
+it is automated and Chrome is not. The listing is live at
+<https://microsoftedge.microsoft.com/addons/detail/fpboiohhihjpdegbkdchobceimmmdboj>,
+so steps 1 and 2 below are history rather than instructions — they are recorded
+because the second one is the part that surprises people, and because a second
+product (a Firefox port, a rename) would have to repeat them.
 
 1. Register at [Partner Center](https://partner.microsoft.com/dashboard/microsoftedge/public/login)
    with a Microsoft account. No fee.
@@ -540,7 +544,9 @@ name when it gets a 401 or 403, rather than reporting a bare status code.
 **Chrome and Firefox are not automated, for different reasons.** Chrome wants a
 one-time $5 registration and has not been paid. Firefox cannot run this extension
 at all: the clipboard bridge needs `chrome.offscreen`, which Firefox does not
-implement. The zip on the release is what serves both, through *Load unpacked*.
+implement. So the zip on the release is not a leftover — it is the only install
+route for Chrome, Brave, Opera and Arc, through *Load unpacked*, and it must keep
+riding every tag even though Edge now updates itself.
 
 **Do not claim background clipboard sync on any store listing.** The extension
 cannot do it, no browser extension can, and it is the one claim a reviewer can

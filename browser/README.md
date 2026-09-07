@@ -28,7 +28,12 @@ in the popup rather than written to your clipboard — the keyboard shortcut ref
 
 ## Install it
 
-Not on any store. The build is attached to every
+**On Edge**, one click, and it updates itself:
+[Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/fpboiohhihjpdegbkdchobceimmmdboj).
+
+**On Chrome, Brave, Opera or Arc**, it is a folder you load yourself. Edge Add-ons only installs
+into Edge, and the Chrome Web Store wants a one-time fee this project has not paid. The build is
+attached to every
 [GitHub release](https://github.com/akshaynikhare/RealtimeClipboard/releases/latest) as
 `realtimeclipboard-browser-<version>.zip`:
 
@@ -36,14 +41,15 @@ Not on any store. The build is attached to every
    Downloads folder you empty is the wrong home.
 2. `chrome://extensions` → turn on **Developer mode** → **Load unpacked** → pick the folder.
 
-**Why there is no one-click installer.** Two reasons, and the second is the one that decides it.
-Chrome has refused to install a `.crx` from outside the Web Store since Chrome 33 on Windows and
-Chrome 44 on macOS — Linux and ChromeOS still allow it, and a managed fleet can force-install one
-by policy. But no release here ships a `.crx` at all, so there is nothing to install that way on any
-platform. The zip is what is published, and *Load unpacked* is what reads it.
+**Why that route has no one-click installer.** Two reasons, and the second is the one that decides
+it. Chrome has refused to install a `.crx` from outside the Web Store since Chrome 33 on Windows
+and Chrome 44 on macOS — Linux and ChromeOS still allow it, and a managed fleet can force-install
+one by policy. But no release here ships a `.crx` at all, so there is nothing to install that way on
+any platform. The zip is what is published, and *Load unpacked* is what reads it.
 
 Loaded this way there is **no auto-update** — repeat the steps for a new version — and Chrome will
-periodically ask whether you meant to keep a developer-mode extension.
+periodically ask whether you meant to keep a developer-mode extension. The Edge listing has neither
+problem, which is the whole reason it exists.
 
 **Chromium only.** Chrome, Edge, Brave, Opera and Arc all work. Firefox does not: the clipboard
 bridge needs `chrome.offscreen`, which Firefox does not implement.
