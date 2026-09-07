@@ -1,7 +1,21 @@
 {
   "generated": "2026-09-07",
-  "current": "v1.0.0",
+  "current": "v1.0.1",
   "releases": [
+    {
+      "version": "v1.0.1",
+      "date": "2026-09-07",
+      "breaking": false,
+      "groups": [
+        {
+          "title": "Fixed",
+          "items": [
+            "browser: the popup's hidden elements were always painted (#78)"
+          ],
+          "more": 0
+        }
+      ]
+    },
     {
       "version": "v1.0.0",
       "date": "2026-09-07",
@@ -199,20 +213,6 @@
           "title": "Build & deploy",
           "items": [
             "deploy: move the site to Cloudflare Pages and the new domain"
-          ],
-          "more": 0
-        }
-      ]
-    },
-    {
-      "version": "v0.2.1",
-      "date": "2026-08-07",
-      "breaking": false,
-      "groups": [
-        {
-          "title": "Fixed",
-          "items": [
-            "test: keep the fallback suite on a local relay"
           ],
           "more": 0
         }
