@@ -270,6 +270,12 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      # Docker Hub is a discovery mirror — hub.docker.com pages are searchable
+      # and indexed in a way ghcr pages are not. ghcr stays canonical.
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f  # v4.6.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8  # v6
         with:
           context: backend
@@ -281,6 +287,8 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/realtimeclipboard-relay:${{ github.ref_name }}
             ghcr.io/${{ github.repository_owner }}/realtimeclipboard-relay:latest
+            slox/realtimeclipboard-relay:${{ github.ref_name }}
+            slox/realtimeclipboard-relay:latest
 
   # ── publish ──────────────────────────────────────────────────────────────
   # tauri-action creates the release as a DRAFT and every matrix leg uploads
