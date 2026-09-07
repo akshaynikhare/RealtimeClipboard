@@ -7,6 +7,12 @@ commit.
 Format follows [Keep a Changelog](https://keepachangelog.com); versions follow
 [Semantic Versioning](https://semver.org).
 
+## v1.0.1 — 2026-09-07
+
+### Fixed
+
+- browser: the popup's hidden elements were always painted (#78)
+
 ## v1.0.0 — 2026-09-07
 
 ### Added
