@@ -366,13 +366,21 @@
         <h3 id="browser">In your browser</h3>
         <p>
           A popup and two keyboard shortcuts, for sending what you copied
-          without opening the app. It is not on a store: the build rides every
-          release as a zip, and Chrome loads it from a folder.
+          without opening the app.
         </p>
 
         <div class="cmdgrid">
+          <div class="cmdcard">
+            <h4>Edge</h4>
+            <p class="hint">
+              One click, and it updates itself. Edge Add-ons is the only
+              Chromium store this is listed on, and it only installs into Edge.
+              <a href="https://microsoftedge.microsoft.com/addons/detail/fpboiohhihjpdegbkdchobceimmmdboj">Get it on Edge Add-ons</a>
+            </p>
+          </div>
+
           <div class="cmdcard wide">
-            <h4>Chrome, Edge, Brave — load unpacked</h4>
+            <h4>Chrome, Brave, Opera, Arc — load unpacked</h4>
             <pre><code># 1. take realtimeclipboard-browser-&lt;version&gt;.zip from the release above
 # 2. unzip it somewhere you will keep it
 # 3. chrome://extensions -&gt; Developer mode -&gt; Load unpacked -&gt; pick the folder</code></pre>
@@ -381,8 +389,8 @@
               Downloads directory you empty is the wrong home. There is no
               auto-update this way, and Chrome will occasionally ask whether you
               meant to keep a developer-mode extension. There is no one-click
-              installer because no release ships a <code>.crx</code> — and on
-              Windows and macOS Chrome would refuse one from outside its Web
+              installer here because no release ships a <code>.crx</code> — and
+              on Windows and macOS Chrome would refuse one from outside its Web
               Store anyway.
               <a href="https://github.com/akshaynikhare/RealtimeClipboard/releases/latest">Latest release</a>
             </p>
