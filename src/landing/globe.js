@@ -80,7 +80,7 @@ function parseCentroids(src) {
 /* ------------------------------------------------------------------ state */
 
 const RAD = Math.PI / 180;
-const TILT = -18 * RAD;          // north pole tipped toward the viewer
+const TILT = 18 * RAD;          // north pole tipped toward the viewer
 
 let canvas, ctx, size = 0, dpr = 1;
 let spin = 0, last = 0, raf = 0;

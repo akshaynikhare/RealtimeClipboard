@@ -247,37 +247,58 @@
     </div>
   </section>
 
-  <!-- ============ the dotted path ============ -->
-  <section class="sec">
+  <!-- ============ live sessions ============ -->
+  <section class="sec" id="live">
     <div class="in">
       <header class="shead">
-        <p class="eyebrow">The path a copy takes</p>
-        <div class="htext">
-          <h2>How your clipboard gets from one device to the other</h2>
-          <p>
-            Encrypted where it was copied, decrypted where it lands. The relay in the
-            middle only ever sees a room hash and ciphertext, and keeps neither.
-            Files skip it entirely.
-          </p>
-        </div>
+        <p class="eyebrow">Live</p>
+        <div class="htext"><h2>Sessions running right now</h2></div>
       </header>
 
-      <div class="stage" id="flowStage">
-        <svg id="flowSvg" class="flowsvg" viewBox="0 0 1200 360"
-             preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
-          <path id="flowFiles" class="fpath files" fill="none"></path>
-          <path id="flowText"  class="fpath text"  fill="none"></path>
-          <g id="flowNodes"></g>
-        </svg>
-        <div class="flabels" id="flowLabels" aria-hidden="true"></div>
-        <div class="fpill" id="flowPill" aria-hidden="true">
-          <span class="sq"></span><span id="flowPillText">Copying…</span>
+      <div class="livegrid">
+        <div class="livereadout">
+          <div class="stats">
+            <div class="stat">
+              <span class="statn" id="statRooms">—</span>
+              <span class="statl">clipboards open</span>
+            </div>
+            <div class="stat">
+              <span class="statn" id="statDevices">—</span>
+              <span class="statl">devices connected</span>
+            </div>
+            <div class="stat">
+              <span class="statn" id="statCountries">—</span>
+              <span class="statl">countries</span>
+            </div>
+          </div>
+
+          <p class="livestate" id="liveState">
+            <span class="dot" id="liveDot"></span><span id="liveStateText">Sessions worldwide</span>
+          </p>
+
+          <ul class="countrylist sq-list" id="countryList"></ul>
+
+          <p class="hint">
+            From the relay, at most once every 30 seconds — totals only, no keys, no
+            addresses, nothing you copied. If the number is small, this is new.
+          </p>
+          <p class="hint">
+            And only from this relay, in memory, gone when it restarts — anyone
+            running their own relay is invisible here, so the real number is
+            only ever higher.
+          </p>
         </div>
-        <p class="flow-fallback">
-          Your laptop encrypts the clip, the relay passes the ciphertext along, and your
-          desktop decrypts it and puts it on the system clipboard. Files take the lower
-          route: straight between the two machines, never through the relay.
-        </p>
+
+        <!-- The canvas is wrapped rather than styled directly: the faint well
+             behind the sphere is a CSS gradient on .globefield, which keeps it
+             out of every animation frame. -->
+        <figure class="globewrap">
+          <div class="globefield">
+            <canvas id="globe" width="640" height="640" role="img"
+                    aria-label="Rotating globe marking the countries with active sessions"></canvas>
+          </div>
+          <figcaption class="hint" id="globeCap">Sessions worldwide</figcaption>
+        </figure>
       </div>
     </div>
   </section>
@@ -301,6 +322,41 @@
         <li>Copy anything, then switch back — it is already on the way.</li>
         <li>On the other device it lands on the system clipboard. Just paste.</li>
       </ol>
+    </div>
+  </section>
+
+  <!-- ============ the dotted path ============ -->
+  <section class="sec">
+    <div class="in">
+      <header class="shead">
+        <p class="eyebrow">The path a copy takes</p>
+        <div class="htext">
+          <h2>How your clipboard gets from one device to the other</h2>
+          <p>
+            Encrypted where it was copied, decrypted where it lands. The relay in the
+            middle only ever sees a room hash and ciphertext, and keeps neither.
+            Files skip it entirely.
+          </p>
+        </div>
+      </header>
+
+      <div class="stage" id="flowStage">
+        <svg id="flowSvg" class="flowsvg" viewBox="0 0 1200 360"
+             preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
+          <path id="flowFiles" class="fpath files" fill="none"></path>
+          <path id="flowText"  class="fpath text"  fill="none"></path>
+          <g id="flowNodes"></g>
+        </svg>
+        <div class="flabels" id="flowLabels" aria-hidden="true"></div>
+        <div class="fclip" aria-hidden="true"></div>
+        <div class="fclip" aria-hidden="true"></div>
+        <div class="fclip" aria-hidden="true"></div>
+        <p class="flow-fallback">
+          Your laptop encrypts the clip, the relay passes the ciphertext along, and your
+          desktop decrypts it and puts it on the system clipboard. Files take the lower
+          route: straight between the two machines, never through the relay.
+        </p>
+      </div>
     </div>
   </section>
 
@@ -529,57 +585,6 @@
         <a href="/what-is-an-online-clipboard/">what an online clipboard is</a> ·
         <a href="/live-clipboard/">what makes a clipboard live</a>
       </p>
-    </div>
-  </section>
-
-  <!-- ============ live sessions ============ -->
-  <section class="sec" id="live">
-    <div class="in">
-      <header class="shead">
-        <p class="eyebrow">Live</p>
-        <div class="htext"><h2>Sessions running right now</h2></div>
-      </header>
-
-      <div class="livegrid">
-        <div class="livereadout">
-          <div class="stats">
-            <div class="stat">
-              <span class="statn" id="statRooms">—</span>
-              <span class="statl">clipboards open</span>
-            </div>
-            <div class="stat">
-              <span class="statn" id="statDevices">—</span>
-              <span class="statl">devices connected</span>
-            </div>
-            <div class="stat">
-              <span class="statn" id="statCountries">—</span>
-              <span class="statl">countries</span>
-            </div>
-          </div>
-
-          <p class="livestate" id="liveState">
-            <span class="dot" id="liveDot"></span><span id="liveStateText">Sessions worldwide</span>
-          </p>
-
-          <ul class="countrylist sq-list" id="countryList"></ul>
-
-          <p class="hint">
-            From the relay, at most once every 30 seconds — totals only, no keys, no
-            addresses, nothing you copied. If the number is small, this is new.
-          </p>
-        </div>
-
-        <!-- The canvas is wrapped rather than styled directly: the faint well
-             behind the sphere is a CSS gradient on .globefield, which keeps it
-             out of every animation frame. -->
-        <figure class="globewrap">
-          <div class="globefield">
-            <canvas id="globe" width="640" height="640" role="img"
-                    aria-label="Rotating globe marking the countries with active sessions"></canvas>
-          </div>
-          <figcaption class="hint" id="globeCap">Sessions worldwide</figcaption>
-        </figure>
-      </div>
     </div>
   </section>
 
