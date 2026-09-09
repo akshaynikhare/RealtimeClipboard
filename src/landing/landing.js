@@ -5,8 +5,8 @@
  *
  *   1. Put a real, freshly generated key in the hero the moment the page loads,
  *      and keep the primary button pointed at whatever key is on screen.
- *   2. Run the dotted path: a pill that travels from the machine that copied to
- *      the machine that pastes, labelled with what actually happens at each step.
+ *   2. Run the dotted path: clips racing from the machine that copied to the
+ *      machine that pastes, each on its own lap so the diagram never idles.
  *   3. Load the globe only when the section it lives in comes near the viewport.
  *
  * Key generation is IMPORTED from the app rather than reimplemented. The
@@ -107,11 +107,10 @@ start("key", function key() {
  */
 /**
  * `gap` is how far a caption sits from its node, and it is per-layout because
- * the thing it has to clear is the travelling pill, which is centred on the
- * path. In the wide layout the pill passes a node sideways and only needs the
- * pill's half-height of clearance; in the tall one it stops ON the first and
- * last node, so the caption has to clear the pill's half-WIDTH or the two
- * overlap every time the loop restarts.
+ * the thing it has to clear is a travelling clip, which is centred on the
+ * path. In the wide layout a clip passes a node sideways and only needs its
+ * half-height of clearance; in the tall one it can stop ON the first and
+ * last node, so the caption has to clear its half-WIDTH or the two overlap.
  */
 const LAYOUTS = {
   wide: {
@@ -120,6 +119,7 @@ const LAYOUTS = {
     text:  "M120 180 C 300 180 372 76 600 76 C 828 76 900 180 1080 180",
     files: "M120 204 C 400 350 800 350 1080 204",
     filesLabel: { x: 600, y: 314, place: "below" },   // the low point of that curve
+    textLabel: { x: 600, y: 150, place: "mid" },      // in the lens between the arcs, clear of the clips
     nodes: [
       { x: 120,  y: 180, kind: "end",   name: "Your laptop",  sub: "copies",           place: "below" },
       { x: 600,  y: 76,  kind: "relay", name: "Relay",        sub: "ciphertext only",  place: "above" },
@@ -136,10 +136,11 @@ const LAYOUTS = {
     vb: "0 0 420 520",
     text:  "M92 55 C 92 150 328 158 328 260 C 328 362 92 370 92 465",
     files: "M64 72 C 8 236 8 284 64 448",
-    // Under the diagram rather than beside the curve: at 360px there is not
-    // enough width for a caption next to the relay's own label without the two
-    // colliding.
-    filesLabel: { x: 210, y: 508, place: "mid" },
+    // Both legends under the diagram rather than beside the curves: at 360px
+    // there is not enough width for a caption next to the relay's own label
+    // without the two colliding.
+    filesLabel: { x: 210, y: 530, place: "mid" },
+    textLabel: { x: 210, y: 500, place: "mid" },
     nodes: [
       { x: 92,  y: 55,  kind: "end",   name: "Your laptop",  sub: "copies",          place: "right" },
       { x: 328, y: 260, kind: "relay", name: "Relay",        sub: "ciphertext only", place: "left"  },
@@ -148,29 +149,15 @@ const LAYOUTS = {
   },
 };
 
-/** What the product is doing at each point along the path, as a fraction of it. */
-const STEPS = [
-  { at: 0.00, text: "Copying…" },
-  { at: 0.13, text: "Encrypting in your browser…" },
-  { at: 0.38, text: "Ciphertext through the relay" },
-  { at: 0.62, text: "Decrypting on your device…" },
-  { at: 0.86, text: "Arriving on your desktop" },
-];
-const STILL = "Encrypted here, decrypted there";
-
+const PERIODS = [9500, 11600, 14200];   // per-clip lap times — co-prime enough that overtakes drift
+const PHASES  = [0, 0.38, 0.71];
 /**
- * Where the pill parks when motion is turned off.
- *
- * Not the midpoint, which is where it used to sit: on both layouts the middle
- * of the path IS the relay node, so a reduced-motion visitor got the pill
- * permanently parked over "relay · ciphertext only" — the one caption that
- * explains what the middle of the diagram is. A third of the way along is still
- * plainly in transit and covers nothing.
+ * Where the clips park when motion is turned off. Spread along the route, and
+ * none at 0.5: on both layouts the middle of the path IS the relay node, and a
+ * parked clip there covers "relay · ciphertext only" — the one caption that
+ * explains the diagram.
  */
-const REST = 0.3;
-
-const TRAVEL_MS = 11000;   // one end to the other
-const HOLD_MS   = 1600;    // pause on arrival before it starts again
+const PARK = [0.15, 0.34, 0.68];
 
 start("flow", function flow() {
   const stage  = byId("flowStage");
@@ -179,9 +166,9 @@ start("flow", function flow() {
   const files  = byId("flowFiles");
   const nodesG = byId("flowNodes");
   const labels = byId("flowLabels");
-  const pill   = byId("flowPill");
-  const pillText = byId("flowPillText");
-  if (!stage || !svg || !text || !files || !nodesG || !labels || !pill || !pillText) return;
+  if (!stage || !svg || !text || !files || !nodesG || !labels) return;
+  const clips = [...stage.querySelectorAll(".fclip")];
+  if (clips.length !== 3) return;
 
   const SVGNS = "http://www.w3.org/2000/svg";
   let layout = null, len = 0, metrics = null, raf = 0, started = 0, onScreen = false;
@@ -243,7 +230,7 @@ start("flow", function flow() {
       n.el = el;
     }
 
-    // Marked, so the caption can carry the same colour as the curve it names.
+    // Marked, so each caption can carry the same colour as the curve it names.
     // Two routes drawn in two colours and captioned in one grey leaves the
     // reader matching them by position, which is exactly the work a legend is
     // supposed to save them.
@@ -253,12 +240,19 @@ start("flow", function flow() {
     labels.appendChild(fl);
     layout.filesLabel.el = fl;
 
+    const tl = document.createElement("div");
+    tl.className = "flabel text";
+    tl.textContent = "clips · encrypted through the relay";
+    labels.appendChild(tl);
+    layout.textLabel.el = tl;
+
     len = text.getTotalLength();
     position();
-    // Only reveal the pill once it has somewhere real to be. If the stage is
-    // not laid out yet (a background tab on some engines) getScreenCTM() returns
-    // null, and an un-transformed pill would sit in the top-left corner. Try
-    // once more on the next frame, by which point layout has certainly run.
+    // Only reveal the clips once they have somewhere real to be. If the stage
+    // is not laid out yet (a background tab on some engines) getScreenCTM()
+    // returns null, and an un-transformed clip would sit in the top-left
+    // corner. Try once more on the next frame, by which point layout has
+    // certainly run.
     if (metrics) stage.dataset.ready = "1";
     else requestAnimationFrame(() => { position(); if (metrics) stage.dataset.ready = "1"; });
   }
@@ -266,7 +260,6 @@ start("flow", function flow() {
   function position() {
     metrics = measure();
     if (!metrics) return;
-    pillW = 0;      // the breakpoint changes the pill's font and padding
     for (const n of layout.nodes) {
       const p = toPx(n.x, n.y);
       n.el.style.left = p.x + "px";
@@ -278,60 +271,34 @@ start("flow", function flow() {
     f.el.style.left = fp.x + "px";
     f.el.style.top = fp.y + "px";
     f.el.style.transform = OFFSETS[f.place](layout.gap);
-    place(reduced.matches ? REST : 0);
+    const t = layout.textLabel;
+    const tp = toPx(t.x, t.y);
+    t.el.style.left = tp.x + "px";
+    t.el.style.top = tp.y + "px";
+    t.el.style.transform = OFFSETS[t.place](layout.gap);
+    clips.forEach((c, i) => placeClip(c, reduced.matches ? PARK[i] : PHASES[i]));
   }
 
-  /**
-   * Width of the pill as it currently reads.
-   *
-   * Invalidated when the text changes rather than measured every frame: reading
-   * offsetWidth forces a style recalculation, and doing that in the same frame
-   * we write a transform is the classic layout thrash. The label changes five
-   * times in eleven seconds; the transform changes sixty times a second.
-   */
-  let pillW = 0;
-
-  function place(t) {
+  function placeClip(el, t) {
     if (!metrics || !len) return;
-
-    // Label first, so the measurement below is of the string we are about to
-    // show and not the one before it.
-    let label = STILL;
-    if (!reduced.matches) {
-      label = STEPS[0].text;
-      for (const s of STEPS) if (t >= s.at) label = s.text;
-    }
-    if (pillText.textContent !== label) { pillText.textContent = label; pillW = 0; }
-    if (!pillW) pillW = pill.offsetWidth;
-
     const p = text.getPointAtLength(len * t);
     const px = toPx(p.x, p.y);
-
-    // The pill is HTML, so unlike the path it can hang outside the stage. On the
-    // tall layout the path passes within 90px of the right edge and the pill is
-    // wider than that — unclamped it slid off the screen, taking the relay's
-    // caption with it. Clamp to the stage, unless the pill is wider than the
-    // stage itself, in which case centred is the least-bad answer.
-    const stageW = stage.clientWidth;
-    const half = pillW / 2;
-    const x = pillW + 8 > stageW
-      ? stageW / 2
-      : Math.min(Math.max(px.x, half + 4), stageW - half - 4);
-
-    pill.style.transform = `translate(${x}px, ${px.y}px) translate(-50%, -50%)`;
+    el.style.transform = `translate(${px.x}px, ${px.y}px) translate(-50%, -50%)`;
   }
+  function park() { clips.forEach((c, i) => placeClip(c, PARK[i])); }
 
   function frame(now) {
     if (!started) started = now;
-    const e = (now - started) % (TRAVEL_MS + HOLD_MS);
-    place(Math.min(1, e / TRAVEL_MS));
+    for (let i = 0; i < clips.length; i++) {
+      placeClip(clips[i], ((now - started) / PERIODS[i] + PHASES[i]) % 1);
+    }
     raf = requestAnimationFrame(frame);
   }
 
   function run() {
     const want = onScreen && !document.hidden && !reduced.matches;
     if (want && !raf) { started = 0; raf = requestAnimationFrame(frame); }
-    if (!want && raf) { cancelAnimationFrame(raf); raf = 0; if (reduced.matches) place(REST); }
+    if (!want && raf) { cancelAnimationFrame(raf); raf = 0; if (reduced.matches) park(); }
   }
 
   build();

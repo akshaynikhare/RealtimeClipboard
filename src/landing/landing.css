@@ -518,11 +518,11 @@ h1 > .brandmark { vertical-align:-.06em; }
    edge grey, or the one node that matters is the one you cannot see. */
 .fnode.relay { fill:none; stroke:var(--dim); stroke-width:1.5; }
 
-/* Labels and the pill are HTML positioned over the SVG rather than <text>
+/* Labels and the clips are HTML positioned over the SVG rather than <text>
    inside it: the viewBox scales by a factor of three between a phone and a
    desktop, and scaled type would be four pixels tall at the bottom of that
    range. landing.js maps path coordinates to pixels with getScreenCTM(). */
-.flabels, .fpill { position:absolute; top:0; left:0; }
+.flabels, .fclip { position:absolute; top:0; left:0; }
 .flabel {
   position:absolute;
   transform:translate(-50%,0);
@@ -536,25 +536,18 @@ h1 > .brandmark { vertical-align:-.06em; }
 .flabel b { display:block; color:var(--text); font-weight:600; }
 /* The legend for the lower curve, in the lower curve's colour. */
 .flabel.files { color:var(--ok); opacity:.85; }
+.flabel.text { color:var(--link); opacity:.85; }
 
-.fpill {
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:7px 12px;
-  background:var(--panel);
-  border:1px solid var(--rule2);
-  border-radius:2px;
-  font:12.5px/1 var(--mono);
-  color:var(--text);
-  white-space:nowrap;
-  box-shadow:0 2px 14px rgba(0,0,0,.35);
+/* Hidden until the paths are measured, same as the pill they replaced —
+   nothing may ease into view off a frame that might not arrive. */
+.fclip {
+  width:9px; height:9px;
+  background:var(--link);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--link) 26%,transparent);
   opacity:0;
   will-change:transform;
 }
-@media (prefers-color-scheme: light) { .fpill { box-shadow:0 2px 14px rgba(0,0,0,.10); } }
-.stage[data-ready] .fpill { opacity:1; }
-.fpill .sq { width:7px; height:7px; background:var(--ok); flex:none; }
+.stage[data-ready] .fclip { opacity:1; }
 
 .flow-fallback {
   color:var(--dim);
@@ -1490,7 +1483,6 @@ footer a:hover { color:var(--link); }
    frame budget — landing.js switches to the vertical layout at this width. */
 @media (max-width:620px) {
   .flabel { font-size:10.5px; }
-  .fpill  { font-size:11.5px; padding:6px 10px; }
 }
 
 /* Below this the wordmark and the button stop sharing a line — 163px of brand
@@ -1634,7 +1626,7 @@ footer a:hover { color:var(--link); }
    so the structure survives. */
 @media (forced-colors: active) {
   .rules span { border-color:CanvasText; }
-  .sq-list li::before, .eyebrow::before, .fpill .sq { border:3px solid CanvasText; }
+  .sq-list li::before, .eyebrow::before, .fclip { border:3px solid CanvasText; }
 }
 
 /* ---------------------------------------------------------------------------
