@@ -62,7 +62,7 @@ jobs:
           fi
           echo "releasing ${{ github.ref_name }} from $GITHUB_SHA, which main contains"
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         with: { node-version: 22, cache: npm }
       - run: npm ci
       - run: npm run verify
@@ -111,7 +111,7 @@ jobs:
       # tauri.conf.json's beforeBuildCommand runs tools/build/build.mjs, which
       # imports esbuild. Without the devDependencies the bundle step fails
       # inside the frontend build with "Cannot find package 'esbuild'".
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         with: { node-version: 22, cache: npm }
       - run: npm ci
 
@@ -125,7 +125,7 @@ jobs:
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev \
                                   librsvg2-dev patchelf libssl-dev
 
-      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6  # v2
+      - uses: swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0  # v2
         with:
           workspaces: desktop/src-tauri
 
@@ -233,7 +233,7 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         with: { node-version: 22, cache: npm, registry-url: "https://registry.npmjs.org" }
       - run: npm ci
       # `npx realtimeclipboard` installs src/core and src/transport — the same modules the
@@ -265,14 +265,14 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069  # v4.4.1
-      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f  # v4.6.0
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6  # v4.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       # Docker Hub is a discovery mirror — hub.docker.com pages are searchable
       # and indexed in a way ghcr pages are not. ghcr stays canonical.
-      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f  # v4.6.0
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6  # v4.7.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -319,7 +319,7 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         with: { node-version: 22, cache: npm, registry-url: "https://registry.npmjs.org" }
       - run: npm ci
       - run: npm run build:mcp
@@ -352,14 +352,14 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         with: { node-version: 22, cache: npm }
       - run: npm ci
       - run: npm run package:browser
       # Handed to publish-release as a workflow artifact rather than uploaded to
       # the draft here, which is what lets this job run without waiting for the
       # release to exist — and therefore without waiting for desktop.
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with: { name: browser-zip, path: browser/dist/*.zip, if-no-files-found: error }
 
   # Edge Add-ons is the one Chromium store with no registration fee, which is
@@ -377,9 +377,9 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         with: { node-version: 22 }
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
         with: { name: browser-zip, path: dist }
       # The script skips itself when the credentials are absent, so this needs no
       # `if:` — and unlike one, it says WHY it did nothing in the log.
@@ -408,14 +408,14 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         with: { node-version: 22, cache: npm }
       - run: npm ci
       # --package shells out to `npx @vscode/vsce`, which is deliberately not a
       # devDependency: it pulls a large tree and is only ever wanted here. Three
       # devDependencies is a stated property of this repo.
       - run: npm run package:vscode
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with: { name: vsix, path: vscode/dist/*.vsix, if-no-files-found: error }
 
   vscode-publish:
@@ -424,12 +424,12 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         with: { node-version: 22 }
       # From the workflow artifact, NOT the release: publishing to a marketplace
       # has nothing to do with whether a GitHub release exists, and reading it
       # from there is what used to make this wait on desktop.
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
         with: { name: vsix, path: dist }
       # Skipped rather than failed when the token is absent, so a fork — and the
       # first tag cut before the publisher ID exists — still produces a .vsix
@@ -488,7 +488,7 @@ jobs:
       # The two surfaces that no longer upload for themselves. They built in
       # parallel with desktop; their output joins the release here, which is the
       # first moment a release is guaranteed to exist.
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
         with: { pattern: "{vsix,browser-zip}", merge-multiple: true, path: staged }
       - name: Attach the extension builds
         env:
@@ -535,7 +535,7 @@ jobs:
       # Never fails the release. The artifacts are published by this point and a
       # search engine declining a ping is not a reason to go back and unpublish
       # them.
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         with: { node-version: 22 }
       - name: Tell IndexNow the site changed
         continue-on-error: true
@@ -575,7 +575,7 @@ jobs:
       # Without this the generated files are written into a runner that is then
       # destroyed, and the step above prints instructions for opening PRs from
       # files nobody can reach.
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with:
           name: manifests
           path: dist/manifests/
